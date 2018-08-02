@@ -23,6 +23,8 @@ classdef twodancers < dancers
         PLSmethod = 'Symmetrical'; % 'Symmetrical' or 'Asymmetrical'
         TimeShift %-2:.5:2; % leave empty for no time shifting, otherwise
                           % add a vector of shifts (in seconds) 
+        WindowSteps = 5 % get a window every N steps. To get a regular
+                        % sliding window, set to 1
     end
     
     properties %(Abstract) % be able to set different values for a subclass 
@@ -126,7 +128,8 @@ classdef twodancers < dancers
             end
             obj.WindowLengths = wparam;
             for w = wparam
-                for k = 1:(size(data1,1)-(w-1))
+                j = 1;
+                for k = 1:obj.WindowSteps:(size(data1,1)-(w-1))
                     % analysis window
                     aw1 = data1(k:(k+w-1),:);
                     aw2 = data2(k:(k+w-1),:);
@@ -134,13 +137,13 @@ classdef twodancers < dancers
                         % compute Asymmetrical PLS
                         [~,~,XSdef,YSdef] = plsregress(aw1,aw2,obj.PLScomp); %default
                         [~,~,XSinv,YSinv] = plsregress(aw2,aw1,obj.PLScomp); %inverted
-                        obj.Corr.timescalesdef(g,k) = corr(XSdef,YSdef); 
-                        obj.Corr.timescalesinv(g,k) = corr(XSinv,YSinv);
+                        obj.Corr.timescalesdef(j,k) = corr(XSdef,YSdef); 
+                        obj.Corr.timescalesinv(j,k) = corr(XSinv,YSinv);
                     elseif strcmpi(obj.PLSmethod,'Symmetrical') 
                         [~,~,XS,YS] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
 
-                        obj.Corr.timescales(g,k) = corr(XS,YS); %Score correlations for SYMMETRICAL PLS
                     end
+                    j = j + 1; % a counter 
                 end
                 g = g + 1; %g=the different time length window used, k the number of windows for each window length
             end
