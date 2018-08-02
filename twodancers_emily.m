@@ -1,6 +1,6 @@
 classdef twodancers_emily < twodancers
     properties
-        MethodSel = 'PCA'; %MethodsSel = 'PLS'; MethodsSel = 'PCA';
+        MethodSel = 'PLS'; %MethodsSel = 'PLS'; MethodsSel = 'PCA';
         CCAWindowing = 'AfterPCA'; % 'BeforePCA' or 'AfterPCA'
         WindowedAnalysis = 'Yes';
     end
@@ -39,7 +39,11 @@ classdef twodancers_emily < twodancers
                     if strcmpi(obj.MethodSel,'PLS') 
                         %obj = getpls(obj); 
                         %obj = windowed_corr_over_pls(obj);
-                        obj = windowed_pls(obj);
+                        if isempty(obj.TimeShift)
+                            obj = windowed_pls(obj);
+                        else
+                           obj = windowed_pls_time_shifts(obj);
+                        end
                     elseif strcmpi(obj.MethodSel,'PCA') 
                         if strcmpi(obj.CCAWindowing,'BeforePCA') 
                             obj = windowed_pca_cca(obj);
