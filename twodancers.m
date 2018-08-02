@@ -142,7 +142,7 @@ classdef twodancers < dancers
                     elseif strcmpi(obj.PLSmethod,'Symmetrical') 
                         [~,~,XS,YS] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
 
-                        obj.Corr.timescales(g,k) = mean(diag(corr(XS,YS))); %Average XS YS correlation of each PLS component
+                        obj.Corr.timescales(g,j) = mean(diag(corr(XS,YS))); %Average XS YS correlation of each PLS component
                     end
                     j = j + 1; % a counter 
                 end
@@ -200,10 +200,14 @@ classdef twodancers < dancers
                 end
                 g = g + 1; %g=the different time length window used, k the number of windows for each window length
                 if ~isempty(obj.SingleTimeScale)
-                    % figure
-                    % imagesc(squeeze(corr_timescales_timeshifts)')
+                    figure
+                    imagesc(squeeze(corr_timescales_timeshifts)')
+                    colorbar
+                    title('Timeshifts Correlations');
+                    ylabel('Timeshifts in seconds');
+                    xlabel('Windows');
+                    set(gca,'YTick',1:length(obj.TimeShift),'YTickLabel',obj.TimeShift,'YTickLabelRotation',90);
                 end
-
             end
             % two alternative steps:
             % 1. take mean across time shifts

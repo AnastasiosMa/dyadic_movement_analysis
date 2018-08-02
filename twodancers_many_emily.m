@@ -88,7 +88,7 @@ classdef twodancers_many_emily < twodancers_emily
             ylabel('Prediction')
         end
         
-        function plot_YL_PLS(obj,k)
+        function plot_YL_PLS(obj,k) %only works with windowing after PLS
             figure
             bar(1:length(obj.Res(k).res.PLSScores.XLdef),[obj.Res(k).res.PLSScores.YLdef obj.Res(k).res.PLSScores.YLinv]);
             title(['Default and inverted Y loadings for Dyad ' num2str(k)]);
@@ -96,7 +96,7 @@ classdef twodancers_many_emily < twodancers_emily
             xlabel('Markers');
             set(gca,'XTick',1:length(obj.Res(k).res.PLSScores.XLdef),'XTickLabel',obj.Res(k).res.Dancer1.res.markers3d,'XTickLabelRotation',90);
         end
-        function obj = plot_average_loadings_pls(obj)
+        function obj = plot_average_loadings_pls(obj) %only works with windowing after PLS
              %average the loadings for each dancer
             AverageXLdef = mean(cell2mat(arrayfun(@(x) x.res.PLSScores.XLdef(:),obj.Res,'UniformOutput', false)),2);  
             AverageYLdef = mean(cell2mat(arrayfun(@(x) x.res.PLSScores.YLdef(:),obj.Res,'UniformOutput', false)),2);  
