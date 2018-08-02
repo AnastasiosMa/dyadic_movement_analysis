@@ -3,13 +3,13 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SingleTimeScale = 1080; % time scale of 9 seconds; leave this empty if you want to use
+        SingleTimeScale% time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
                               % end), 1.5 seconds
         MaxWindowLength  %optional argument, defines the maximum length of Windows                     
-        NumWindows = 16;%180%120%30; % number of windows
+        NumWindows = 10;%180%120%30; % number of windows
         WindowLengths 
         Dancer1
         Dancer2
@@ -142,6 +142,7 @@ classdef twodancers < dancers
                     elseif strcmpi(obj.PLSmethod,'Symmetrical') 
                         [~,~,XS,YS] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
 
+                        obj.Corr.timescales(g,k) = mean(diag(corr(XS,YS))); %Average XS YS correlation of each PLS component
                     end
                     j = j + 1; % a counter 
                 end
