@@ -10,7 +10,7 @@ classdef twodancers_many_emily < twodancers_emily
         % addpath(genpath('~/Dropbox/MATLAB/MocapToolbox_v1.5'))
         % load('mcdemodata','m2jpar')
         % load('EPdyads_ratings.mat')
-        % a = twodancers_many_emily(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,1,'local','TDE','vel');
+        % a = twodancers_many_emily(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,1,'global','noTDE','vel');
             if nargin == 0
                 mocap_array = [];
                 m2jpar = [];
@@ -28,9 +28,12 @@ classdef twodancers_many_emily < twodancers_emily
                 %obj = plot_YL_PLS(obj,k); %Plots individual PLS Y loadings for each dyad    
             end
             if nargin > 0
-            obj.MeanRatedInteraction = meanRatedInteraction;
-            obj.MeanRatedSimilarity = meanRatedSimilarity;
-            obj = correlate_with_perceptual_measures(obj);
+                obj.MeanRatedInteraction = meanRatedInteraction;
+                obj.MeanRatedSimilarity = meanRatedSimilarity;
+                obj = correlate_with_perceptual_measures(obj);
+                if strcmpi(obj.GetPLSCluster,'Yes')
+                    obj = cluster_PLS_loadings(obj);                  
+                end
             end
             %obj = plot_average_loadings_pls(obj); %Plots average PLS XL and XL across dyads
             %corrtable(obj);
@@ -39,7 +42,7 @@ classdef twodancers_many_emily < twodancers_emily
         function obj = correlate_with_perceptual_measures(obj)
             for k = 1:numel(obj.Res(1).res.Corr.means) % for each timescale
                 meancorrs = arrayfun(@(x) x.res.Corr.means(k),obj.Res)'; %obj.Res->will repeat process for all participants
-                %maxcorrs = arrayfun(@(x) x.res.Corr.max(k),obj.Res)';
+                                                                         %maxcorrs = arrayfun(@(x) x.res.Corr.max(k),obj.Res)';
                 [obj.Corr.InterVsMeanCorr.RHO(k),obj.Corr.InterVsMeanCorr.PVAL(k)] = corr(meancorrs,obj.MeanRatedInteraction(1:numel(meancorrs)));
                 [obj.Corr.SimiVsMeanCorr.RHO(k),obj.Corr.SimiVsMeanCorr.PVAL(k)] = corr(meancorrs,obj.MeanRatedSimilarity(1:numel(meancorrs)));
                 %[obj.Corr.InterVsMaxCorr.RHO(k),obj.Corr.InterVsMaxCorr.PVAL(k)] = corr(maxcorrs,obj.MeanRatedInteraction(1:numel(maxcorrs)));
@@ -48,7 +51,7 @@ classdef twodancers_many_emily < twodancers_emily
         end
         function obj = corrtable(obj)
             disp(array2table(cell2mat(arrayfun(@(x) x.RHO,struct2array(obj.Corr), ...
-            'UniformOutput',false)')','VariableNames',fieldnames(obj.Corr)'))
+                                               'UniformOutput',false)')','VariableNames',fieldnames(obj.Corr)'))
         end
         
         function plotcorr(obj)
@@ -97,7 +100,7 @@ classdef twodancers_many_emily < twodancers_emily
             set(gca,'XTick',1:length(obj.Res(k).res.PLSScores.XLdef),'XTickLabel',obj.Res(k).res.Dancer1.res.markers3d,'XTickLabelRotation',90);
         end
         function obj = plot_average_loadings_pls(obj)
-             %average the loadings for each dancer
+        %average the loadings for each dancer
             AverageXLdef = mean(cell2mat(arrayfun(@(x) x.res.PLSScores.XLdef(:),obj.Res,'UniformOutput', false)),2);  
             AverageYLdef = mean(cell2mat(arrayfun(@(x) x.res.PLSScores.YLdef(:),obj.Res,'UniformOutput', false)),2);  
             AverageXLinv = mean(cell2mat(arrayfun(@(x) x.res.PLSScores.XLinv(:),obj.Res,'UniformOutput', false)),2);  
@@ -110,7 +113,7 @@ classdef twodancers_many_emily < twodancers_emily
             ylabel('Outcome loadings (YL) for 1st PLS component')
             xlabel('Markers')
             set(gca,'XTick',1:length(AverageYL),'XTickLabel',obj.Res(1).res.Dancer1.res.markers3d,'XTickLabelRotation',90)
-        
+            
             figure
             bar(1:length(AverageXL),AverageXL)
             title('Average X loadings across Dyads');
@@ -152,7 +155,7 @@ classdef twodancers_many_emily < twodancers_emily
         end
 
         function obj = plot_joint_recurrence_from_highest_to_lowest_prediction(obj)
-                        y = arrayfun(@(x) x.res.Corr.means,obj.Res)';
+            y = arrayfun(@(x) x.res.Corr.means,obj.Res)';
             [sy, iy] = sort(y); % iy are song indices based on prediction
             disp(sy)
             for k = numel(iy):-1:1
@@ -161,14 +164,46 @@ classdef twodancers_many_emily < twodancers_emily
             end
         end
         function meanadaptivesigma(obj)
-           meanadaptivesigma = mean([arrayfun(@(x) x.res.Dancer1.res.AdaptiveSigma,obj.Res) arrayfun(@(x) x.res.Dancer2.res.AdaptiveSigma,obj.Res)]);
-           %keyboard
-%AdaptiveSigmaPercentile = 0.1;
-disp(table(meanadaptivesigma))
-% mean adaptive sigma was 120 or something like that for percentile .1
-% 0.1 and: twodancers_many_emily(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,2,'global','noTDE','vel'); 
-% mean adaptive sigma was 223 for percentile .2
+            meanadaptivesigma = mean([arrayfun(@(x) x.res.Dancer1.res.AdaptiveSigma,obj.Res) arrayfun(@(x) x.res.Dancer2.res.AdaptiveSigma,obj.Res)]);
+            %keyboard
+            %AdaptiveSigmaPercentile = 0.1;
+            disp(table(meanadaptivesigma))
+            % mean adaptive sigma was 120 or something like that for percentile .1
+            % 0.1 and: twodancers_many_emily(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,2,'global','noTDE','vel'); 
+            % mean adaptive sigma was 223 for percentile .2
 
+        end
+        function obj = cluster_PLS_loadings(obj)
+            A = cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.Res,'UniformOutput',false)');
+            
+            keyboard
+            
+            %S = squareform(pdist(all_loadings,'cosine')); % normal cosine
+            cosdist = @(x,y) 1 - abs(sum(x.*y))/(sqrt(sum(x.^2))*sqrt(sum(y.^2)));
+
+            for k = 1:size(A,1)
+                for j = 1:size(A,1)
+
+                    d(k,j) = cosdist(A(k,:),A(j,:));
+
+                end
+            end
+            imagesc(d)
+            colorbar()
+            title('pairwise modified cosine distance between PLS loadings for all analysis windows from all dancers')
+
+
+            Z = linkage(S,'average');
+            figure
+            dendrogram(Z)
+        end
+        function PLS_loadings_boxplot(obj)
+            figure
+            boxplot(cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.Res,'UniformOutput',false)'))
+            xticklabels(obj.Res(1).res.Dancer1.res.markers3d')
+            xtickangle(90)
+            title(['PLS predictor loadings for all dancers and ' ...
+                   'analysis windows'])
         end
     end
 end
