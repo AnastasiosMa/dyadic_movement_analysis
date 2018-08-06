@@ -4,6 +4,7 @@ classdef twodancers < dancers
 %plot triangles
     properties
         SingleTimeScale = 1080;% time scale of 9 seconds; leave this empty if you want to use
+
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -21,9 +22,10 @@ classdef twodancers < dancers
         PLSScores
         PLScomp = 1; %number of components to be extracted
         PLSmethod = 'Symmetrical'; % 'Symmetrical' or 'Asymmetrical'
-        TimeShift = -2:.125:2; % leave empty for no time shifting, otherwise
-                          % add a vector of shifts (in seconds)
-        WindowSteps = 1 % get a window every N steps. To get a regular
+        TimeShift %-2:.5:2; % leave empty for no time shifting, otherwise
+                          % add a vector of shifts (in seconds) 
+        PLSloadings % PLS predictor loadings of participants
+        WindowSteps = 5; % get a window every N steps. To get a regular
                         % sliding window, set to 1
     end
     
@@ -140,8 +142,11 @@ classdef twodancers < dancers
                         obj.Corr.timescalesdef(j,k) = corr(XSdef,YSdef); 
                         obj.Corr.timescalesinv(j,k) = corr(XSinv,YSinv);
                     elseif strcmpi(obj.PLSmethod,'Symmetrical') 
-                        [~,~,XS,YS] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
+                        [XL,YL,XS,YS] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
 
+                        if strcmpi(obj.GetPLSCluster,'Yes')
+                            obj.PLSloadings = [obj.PLSloadings;XL';YL'];
+                        end
                         obj.Corr.timescales(g,j) = mean(diag(corr(XS,YS))); %Average XS YS correlation of each PLS component
                     end
                     j = j + 1; % a counter 
@@ -201,7 +206,7 @@ classdef twodancers < dancers
                 end
                 g = g + 1; %g=the different time length window used, k the number of windows for each window length
                 if ~isempty(obj.SingleTimeScale)
-                    fig=figure;
+                    figure;
                     imagesc(squeeze(corr_timescales_timeshifts)')
                     colorbar
                     title('Timeshifts Correlations');
@@ -381,6 +386,7 @@ classdef twodancers < dancers
             end
         end
         function obj = joint_recurrence_analysis(obj)
+
             ssm1 = obj.Dancer1.res.SSM;
             ssm2 = obj.Dancer2.res.SSM;
             thres = obj.JointRecurrenceThres;
