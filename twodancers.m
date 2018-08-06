@@ -177,6 +177,7 @@ classdef twodancers < dancers
             tsf = obj.TimeShift*obj.SampleRate;
             for w = wparam
                 for j = 1:numel(tsf)
+                    data1 = obj.Dancer1.res.MocapStruct.data;
                     if tsf(j) < 0
                         padtoend = zeros(-tsf(j),size(data1,2));
                         data1 = [data1((-tsf(j)+1):end,:); padtoend];
@@ -200,22 +201,24 @@ classdef twodancers < dancers
                 end
                 g = g + 1; %g=the different time length window used, k the number of windows for each window length
                 if ~isempty(obj.SingleTimeScale)
-                    figure
+                    fig=figure;
                     imagesc(squeeze(corr_timescales_timeshifts)')
                     colorbar
                     title('Timeshifts Correlations');
                     ylabel('Timeshifts in seconds');
                     xlabel('Windows');
-                    set(gca,'YTick',1:length(obj.TimeShift),'YTickLabel',obj.TimeShift,'YTickLabelRotation',90);
+                    set(gca,'YTick',1:length(obj.TimeShift),'YTickLabel',obj.TimeShift);
+                    savefigures('')
                 end
             end
             % two alternative steps:
             % 1. take mean across time shifts
-            % obj.Corr.timescales = mean((squeeze(corr_timescales_timeshifts))');
+            %obj.Corr.timescales = mean((squeeze(corr_timescales_timeshifts))');
             % 2. select time shift whose mean is the highest
             sq = squeeze(corr_timescales_timeshifts);
+            obj.Corr.TimeShiftCor=(mean(sq)); %get mean correlation of each timeshift
             [mm II] = max(mean(sq));
-            obj.Corr.timescales = sq(:,II)';
+            %obj.Corr.timescales = sq(:,II)';           
         end
         % FIRST ORDER ISOMORPHISM, WINDOWED CCA over PCA scores
         function obj = windowed_cca_over_pca(obj)
