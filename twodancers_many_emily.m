@@ -196,7 +196,12 @@ classdef twodancers_many_emily < twodancers_emily
             Z = linkage(d,'complete'); % or average/weighted?
             figure
             dendrogram(Z)
-            % ANALYSIS FOR TWO CLUSTERS
+            %% ANALYSIS FOR TWO CLUSTERS
+
+            % distance matrices for each cluster
+            % figure,imagesc(d(T==1,T==1)),colorbar()
+            % figure,imagesc(d(T==2,T==2)),colorbar()
+
             T = clusterdata(d,'linkage','complete','Maxclust',2);          
             meandist = mean(d)' % mean distances of all elements
             medoids = accumarray(T,meandist,[],@min); % min distances
