@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SingleTimeScale% time scale of 9 seconds; leave this empty if you want to use
+        SingleTimeScale = 1080;% time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -21,9 +21,9 @@ classdef twodancers < dancers
         PLSScores
         PLScomp = 1; %number of components to be extracted
         PLSmethod = 'Symmetrical'; % 'Symmetrical' or 'Asymmetrical'
-        TimeShift %-2:.5:2; % leave empty for no time shifting, otherwise
-                          % add a vector of shifts (in seconds) 
-        WindowSteps = 5 % get a window every N steps. To get a regular
+        TimeShift = -2:.125:2; % leave empty for no time shifting, otherwise
+                          % add a vector of shifts (in seconds)
+        WindowSteps = 1 % get a window every N steps. To get a regular
                         % sliding window, set to 1
     end
     
@@ -104,7 +104,7 @@ classdef twodancers < dancers
             
             %across default and inverted PLS
         end
-        % FIRST ORDER ISOMORPHISM, WINDOWED PLS
+        % FIRST ORDER ISOMORPHISM, WINDOWED PLS            
         function obj = windowed_pls(obj)
             if strcmpi(obj.PLSmethod,'Asymmetrical') 
                 disp('computing Asymmetrical PLS...')
