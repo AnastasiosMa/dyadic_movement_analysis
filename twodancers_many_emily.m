@@ -193,9 +193,22 @@ classdef twodancers_many_emily < twodancers_emily
             title('pairwise modified cosine distance between PLS loadings for all analysis windows from all dancers')
 
 
-            Z = linkage(S,'average');
+            Z = linkage(d,'complete'); % or average/weighted?
             figure
             dendrogram(Z)
+            % ANALYSIS FOR TWO CLUSTERS
+            T = clusterdata(d,'linkage','complete','Maxclust',2);          
+            meandist = mean(d)' % mean distances of all elements
+            medoids = accumarray(T,meandist,[],@min); % min distances
+            for k = 1:numel(medoids)
+                medoid_loc(k) = find(meandist == medoids(k));
+            end
+            figure
+            bar(all_loadings(medoid_loc,:)')
+            labels = obj.Res(1).res.Dancer1.res.markers3d';
+            set(gca,'XTick',1:numel(all_loadings(medoid_loc,:)),'XTickLabel',labels)
+            xtickangle(90)
+            legend('Cluster 1','Cluster 2','location','NorthWest')
         end
         function PLS_loadings_boxplot(obj)
             figure
