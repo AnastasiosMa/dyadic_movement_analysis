@@ -67,6 +67,8 @@ classdef dancers
                     obj = local_coord_system(obj);
                 elseif strcmpi(coordinatesystem,'global')
                     obj.LocalCoordinateSystem = 'No';
+                    obj.MocapStruct = mc2frontal(obj.MocapStruct,2,6, ...
+                                         'mean'); %Rotate data to have frontal view of hip markers 
                 else
                     error('Select a coordinate system')
                 end
@@ -86,7 +88,7 @@ classdef dancers
                     obj = getacceleration(obj);
                 elseif strcmpi(kinemfeat,'pos')
                 else
-                    error('Select a kinematic feature')
+                    error('Select a time derivative')
                 end
                 if isomorphismorder == 1
                     obj.IsomorphismOrder = 1;
@@ -122,8 +124,8 @@ classdef dancers
         % of the frontal plane of the body, defined by the hip
         % markers, is parallel to the first axis of the coordinate
         % system
-            obj.MocapStruct.data = obj.MocapStruct.data- ...
-                repmat(obj.MocapStruct.data(:,1:3),1,obj.nMarkers); % subtract
+           % obj.MocapStruct.data = obj.MocapStruct.data- ...
+            %    repmat(obj.MocapStruct.data(:,1:3),1,obj.nMarkers); % subtract
                                                                     % 3D
                                                                     % representation of
                                                                     % root
