@@ -22,6 +22,7 @@ classdef dancers
         Cropped        
         M2jpar
         LocalCoordinateSystem
+        FrontalViewHipMarkers = 'Yes';
         IsomorphismOrder
         Type %pos vel or acc
         AdaptiveSigma 
@@ -67,8 +68,10 @@ classdef dancers
                     obj = local_coord_system(obj);
                 elseif strcmpi(coordinatesystem,'global')
                     obj.LocalCoordinateSystem = 'No';
+                    if strcmpi(obj.FrontalViewHipMarkers,'Yes')
                     obj.MocapStruct = mc2frontal(obj.MocapStruct,2,6, ...
                                          'mean'); %Rotate data to have frontal view of hip markers 
+                    end
                 else
                     error('Select a coordinate system')
                 end
