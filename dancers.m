@@ -127,8 +127,8 @@ classdef dancers
         % of the frontal plane of the body, defined by the hip
         % markers, is parallel to the first axis of the coordinate
         % system
-           % obj.MocapStruct.data = obj.MocapStruct.data- ...
-            %    repmat(obj.MocapStruct.data(:,1:3),1,obj.nMarkers); % subtract
+            obj.MocapStruct.data = obj.MocapStruct.data- ...
+                repmat(obj.MocapStruct.data(:,1:3),1,obj.nMarkers); % subtract
                                                                     % 3D
                                                                     % representation of
                                                                     % root
@@ -266,7 +266,15 @@ classdef dancers
         end
         function obj = crop_to_anwindow(obj)
         % Select a relevant temporal region of the data
-            obj.MocapStruct = mctrim(obj.MocapStruct,obj.AnWindow(1)*obj.SampleRate,obj.AnWindow(2)*obj.SampleRate-1,'frame');
+        %check if upper trimming limit is out of range
+            if obj.AnWindow(2)*obj.SampleRate-1<length(obj.MocapStruct.data) 
+               obj.MocapStruct = mctrim(obj.MocapStruct,obj.AnWindow(1)*obj.SampleRate,obj.AnWindow(2)*obj.SampleRate-1,'frame');
+            else 
+                disp('Attempting to crop window with out of range time limits')
+                disp('Adjusting cropping window to the start of Mocap data t1=0, t2=15')
+                UpperAnWindow=15;
+                obj.MocapStruct = mctrim(obj.MocapStruct,1,UpperAnWindow*obj.SampleRate,'frame');
+            end
             obj.Cropped = 'yes';
         end
         function obj = getpca(obj)

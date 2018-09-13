@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SingleTimeScale = 1080;% time scale of 9 seconds; leave this empty if you want to use
+        SingleTimeScale% = 1080;% time scale of 9 seconds; leave this empty if you want to use
 
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
@@ -20,12 +20,15 @@ classdef twodancers < dancers
         JointRec
         %JointRecurrenceThres = 50; % percentile
         PLSScores
-        PLScomp = 1; %number of components to be extracted
+        PLScomp = 2; %number of components to be extracted
         PLSmethod = 'Symmetrical'; % 'Symmetrical' or 'Asymmetrical'
-        TimeShift %-2:.5:2; % leave empty for no time shifting, otherwise
+        PLSCorrMethod %= 'Eigenvalues'; 
+        EigenNum=5;
+        TimeShift %= -1:.5:1; % leave empty for no time shifting, otherwise
                           % add a vector of shifts (in seconds) 
+        Timeshifts_corr                  
         PLSloadings % PLS predictor loadings of participants
-        WindowSteps = 5; % get a window every N steps. To get a regular
+        WindowSteps = 20; % get a window every N steps. To get a regular
                         % sliding window, set to 1
     end
     
@@ -86,14 +89,14 @@ classdef twodancers < dancers
                 if isempty(obj.MaxWindowLength) %checks if there is a maximum window length
                     wparam = linspace(size(obj.PLSScores.XSdef,1),obj.MinWindowLength,obj.NumWindows); %create x number of window
                 else
-                    wparam = linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows); 
+                    wparam = round(linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows)); 
                 end
             else                                                                     %lengths
                 wparam = obj.SingleTimeScale; 
             end
             obj.WindowLengths = wparam;
             for w = wparam
-                for k = 1:(size(obj.PLSScores.XSdef,1)-(w-1))
+                for k = 1:obj.WindowSteps:(size(data1,1)-(w-1))
                     % analysis window. 
                     aw_def1 = obj.PLSScores.XSdef(k:(k+w-1)); aw_def2 = obj.PLSScores.YSdef(k:(k+w-1));
                     aw_inv1 = obj.PLSScores.XSinv(k:(k+w-1)); aw_inv2 = obj.PLSScores.YSinv(k:(k+w-1));              
@@ -121,9 +124,9 @@ classdef twodancers < dancers
             g = 1;
             if isempty(obj.SingleTimeScale)
                 if isempty(obj.MaxWindowLength) %checks if there is a maximum window length
-                    wparam = linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows);
+                    wparam = round(linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows),0);
                 else
-                    wparam = linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows);
+                    wparam = round(linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows),0);
                 end
             else                                                                     
                 wparam = obj.SingleTimeScale;
@@ -142,12 +145,15 @@ classdef twodancers < dancers
                         obj.Corr.timescalesdef(j,k) = corr(XSdef,YSdef); 
                         obj.Corr.timescalesinv(j,k) = corr(XSinv,YSinv);
                     elseif strcmpi(obj.PLSmethod,'Symmetrical') 
-                        [XL,YL,XS,YS] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
-
+                        [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
                         if strcmpi(obj.GetPLSCluster,'Yes')
                             obj.PLSloadings = [obj.PLSloadings;XL';YL'];
                         end
-                        obj.Corr.timescales(g,j) = mean(diag(corr(XS,YS))); %Average XS YS correlation of each PLS component
+                        if strcmpi(obj.PLSCorrMethod,'Eigenvalues')
+                           obj.Corr.timescales(g,j) = sum(Eigenvalues(1:obj.EigenNum)); 
+                        else
+                           obj.Corr.timescales(g,j) = mean(diag(corr(XS,YS)));
+                        end%Average XS YS correlation of each PLS component
                     end
                     j = j + 1; % a counter 
                 end
@@ -171,9 +177,9 @@ classdef twodancers < dancers
             g = 1;
             if isempty(obj.SingleTimeScale)
                 if isempty(obj.MaxWindowLength) %checks if there is a maximum window length
-                    wparam = linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows);
+                    wparam = round(linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows),0);
                 else
-                    wparam = linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows);
+                    wparam = round(linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows),0);
                 end
             else                                                                     
                 wparam = obj.SingleTimeScale;
@@ -190,8 +196,7 @@ classdef twodancers < dancers
                         padtostart = zeros(tsf(j),size(data1,2));
                         data1 = [padtostart; data1(1:(end-tsf(j)),:)];
                     end
-
-                    for k = 1:(size(data1,1)-(w-1))
+                    for k = 1:obj.WindowSteps:(size(data1,1)-(w-1))
                         % analysis window
                         aw1 = data1(k:(k+w-1),:);
                         aw2 = data2(k:(k+w-1),:);
@@ -216,13 +221,14 @@ classdef twodancers < dancers
                     savefigures('')
                 end
             end
+            obj.Timeshifts_corr=corr_timescales_timeshifts;
             % two alternative steps:
             % 1. take mean across time shifts
             %obj.Corr.timescales = mean((squeeze(corr_timescales_timeshifts))');
             % 2. select time shift whose mean is the highest
-            sq = squeeze(corr_timescales_timeshifts);
-            obj.Corr.TimeShiftCor=(mean(sq)); %get mean correlation of each timeshift
-            [mm II] = max(mean(sq));
+            %sq = squeeze(corr_timescales_timeshifts);
+            %obj.Corr.TimeShiftCor=(mean(sq)); %get mean correlation of each timeshift
+            %[mm II] = max(mean(sq));
             %obj.Corr.timescales = sq(:,II)';           
         end
         % FIRST ORDER ISOMORPHISM, WINDOWED CCA over PCA scores
@@ -233,16 +239,16 @@ classdef twodancers < dancers
             g = 1;
             if isempty(obj.SingleTimeScale)
                 if isempty(obj.MaxWindowLength) %checks if there is a maximum window length
-                    wparam = linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows); %create x number of window lengths
+                    wparam = round(linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows),0); %create x number of window lengths
                 else
-                    wparam = linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows);
+                    wparam = round(linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows),0);
                 end 
             else                                                                   
                 wparam = obj.SingleTimeScale;
             end
             obj.WindowLengths = wparam;
             for w = wparam
-                for k = 1:(size(data1,1)-(w-1))
+                for k = 1:obj.WindowSteps:(size(data1,1)-(w-1))
                     % analysis window
                     aw1 = data1(k:(k+w-1),:);
                     aw2 = data2(k:(k+w-1),:);
@@ -260,16 +266,16 @@ classdef twodancers < dancers
             g = 1;
             if isempty(obj.SingleTimeScale)
                 if isempty(obj.MaxWindowLength) %checks if there is a maximum window length
-                    wparam = linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows); %create x number of window lengths
+                    wparam = round(linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows),0); %create x number of window lengths
                 else
-                    wparam = linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows);
+                    wparam = round(linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows),0);
                 end 
             else                                                                      
                 wparam = obj.SingleTimeScale;
             end
             obj.WindowLengths = wparam;
             for w = wparam
-                for k = 1:(size(data1,1)-(w-1))
+                for k = 1:obj.WindowSteps:(size(data1,1)-(w-1))
                     % analysis window
                     aw1 = data1(k:(k+w-1),:);
                     aw2 = data2(k:(k+w-1),:);

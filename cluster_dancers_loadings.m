@@ -61,8 +61,9 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             cd '~/Desktop/isomorphism'
             addpath(genpath('~/Dropbox/MocapToolbox_v1.5'))               
             load('mcdemodata','m2jpar');
-            load('EPdyads_ratings.mat');
-            obj.AllDancersData = twodancers_many_emily(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,1,'global','noTDE','vel');
+            %load('EPdyads_ratings.mat');
+            load newPerceptualStimData
+            obj.AllDancersData = twodancers_many_emily(data,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,1,'global','noTDE','vel');
             
             obj.ClusterNum = ClusterNum;
             obj.Clustermethod = Clustermethod;
@@ -70,8 +71,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             obj.Distance = Distance;
             obj.ApplyPCA = ApplyPCA;
             obj.PCNum = PCNum;
-            obj.DyadNum = obj.AllDancersData.Res; 
-            obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res); %Number of windows per dyad
+            obj.DyadNum = length(obj.AllDancersData.Res); 
             
             temp = cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.AllDancersData.Res,'UniformOutput',false)'); %store loadings in default order
             templabels=obj.AllDancersData.Res(1).res.Dancer1.res.markers3d';
@@ -86,6 +86,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             obj.Data = obj.Loadings; 
             obj.DataDistVector=pdist(obj.Data,Distance); %To be used for cophenetic correlation and medoid calculation
             obj.DataDistSquare=squareform(obj.DataDistVector); %creates a square matrix of loadings
+            obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res); %Number of windows per dyad
             if strcmpi(Steps,'2step')
                obj = squarecosinedist(obj);
                obj.Data=obj.DataDistSquare; 
@@ -93,7 +94,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             end
             if strcmpi(ApplyPCA,'Yes')
                obj = pcaondata(obj);
-               %plotpcares(obj)
+               plotpcares(obj)
                obj.Data=abs(obj.PCScores); 
                obj.Labels=obj.PCLabels;
             else
@@ -112,7 +113,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                obj = getgmm(obj);
                obj = plotgmmprob(obj);
                %plotgmmpdf(obj)
-               obj = scattergmm(obj); %ellipses only work for 2PC's
+               %obj = scattergmm(obj); %ellipses only work for 2PC's
                %scatter3dgmm(obj)
             else
                error('Select a valid clustering method')
@@ -123,8 +124,9 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                obj = evalclustersol(obj);
                obj = plotclustersize(obj);
                obj = plotdyadtoclust(obj);
-               obj = clusterperceptualmeans(obj); 
-               obj = plotclusterratings(obj);
+               obj = scattercluster(obj);
+               %obj = clusterperceptualmeans(obj); 
+               %obj = plotclusterratings(obj);
             end
         end      
         function obj = squarecosinedist(obj)
@@ -151,7 +153,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
         function obj = plotpcares(obj)
             figure %Plot loadings for each PC
             bar(abs(obj.PCLoads(:,1:3)))
-            set(gca,'XTick',1:length(obj.PCLoads),'XTickLabel',obj.Labels)
+            set(gca,'XTick',1:length(obj.PCLoads),'XTickLabel',obj.OriginalLabels)
             xtickangle(90)
             legend(obj.PCLabels,'location','NorthWest')
             title(['PC Loadings'])
@@ -242,7 +244,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                 obj.MedoidLoc(k) = find(meandist == obj.Medoids(k));
             end
             dim = [.02 .02 .02 .02]; %parameters for annotation function
-            str = ['Parameters: Clustering method: ' obj.Clustermethod ', Linkage Method: ' obj.Linkmethod ' ClusterNumber:' num2str(obj.ClusterNum)];
+            str = ['Parameters. Clustering method: ' obj.Clustermethod ', Linkage Method: ' obj.Linkmethod ' ClusterNumber:' num2str(obj.ClusterNum)];
             figure; %Plot medoids for each cluster
             bar(abs(obj.Data(obj.MedoidLoc,:))')
             set(gca,'XTick',1:numel(obj.Data(obj.MedoidLoc(1),:)),'XTickLabel',obj.Labels)
@@ -253,7 +255,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
         end   
         function obj = plotcentroids(obj) %Plot centroids (compatible with kmeans)
             dim = [.02 .02 .02 .02]; %parameters for annotation function
-            str = ['Parameters: Clustering method: ' obj.Clustermethod ' ClusterNumber:' num2str(obj.ClusterNum)];
+            str = ['Parameters. Clustering method: ' obj.Clustermethod ', ClusterNumber:' num2str(obj.ClusterNum)];
             figure; %Plot medoids for each cluster
             bar(abs(obj.Centroids'))
             set(gca,'XTick',1:size(obj.Centroids,2),'XTickLabel',obj.Labels)
@@ -292,7 +294,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             %c1=colorbar;
             legend(obj.ClusterLabels,'location','NorthWest')
             title('Scatter Plot - GMMM with Full Unshared Covariances')
-            xlabel('PC1(Vertical Synchrony)'); ylabel('PC2(Horizontal Synchrony)')
+            xlabel('PC1'); ylabel('PC2')
             hold off
         end
         function obj = scatter3dgmm(obj) %creates 3d scatterplot for GMM
@@ -313,20 +315,20 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                 end
             end
             dim = [.02 .02 .02 .02]; %parameters for annotation function
-            str = ['Parameters: Clustering method: ' obj.Clustermethod ' ClusterNumber:' num2str(obj.ClusterNum)];
+            str = ['Parameters. Clustering method: ' obj.Clustermethod ', ClusterNumber:' num2str(obj.ClusterNum)];
             figure
             bar3(obj.DyadtoCluster/obj.DyadWin)
             zlabel('Ratio of Windows')
             set(gca, 'YTick',1:length(obj.AllDancersData.Res))
             title('Windows belonging to each cluster per dyad')
-            axis([0.5 7.5 0.5 24.5 0 1])
+            axis([0.5 7.5 0.5 obj.DyadNum+0.5 0 1])
             text(0.8, 28, 'Clusters', 'FontSize', 11,'Rotation',24);
             text(-3, 12, 'Dyads', 'FontSize', 11,'Rotation',-32);
             annotation('textbox',dim,'String',str,'FitBoxToText','on');  
         end
         function obj = plotclustersize(obj) % Plot percentage of instances belonging to each cluster
             dim = [.02 .02 .02 .02]; %parameters for annotation function
-            str = ['Parameters: Clustering method: ' obj.Clustermethod ' ClusterNumber:' num2str(obj.ClusterNum)];
+            str = ['Parameters. Clustering method: ' obj.Clustermethod ', ClusterNumber:' num2str(obj.ClusterNum)];
             clusterfreq = accumarray(obj.ClusterSol,obj.ClusterSol,[],@length);
             figure; 
             bar(clusterfreq/length(obj.ClusterSol)); 
@@ -343,7 +345,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                 obj.ClusterMeanPerceptual(2,i) = mean(Similarity(obj.ClusterSol==i));
             end
             dim = [.02 .02 .02 .02]; %parameters for annotation function
-            str = ['Parameters: Clustering method: ' obj.Clustermethod ' ClusterNumber:' num2str(obj.ClusterNum)];
+            str = ['Parameters. Clustering method: ' obj.Clustermethod ', ClusterNumber:' num2str(obj.ClusterNum)];
             bar(obj.ClusterMeanPerceptual')
             set(gca,'XTick',1:obj.ClusterNum,'XTickLabel',obj.ClusterLabels)
             ylabel('Mean Ratings')
@@ -375,6 +377,23 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             text(0.8, 28, 'Clusters', 'FontSize', 11,'Rotation',24);
             text(-11, 4, 'Ascending Similarity Ratings per dyad', 'FontSize', 11,'Rotation',-34);
             annotation('textbox',dim,'String',str,'FitBoxToText','on'); 
+        end
+        function obj = scattercluster(obj) %creates 2-d scatterplot
+            dim = [.02 .02 .02 .02]; %parameters for annotation function
+            str = ['Parameters. Clustering method: ' obj.Clustermethod ', ClusterNumber:' num2str(obj.ClusterNum)];
+            figure
+            gscatter((obj.Data(:,1)),(obj.Data(:,2)),obj.ClusterSol,'rbg','+ox',5) %scatterplot over first 2 PC's
+            hold on
+            if strcmpi(obj.Clustermethod,'linkage') %show medoid or centroid location according to selected method
+               plot(obj.Medoids(:,1),obj.Medoids(:,2),'kx','LineWidth',2,'MarkerSize',10) 
+            else 
+                plot(obj.Centroids(:,1),obj.Centroids(:,2),'kx','LineWidth',2,'MarkerSize',10)
+            end    
+            legend(obj.ClusterLabels,'location','NorthWest')
+            title('Scatter Plot - Cluster Membership of each Window')
+            xlabel('PC1'); ylabel('PC2')
+            annotation('textbox',dim,'String',str,'FitBoxToText','on');
+            hold off
         end
     end
 end
