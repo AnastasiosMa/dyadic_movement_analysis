@@ -205,14 +205,14 @@ classdef twodancers < dancers
                         elseif strcmpi(obj.PLSmethod,'Symmetrical') 
                             [~,~,XS,YS] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
 
-                            corr_timescales_timeshifts(g,k,j) = corr(XS,YS); %Score correlations for SYMMETRICAL PLS
+                            obj.Corr.timescales(g,k,j) = mean(diag(corr(XS,YS))); %Score correlations for SYMMETRICAL PLS
                         end
                     end
                 end
                 g = g + 1; %g=the different time length window used, k the number of windows for each window length
                 if ~isempty(obj.SingleTimeScale)
                     figure;
-                    imagesc(squeeze(corr_timescales_timeshifts)')
+                    imagesc(squeeze(obj.Corr.timescales)')
                     colorbar
                     title('Timeshifts Correlations');
                     ylabel('Timeshifts in seconds');
@@ -221,12 +221,12 @@ classdef twodancers < dancers
                     savefigures('')
                 end
             end
-            obj.Timeshifts_corr=corr_timescales_timeshifts;
+            obj.Timeshifts_corr=obj.Corr.timescales;
             % two alternative steps:
             % 1. take mean across time shifts
-            %obj.Corr.timescales = mean((squeeze(corr_timescales_timeshifts))');
+            %obj.Corr.timescales = mean((squeeze(obj.Corr.timescales))');
             % 2. select time shift whose mean is the highest
-            %sq = squeeze(corr_timescales_timeshifts);
+            %sq = squeeze(obj.Corr.timescales);
             %obj.Corr.TimeShiftCor=(mean(sq)); %get mean correlation of each timeshift
             %[mm II] = max(mean(sq));
             %obj.Corr.timescales = sq(:,II)';           
