@@ -70,7 +70,23 @@ classdef twodancers_many_emily < twodancers_emily
                                                false)')','VariableNames',fieldnames(obj.Corr)'))
             end
         end
-        
+        function obj = plot_corr_time_shifts(obj)
+            figure
+            names = fieldnames(obj.Corr);
+            for k = 1:numel(fieldnames(obj.Corr))
+                subplot(numel(fieldnames(obj.Corr)),1,k)
+                imagesc(obj.Corr.(names{k}).RHO')
+                colorbar()
+                title(names{k})
+                yticks(1:size(obj.Res(1).res.Corr.means,3))
+                yticklabels(obj.TimeShift)
+                xticks(1:size(obj.Res(1).res.Corr.means,1))
+                xticklabels(obj.Res(1).res.WindowLengths/obj.Res(1).res.SampleRate)
+                xlabel('Time scale (\tau)')
+                ylabel('Time shift (s)')
+            end
+        end
+
         function plotcorr(obj)
         % Scatter plots to show correlation with perceptual measures. works only if you have computed results for one time scale
             y = arrayfun(@(x) x.res.Corr.means,obj.Res)';
