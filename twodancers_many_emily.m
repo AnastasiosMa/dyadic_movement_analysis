@@ -50,7 +50,6 @@ classdef twodancers_many_emily < twodancers_emily
             end
         end
         function obj = corrtable(obj)
-            keyboard
             if ~isempty(obj.TimeShift)
             varnames_ = repmat(fieldnames(obj.Corr),1,size(obj.Res(1).res.Corr.means,3))';
             g = 1;
