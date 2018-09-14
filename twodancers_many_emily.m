@@ -38,18 +38,37 @@ classdef twodancers_many_emily < twodancers_emily
             toc
         end
         function obj = correlate_with_perceptual_measures(obj)
-            for k = 1:numel(obj.Res(1).res.Corr.means) % for each timescale
-                meancorrs = arrayfun(@(x) x.res.Corr.means(k),obj.Res)'; %obj.Res->will repeat process for all participants
-                                                                         %maxcorrs = arrayfun(@(x) x.res.Corr.max(k),obj.Res)';
-                [obj.Corr.InterVsMeanCorr.RHO(k),obj.Corr.InterVsMeanCorr.PVAL(k)] = corr(meancorrs,obj.MeanRatedInteraction(1:numel(meancorrs)));
-                [obj.Corr.SimiVsMeanCorr.RHO(k),obj.Corr.SimiVsMeanCorr.PVAL(k)] = corr(meancorrs,obj.MeanRatedSimilarity(1:numel(meancorrs)));
-                %[obj.Corr.InterVsMaxCorr.RHO(k),obj.Corr.InterVsMaxCorr.PVAL(k)] = corr(maxcorrs,obj.MeanRatedInteraction(1:numel(maxcorrs)));
-                %[obj.Corr.SimiVsMaxCorr.RHO(k),obj.Corr.SimiVsMaxCorr.PVAL(k)] = corr(maxcorrs,obj.MeanRatedSimilarity(1:numel(maxcorrs)));
+            for k = 1:size(obj.Res(1).res.Corr.means,1) % for each timescale
+                for j = 1:size(obj.Res(1).res.Corr.means,3) % for each timeshift
+                    meancorrs(:,j) = arrayfun(@(x) x.res.Corr.means(k,:,j),obj.Res)'; %obj.Res->will repeat process for all participants
+                                                                                      %maxcorrs = arrayfun(@(x) x.res.Corr.max(k),obj.Res)';
+                    [obj.Corr.InterVsMeanCorr.RHO(k,j),obj.Corr.InterVsMeanCorr.PVAL(k,j)] = corr(meancorrs(:,j),obj.MeanRatedInteraction(1:numel(meancorrs(:,j))));
+                    [obj.Corr.SimiVsMeanCorr.RHO(k,j),obj.Corr.SimiVsMeanCorr.PVAL(k,j)] = corr(meancorrs(:,j),obj.MeanRatedSimilarity(1:numel(meancorrs(:,j))));
+                    %[obj.Corr.InterVsMaxCorr.RHO(k),obj.Corr.InterVsMaxCorr.PVAL(k)] = corr(maxcorrs,obj.MeanRatedInteraction(1:numel(maxcorrs)));
+                    %[obj.Corr.SimiVsMaxCorr.RHO(k),obj.Corr.SimiVsMaxCorr.PVAL(k)] = corr(maxcorrs,obj.MeanRatedSimilarity(1:numel(maxcorrs)));
+                end
             end
         end
         function obj = corrtable(obj)
-            disp(array2table(cell2mat(arrayfun(@(x) x.RHO,struct2array(obj.Corr), ...
-                                               'UniformOutput',false)')','VariableNames',fieldnames(obj.Corr)'))
+            if ~isempty(obj.TimeShift)
+            varnames_ = repmat(fieldnames(obj.Corr),1,size(obj.Res(1).res.Corr.means,3))';
+            g = 1;
+            for ts = 1:size(obj.Res(1).res.Corr.means,3)*2
+               varnames{ts} = [varnames_{ts} '_ts_' strrep(strrep(num2str(obj.TimeShift(g)),'-','neg'),'.','pnt')];
+                if g == size(obj.Res(1).res.Corr.means,3)
+                    g = 1;
+                else
+                g = g + 1;
+                end
+            end
+            disp(array2table(cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
+                                               'UniformOutput', ...
+                                               false)')','VariableNames',varnames(:)'))
+            else
+                disp(array2table(cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
+                                               'UniformOutput', ...
+                                               false)')','VariableNames',fieldnames(obj.Corr)'))
+            end
         end
         
         function plotcorr(obj)
