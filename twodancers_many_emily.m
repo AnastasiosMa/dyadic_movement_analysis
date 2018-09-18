@@ -65,9 +65,24 @@ classdef twodancers_many_emily < twodancers_emily
                                                'UniformOutput', ...
                                                false)')','VariableNames',varnames(:)'))
             else
-                disp(array2table(cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
+                if strcmpi(obj.PLSmethod,'Dynamic') && strcmpi(obj.MethodSel,'PLS')
+                   varnames = [fieldnames(obj.Corr);{'PLSstdScales'}];
+                   disp(array2table([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
+                                               'UniformOutput', ...
+                                               false)'); obj.Res(1).res.PLSstdScales/120]','VariableNames',varnames))
+                                           %obj.PLSstdScales
+                elseif strcmpi(obj.WindowedAnalysis,'Yes')
+                    varnames = [fieldnames(obj.Corr);{'WindowingScales'}];
+                    disp(array2table([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
+                                               'UniformOutput', ...
+                                               false)'); obj.Res(1).res.WindowLengths/120]','VariableNames',varnames))
+                                           %obj.WindowLengths
+                else
+                    disp(array2table(cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
                                                'UniformOutput', ...
                                                false)')','VariableNames',fieldnames(obj.Corr)'))
+                end
+                                           
             end
         end
         
@@ -208,6 +223,33 @@ classdef twodancers_many_emily < twodancers_emily
                 ylabel('Number of Dyads')
                 xlabel('Correlation Coefficient')
             end
+        end
+        function [MeanBinSize,StdBinSize] = binsizestats(obj)
+            temp = cell2mat(arrayfun(@(x) x.res.OptimalBinSize,obj.Res,'UniformOutput',false)'); %Only works with OptimalBinSize
+            MeanBinSize = mean(temp);
+            StdBinSize = std(temp);
+            figure
+            plot(temp)
+            hold on
+            plot(1:length(temp),repmat(MeanBinSize,1,length(temp)),'r--')
+            title('BinSize for each dancer according to Freedman-Diaconis rule')
+            axis([1 length(temp) min(temp) max(temp)])
+            xlabel('Dancers')
+            ylabel('BinSize')
+            hold off
+        end
+        function  obj = MIdistribution(obj)
+            temp = cell2mat(arrayfun(@(x) x.res.Corr.means,obj.Res,'UniformOutput',false)'); 
+            StdMI = std(temp);
+            figure
+            plot(temp)
+            hold on
+            plot(1:length(temp),repmat(mean(temp),1,length(temp)),'r--')
+            title('Mutual Information Scores Distribution')
+            axis([1 length(temp) min(temp) max(temp)])
+            xlabel('Dyads')
+            ylabel('I(x;y)')
+            hold off
         end
     end
 end

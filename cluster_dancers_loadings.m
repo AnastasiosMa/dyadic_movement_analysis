@@ -60,10 +60,9 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             %call twodancers_many_emily with some selected parameters
             cd '~/Desktop/isomorphism'
             addpath(genpath('~/Dropbox/MocapToolbox_v1.5'))               
-            load('mcdemodata','m2jpar');
             %load('EPdyads_ratings.mat');
-            load newPerceptualStimData
-            obj.AllDancersData = twodancers_many_emily(data,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,1,'global','noTDE','vel');
+            load Combined64_dyads_ratings
+            obj.AllDancersData = twodancers_many_emily(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,1,'global','noTDE','vel');
             
             obj.ClusterNum = ClusterNum;
             obj.Clustermethod = Clustermethod;
