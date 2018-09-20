@@ -3,7 +3,7 @@ classdef twodancers_emily < twodancers
         MethodSel = 'PLS'; %MethodsSel = 'PLS'; MethodsSel = 'PCA';
         CCAWindowing = 'BeforePCA'; % 'BeforePCA' or 'AfterPCA'
         WindowedAnalysis = 'No';
-        GetPLSCluster ='Yes'
+        GetPLSCluster ='No'
     end
     methods
         function obj = twodancers_emily(mocapstruct,m2jpar, ...

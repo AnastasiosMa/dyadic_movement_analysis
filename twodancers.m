@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SingleTimeScale %= 1080;% time scale of 9 seconds; leave this empty if you want to use
+        SingleTimeScale % time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -31,11 +31,11 @@ classdef twodancers < dancers
         EigenNum=5;
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
-        PLSstdNum = 10; %Number of different std's to test
-        SinglePLSstd =720;%Specify a single PLSstd.Needs to be empty to use multiple std's
+        PLSstdNum = 20; %Number of different std's to test
+        SinglePLSstd = 540;%Specify a single PLSstd.Needs to be empty to use multiple std's
         PLSstdScales %Number of frames of each used std
         MutualInfo = 'Yes'
-        BinSize = 310.5752;% Leave empty to compute the optimal Binsize for each dancer using Freedman-Diaconis rule
+        BinSize = 310.5752%Median = 269.8557 %Mean=310.5752;% Leave empty to compute the optimal Binsize for each dancer using Freedman-Diaconis rule
         %Specify value to use default binsize for all dyads
         OptimalBinSize %Optimal binsize for each dancer
     end
@@ -96,7 +96,7 @@ classdef twodancers < dancers
                        else
                           [MI] = mutinfo(XS,YS,'size',obj.BinSize); 
                        end
-                       obj.Corr.means(k,1) = MI; 
+                       obj.Corr.means(k,1) = mean(diag(MI)); 
                     else
                        obj.Corr.means(k,1) = corr(XS,YS);
                     end
