@@ -16,8 +16,6 @@ classdef dancers
         %KDE
         PCA
         SSM
-        %SSM_Type = 'Correntropy'
-        %CorrentropyType = 'LaplacianL1_normalize'
         AnWindow
         Cropped        
         M2jpar
