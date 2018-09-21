@@ -92,21 +92,38 @@ classdef twodancers_many_emily < twodancers_emily
                 disp(array2table(results,'VariableNames',varnames))
             end
         end
-        
+        function obj = plot_corr_time_shifts(obj)
+            figure
+            names = fieldnames(obj.Corr);
+            for k = 1:numel(fieldnames(obj.Corr))
+                subplot(numel(fieldnames(obj.Corr)),1,k)
+                imagesc(obj.Corr.(names{k}).RHO')
+                colorbar()
+                title(names{k})
+                yticks(1:size(obj.Res(1).res.Corr.means,3))
+                yticklabels(obj.TimeShift)
+                xticks(1:size(obj.Res(1).res.Corr.means,1))
+                xticklabels(obj.Res(1).res.WindowLengths/obj.Res(1).res.SampleRate)
+                xlabel('Time scale (\tau)')
+                ylabel('Time shift (s)')
+            end
+        end
+
         function plotcorr(obj)
         % Scatter plots to show correlation with perceptual measures. works only if you have computed results for one time scale
-            y = arrayfun(@(x) x.res.Corr.means,obj.Res)';
+            for j = 1:obj.NumTimeScales
+            y = arrayfun(@(x) x.res.Corr.means(j),obj.Res)';
             xSimi = obj.MeanRatedSimilarity;           
             xInt = obj.MeanRatedInteraction;           
             figure
             subplot(2,1,1)
             scatter(xSimi,y)
-            title(sprintf('Correlation: %0.5g',obj.Corr.SimiVsMeanCorr.RHO))
+            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),obj.Res(1).res.TimeScalesUsed(j)))
             xlabel('Mean Rated Similarity')
             ylabel('Prediction')
             subplot(2,1,2)
             scatter(xInt,y)
-            title(sprintf('Correlation: %0.5g',obj.Corr.InterVsMeanCorr.RHO))
+            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),obj.Res(1).res.TimeScalesUsed(j)))
             xlabel('Mean Rated Interaction')
             ylabel('Prediction')
             figure
@@ -116,7 +133,7 @@ classdef twodancers_many_emily < twodancers_emily
             for k=1:length(xSimi)
                 text(xSimi(k),y(k),num2str(k))
             end
-            title(sprintf('Correlation: %0.5g',obj.Corr.SimiVsMeanCorr.RHO))
+            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),obj.Res(1).res.TimeScalesUsed(j)))
             xlabel('Mean Rated Similarity')
             ylabel('Prediction')
             subplot(2,1,2)
@@ -125,7 +142,7 @@ classdef twodancers_many_emily < twodancers_emily
             for k=1:length(xInt)
                 text(xInt(k),y(k),num2str(k))
             end
-            title(sprintf('Correlation: %0.5g',obj.Corr.InterVsMeanCorr.RHO))
+            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),obj.Res(1).res.TimeScalesUsed(j)))
             xlabel('Mean Rated Interaction')
             ylabel('Prediction')
         end
