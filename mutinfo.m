@@ -66,8 +66,8 @@ for xind=1:size(x,1)
         Py = mean(My,1);
         
         % entropy of Py and Px
-        Hx = -dot(Px,log2(Px+eps));
-        Hy = -dot(Py,log2(Py+eps));
+        Hx = -dot(Px,log(Px+eps));
+        Hy = -dot(Py,log(Py+eps));
         
         % mutual information
         z(xind,yind) = Hx + Hy - Hxy;

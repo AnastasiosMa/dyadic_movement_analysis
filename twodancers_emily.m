@@ -60,9 +60,10 @@ classdef twodancers_emily < twodancers
                     end
                 else
                     obj = correlate_SSMs_main_diag(obj);
-                    obj = joint_recurrence_analysis(obj);
+                    %obj = joint_recurrence_analysis(obj);
                 end
-                if ~strcmpi(obj.PLSmethod,'Dynamic') || strcmpi(obj.MethodSel,'PCA')
+                if ~strcmpi(obj.PLSmethod,'Dynamic') || strcmpi(obj.MethodSel,'PCA') ||...
+                        isomorphismorder==2
                 obj = mean_max_corr_for_each_timescale(obj);
                 %obj = plot_triangle(obj);
                 end

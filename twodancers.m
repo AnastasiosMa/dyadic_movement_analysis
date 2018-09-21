@@ -22,28 +22,22 @@ classdef twodancers < dancers
         CrossRec
         CrossRecurrenceThres = 2; % percentile
         JointRec
-        %JointRecurrenceThres = 50; % percentile
+        JointRecurrenceThres = 50; % percentile
         PLSScores
         PLSloadings % PLS predictor loadings of participants
-        PLScomp = 1; %number of components to be extracted
+        PLScomp = 3; %number of components to be extracted
         PLSmethod = 'Dynamic',%'Dynamic'; % 'Symmetric' or 'Asymmetric'
         PLSCorrMethod %= 'Eigenvalues';
         EigenNum=5;
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
         PLSstdNum = 20; %Number of different std's to test
-        SinglePLSstd = 540;%Specify a single PLSstd.Needs to be empty to use multiple std's
+        SinglePLSstd %= 480;%Specify a single PLSstd.Needs to be empty to use multiple std's
         PLSstdScales %Number of frames of each used std
         MutualInfo = 'Yes'
         BinSize = 310.5752%Median = 269.8557 %Mean=310.5752;% Leave empty to compute the optimal Binsize for each dancer using Freedman-Diaconis rule
         %Specify value to use default binsize for all dyads
         OptimalBinSize %Optimal binsize for each dancer
-    end
-    
-    properties %(Abstract) % be able to set different values for a subclass 
-        JointRecurrenceThres; % percentile
-                              %SingleTimeScale; % time scale of 9 seconds; leave this empty if you want to use
-                              % MinWindowLength and NumWindows
     end
     methods
         function obj = twodancers(mocapstruct1,mocapstruct2,m2jpar, ...
@@ -356,6 +350,7 @@ classdef twodancers < dancers
                 wparam = linspace(size(obj.CrossRec,1),obj.MinWindowLength,obj.NumWindows);
             else
                 wparam = obj.SingleTimeScale;
+                obj.WindowLengths = wparam;
             end
             for w = wparam
                 for k = 1:(size(obj.CrossRec,1)-(w-1))
@@ -410,6 +405,7 @@ classdef twodancers < dancers
             %xlabel('Dancer 2')
         end
         function obj = correlate_SSMs_main_diag(obj)
+            disp('Correlating SSM diagonals')
             ssm1 = obj.Dancer1.res.SSM;
             ssm2 = obj.Dancer2.res.SSM;
             g = 1;
@@ -418,8 +414,9 @@ classdef twodancers < dancers
             else
                 wparam = obj.SingleTimeScale;
             end
+            obj.WindowLengths = wparam;
             for w = wparam
-                for k = 1:(size(ssm1,1)-(w-1))
+                for k = 1:obj.WindowSteps:(size(ssm1,1)-(w-1))
                     aw1 = ssm1(k:(k+w-1),k:(k+w-1));
                     aw2 = ssm2(k:(k+w-1),k:(k+w-1));
                     obj.Corr.timescales(g,k) = corr(aw1(:),aw2(:));
@@ -428,7 +425,7 @@ classdef twodancers < dancers
             end
         end
         function obj = joint_recurrence_analysis(obj)
-
+            disp('Computing Joint Recurrence')
             ssm1 = obj.Dancer1.res.SSM;
             ssm2 = obj.Dancer2.res.SSM;
             thres = obj.JointRecurrenceThres;
@@ -440,8 +437,9 @@ classdef twodancers < dancers
             else
                 wparam = obj.SingleTimeScale;
             end
+            obj.WindowLengths = wparam;
             for w = wparam
-                for k = 1:(size(obj.JointRec,1)-(w-1))
+                for k = 1:obj.WindowSteps:(size(obj.JointRec,1)-(w-1))
                     aw = obj.JointRec(k:(k+w-1),k:(k+w-1));
                     obj.Corr.timescales(g,k) = sum(aw(:)); % NOTE:
                                                            % this
