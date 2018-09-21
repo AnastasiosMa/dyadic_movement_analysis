@@ -12,10 +12,8 @@ end
 
 for i=1:size(X,1) % for each matrix row
     cosinediss(i,1) = 1 - abs(sum(Xrow.*X(i,:)))/(sqrt(sum(Xrow.^2))*sqrt(sum(X(i,:).^2)));
-    if cosinediss(i,1)<0 && cosinediss(i,1)> -exp(-10)
-       cosinediss(i,1) = abs(cosinediss(i,1));
-    elseif cosinediss(i,1)<0
-        error('Negative distance calculated. Distance needs to be a positive number')
+    if cosinediss(i,1)<0
+       cosinediss(i,1)=0;
     end
 end
 

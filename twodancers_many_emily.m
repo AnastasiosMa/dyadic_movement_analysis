@@ -65,9 +65,31 @@ classdef twodancers_many_emily < twodancers_emily
                                                'UniformOutput', ...
                                                false)')','VariableNames',varnames(:)'))
             else
-                disp(array2table(cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
+                if strcmpi(obj.PLSmethod,'Dynamic') && strcmpi(obj.MethodSel,'PLS')
+                   varnames = [fieldnames(obj.Corr);{'PLSstdScales'}];
+                   results = num2cell([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
                                                'UniformOutput', ...
-                                               false)')','VariableNames',fieldnames(obj.Corr)'))
+                                               false)'); obj.Res(1).res.PLSstdScales/120]');
+                                           %obj.PLSstdScales
+                elseif strcmpi(obj.WindowedAnalysis,'Yes')
+                    varnames = [fieldnames(obj.Corr);{'WindowingScales'}];
+                    results=num2cell([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
+                                               'UniformOutput', ...
+                                               false)'); obj.Res(1).res.WindowLengths/120]');
+                                           %obj.WindowLengths
+                else
+                    varnames = [fieldnames(obj.Corr)];
+                    results = num2cell([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
+                                               'UniformOutput', ...
+                                               false)')]');
+                end
+                starcell=makestars(cell2mat(arrayfun(@(x) x.PVAL', struct2array(obj.Corr), ...
+                    'UniformOutput', false))); %create cell array of pstars
+                starcell{numel(results)} = []; %add empty elements to bring it to the same size as restable
+                for i=1:numel(results)
+                    results{i}=[num2str(results{i}) starcell{i}]; %makes matrix with significance stars
+                end
+                disp(array2table(results,'VariableNames',varnames))
             end
         end
         function obj = plot_corr_time_shifts(obj)
@@ -123,37 +145,6 @@ classdef twodancers_many_emily < twodancers_emily
             title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),obj.Res(1).res.TimeScalesUsed(j)))
             xlabel('Mean Rated Interaction')
             ylabel('Prediction')
-        end
-        
-        function plot_YL_PLS(obj,k) %only works with windowing after PLS
-            figure
-            bar(1:length(obj.Res(k).res.PLSScores.XLdef),[obj.Res(k).res.PLSScores.YLdef obj.Res(k).res.PLSScores.YLinv]);
-            title(['Default and inverted Y loadings for Dyad ' num2str(k)]);
-            ylabel('Outcome loadings (YL) for 1st PLS component');
-            xlabel('Markers');
-            set(gca,'XTick',1:length(obj.Res(k).res.PLSScores.XLdef),'XTickLabel',obj.Res(k).res.Dancer1.res.markers3d,'XTickLabelRotation',90);
-        end
-        function obj = plot_average_loadings_pls(obj) %only works with windowing after PLS
-             %average the loadings for each dancer
-            AverageXLdef = mean(cell2mat(arrayfun(@(x) x.res.PLSScores.XLdef(:),obj.Res,'UniformOutput', false)),2);  
-            AverageYLdef = mean(cell2mat(arrayfun(@(x) x.res.PLSScores.YLdef(:),obj.Res,'UniformOutput', false)),2);  
-            AverageXLinv = mean(cell2mat(arrayfun(@(x) x.res.PLSScores.XLinv(:),obj.Res,'UniformOutput', false)),2);  
-            AverageYLinv = mean(cell2mat(arrayfun(@(x) x.res.PLSScores.YLinv(:),obj.Res,'UniformOutput', false)),2);
-            AverageYL= [AverageYLdef+AverageYLinv]./2; AverageXL= [AverageXLdef+AverageXLinv]./2;
-            
-            figure
-            bar(1:length(AverageYL),AverageYL)
-            title('Average Y loadings across Dyads');
-            ylabel('Outcome loadings (YL) for 1st PLS component')
-            xlabel('Markers')
-            set(gca,'XTick',1:length(AverageYL),'XTickLabel',obj.Res(1).res.Dancer1.res.markers3d,'XTickLabelRotation',90)
-            
-            figure
-            bar(1:length(AverageXL),AverageXL)
-            title('Average X loadings across Dyads');
-            ylabel('Predictor loadings (XL) for 1st PLS component')
-            xlabel('Markers')
-            set(gca,'XTick',1:length(AverageXL),'XTickLabel',obj.Res(1).res.Dancer1.res.markers3d,'XTickLabelRotation',90)
         end
         function obj = plot_SSMs_from_highest_to_lowest_prediction(obj)
             y = arrayfun(@(x) x.res.Corr.means,obj.Res)';
@@ -225,6 +216,33 @@ classdef twodancers_many_emily < twodancers_emily
                 ylabel('Number of Dyads')
                 xlabel('Correlation Coefficient')
             end
+        end
+        function [MeanBinSize,StdBinSize] = binsizestats(obj)
+            temp = cell2mat(arrayfun(@(x) x.res.OptimalBinSize,obj.Res,'UniformOutput',false)'); %Only works with OptimalBinSize
+            MeanBinSize = mean(temp);
+            StdBinSize = std(temp);
+            figure
+            plot(temp)
+            hold on
+            plot(1:length(temp),repmat(MeanBinSize,1,length(temp)),'r--')
+            title('BinSize for each dancer according to Freedman-Diaconis rule')
+            axis([1 length(temp) min(temp) max(temp)])
+            xlabel('Dancers')
+            ylabel('BinSize')
+            hold off
+        end
+        function  obj = MIdistribution(obj)
+            temp = cell2mat(arrayfun(@(x) x.res.Corr.means,obj.Res,'UniformOutput',false)'); 
+            StdMI = std(temp);
+            figure
+            plot(temp)
+            hold on
+            plot(1:length(temp),repmat(mean(temp),1,length(temp)),'r--')
+            title('Mutual Information Scores Distribution')
+            axis([1 length(temp) min(temp) max(temp)])
+            xlabel('Dyads')
+            ylabel('I(x;y)')
+            hold off
         end
     end
 end

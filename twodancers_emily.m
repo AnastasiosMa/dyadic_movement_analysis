@@ -2,8 +2,8 @@ classdef twodancers_emily < twodancers
     properties
         MethodSel = 'PLS'; %MethodsSel = 'PLS'; MethodsSel = 'PCA';
         CCAWindowing = 'BeforePCA'; % 'BeforePCA' or 'AfterPCA'
-        WindowedAnalysis = 'Yes';
-        GetPLSCluster = 'Yes';
+        WindowedAnalysis = 'No';
+        GetPLSCluster ='No'
     end
     methods
         function obj = twodancers_emily(mocapstruct,m2jpar, ...
@@ -38,12 +38,15 @@ classdef twodancers_emily < twodancers
             if nargin > 0
                 if isomorphismorder == 1
                     if strcmpi(obj.MethodSel,'PLS') 
-                        %obj = getpls(obj); 
+                        if strcmpi(obj.WindowedAnalysis,'No')
+                           obj = getpls(obj); 
                         %obj = windowed_corr_over_pls(obj);
-                        if isempty(obj.TimeShift)
-                            obj = windowed_pls(obj);
-                        else
-                           obj = windowed_pls_time_shifts(obj);
+                        elseif strcmpi(obj.WindowedAnalysis,'Yes')
+                               if isempty(obj.TimeShift)
+                                  obj = windowed_pls(obj);
+                               else
+                                  obj = windowed_pls_time_shifts(obj);
+                               end
                         end
                     elseif strcmpi(obj.MethodSel,'PCA') 
                         if strcmpi(obj.CCAWindowing,'BeforePCA') 
@@ -59,8 +62,10 @@ classdef twodancers_emily < twodancers
                     obj = correlate_SSMs_main_diag(obj);
                     obj = joint_recurrence_analysis(obj);
                 end
+                if ~strcmpi(obj.PLSmethod,'Dynamic') || strcmpi(obj.MethodSel,'PCA')
                 obj = mean_max_corr_for_each_timescale(obj);
                 %obj = plot_triangle(obj);
+                end
             end
         end
     end

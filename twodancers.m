@@ -3,15 +3,19 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SingleTimeScale% = 1080;% time scale of 9 seconds; leave this empty if you want to use
-
+        SingleTimeScale % time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
                               % end), 1.5 seconds
         MaxWindowLength  %optional argument, defines the maximum length of Windows                     
         NumWindows = 10;%180%120%30; % number of windows
-        WindowLengths 
+        WindowLengths
+        TimeShift %= -1:.5:1; % leave empty for no time shifting, otherwise
+                          % add a vector of shifts (in seconds) 
+        Timeshifts_corr                  
+        WindowSteps = 20; % get a window every N steps. To get a regular
+                        % sliding window, set to 1
         Dancer1
         Dancer2
         Corr
@@ -20,16 +24,20 @@ classdef twodancers < dancers
         JointRec
         %JointRecurrenceThres = 50; % percentile
         PLSScores
-        PLScomp = 2; %number of components to be extracted
-        PLSmethod = 'Symmetrical'; % 'Symmetrical' or 'Asymmetrical'
-        PLSCorrMethod %= 'Eigenvalues'; 
-        EigenNum=5;
-        TimeShift %= -1:.5:1; % leave empty for no time shifting, otherwise
-                          % add a vector of shifts (in seconds) 
-        Timeshifts_corr                  
         PLSloadings % PLS predictor loadings of participants
-        WindowSteps = 20; % get a window every N steps. To get a regular
-                        % sliding window, set to 1
+        PLScomp = 1; %number of components to be extracted
+        PLSmethod = 'Dynamic',%'Dynamic'; % 'Symmetric' or 'Asymmetric'
+        PLSCorrMethod %= 'Eigenvalues';
+        EigenNum=5;
+        MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
+        %Dynamic PLS, in Mocap frame units.
+        PLSstdNum = 20; %Number of different std's to test
+        SinglePLSstd = 540;%Specify a single PLSstd.Needs to be empty to use multiple std's
+        PLSstdScales %Number of frames of each used std
+        MutualInfo = 'Yes'
+        BinSize = 310.5752%Median = 269.8557 %Mean=310.5752;% Leave empty to compute the optimal Binsize for each dancer using Freedman-Diaconis rule
+        %Specify value to use default binsize for all dyads
+        OptimalBinSize %Optimal binsize for each dancer
     end
     
     properties %(Abstract) % be able to set different values for a subclass 
@@ -59,7 +67,7 @@ classdef twodancers < dancers
         %COMPUTE PLS (Common for both ISO's)
         function obj = getpls(obj)
         %computes PLS by centering the data across columns (substracts
-        %mean column values). Data need to be zscored beforehand.
+        %mean column values). 
         %Returns the XS and YS scores for n PLScomp, with default order
         %(dancer1=predictor, dancer2=outcome) and inversed.
         %XS=PLS components that are linear combinations of variables in X.
@@ -68,11 +76,39 @@ classdef twodancers < dancers
         %have maximum covariance.
             data1 = obj.Dancer1.res.MocapStruct.data;
             data2 = obj.Dancer2.res.MocapStruct.data;
-            %data1 = zscore(obj.Dancer1.res.MocapStruct.data);
-            %data2 = zscore(obj.Dancer2.res.MocapStruct.data);
-            [obj.PLSScores.XLdef,obj.PLSScores.YLdef,obj.PLSScores.XSdef,obj.PLSScores.YSdef] = plsregress(data1,data2,obj.PLScomp); %default
-            [obj.PLSScores.XLinv,obj.PLSScores.YLinv,obj.PLSScores.XSinv,obj.PLSScores.YSinv] = plsregress(data2,data1,obj.PLScomp); %inverted
-                                                                                                                                     %PLS (dancer 2=X, dancer1=Y).
+
+             if strcmpi(obj.PLSmethod,'Dynamic') 
+                disp('computing Dynamic Symmetric PLS...')
+                if isempty(obj.SinglePLSstd)
+                   PLSstd = round(linspace(size(data1,1),obj.MinPLSstd,obj.PLSstdNum));
+                else 
+                    PLSstd = obj.SinglePLSstd;
+                    obj.PLSstdNum = 1;
+                end
+                obj.PLSstdScales=PLSstd; 
+                for k=1:obj.PLSstdNum  %loop for different std Scales 
+                    [XL,YL,XS,YS] = dynamicpls(data1,data2,PLSstd(k),obj.PLScomp);
+                    if strcmpi(obj.MutualInfo,'Yes')
+                       disp('computing Mutual Information...') 
+                       if isempty(obj.BinSize)
+                          [MI,BinSizeX,BinSizeY] = mutinfo(XS,YS); %outputs best bin size for each dancer
+                          obj.OptimalBinSize = [obj.OptimalBinSize;BinSizeX;BinSizeY]; 
+                       else
+                          [MI] = mutinfo(XS,YS,'size',obj.BinSize); 
+                       end
+                       obj.Corr.means(k,1) = mean(diag(MI)); 
+                    else
+                       obj.Corr.means(k,1) = corr(XS,YS);
+                    end
+                    if strcmpi(obj.GetPLSCluster,'Yes')
+                            obj.PLSloadings = [obj.PLSloadings;XL';YL'];
+                    end
+                end
+             else   
+                disp('computing PLS...')
+                [obj.PLSScores.XLdef,obj.PLSScores.YLdef,obj.PLSScores.XSdef,obj.PLSScores.YSdef] = plsregress(data1,data2,obj.PLScomp); %default
+                [obj.PLSScores.XLinv,obj.PLSScores.YLinv,obj.PLSScores.XSinv,obj.PLSScores.YSinv] = plsregress(data2,data1,obj.PLScomp); %inverted
+             end
         end
         function obj = plot_YScores(obj)
             plot(1:length(obj.PLSScores.XSdef),obj.PLSScores.YSdef,1:length(obj.PLSScores.XSdef),obj.PLSScores.YSinv)
@@ -111,13 +147,11 @@ classdef twodancers < dancers
         end
         % FIRST ORDER ISOMORPHISM, WINDOWED PLS            
         function obj = windowed_pls(obj)
-            if strcmpi(obj.PLSmethod,'Asymmetrical') 
-                disp('computing Asymmetrical PLS...')
-            elseif strcmpi(obj.PLSmethod,'Symmetrical') 
-                disp('computing Symmetrical PLS...')
+            if strcmpi(obj.PLSmethod,'Asymmetric') 
+                disp('computing Asymmetric PLS...')
+            elseif strcmpi(obj.PLSmethod,'Symmetric') 
+                disp('computing Symmetric PLS...')
             end
-            %data1 = zscore(obj.Dancer1.res.MocapStruct.data);
-            %data2 = zscore(obj.Dancer2.res.MocapStruct.data);
             data1 = obj.Dancer1.res.MocapStruct.data;
             data2 = obj.Dancer2.res.MocapStruct.data;
             %nobs = size(data1,1);
@@ -138,13 +172,13 @@ classdef twodancers < dancers
                     % analysis window
                     aw1 = data1(k:(k+w-1),:);
                     aw2 = data2(k:(k+w-1),:);
-                    if strcmpi(obj.PLSmethod,'Asymmetrical') 
+                    if strcmpi(obj.PLSmethod,'Asymmetric') 
                         % compute Asymmetrical PLS
                         [~,~,XSdef,YSdef] = plsregress(aw1,aw2,obj.PLScomp); %default
                         [~,~,XSinv,YSinv] = plsregress(aw2,aw1,obj.PLScomp); %inverted
                         obj.Corr.timescalesdef(j,k) = corr(XSdef,YSdef); 
                         obj.Corr.timescalesinv(j,k) = corr(XSinv,YSinv);
-                    elseif strcmpi(obj.PLSmethod,'Symmetrical') 
+                    elseif strcmpi(obj.PLSmethod,'Symmetric') 
                         [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
                         if strcmpi(obj.GetPLSCluster,'Yes')
                             obj.PLSloadings = [obj.PLSloadings;XL';YL'];
@@ -159,15 +193,15 @@ classdef twodancers < dancers
                 end
                 g = g + 1; %g=the different time length window used, k the number of windows for each window length
             end
-            if strcmpi(obj.PLSmethod,'Asymmetrical') 
+            if strcmpi(obj.PLSmethod,'Asymmetric') 
                 obj.Corr.timescales=[obj.Corr.timescalesdef+obj.Corr.timescalesinv]./2; %mean corr.timescales
             end
         end
         function obj = windowed_pls_time_shifts(obj)
-            if strcmpi(obj.PLSmethod,'Asymmetrical') 
-                disp('computing Asymmetrical PLS...')
+            if strcmpi(obj.PLSmethod,'Asymmetric') 
+                disp('computing Asymmetric PLS...')
             elseif strcmpi(obj.PLSmethod,'Symmetrical') 
-                disp('computing Symmetrical PLS...')
+                disp('computing Symmetric PLS...')
             end
             %data1 = zscore(obj.Dancer1.res.MocapStruct.data);
             %data2 = zscore(obj.Dancer2.res.MocapStruct.data);
@@ -200,9 +234,9 @@ classdef twodancers < dancers
                         % analysis window
                         aw1 = data1(k:(k+w-1),:);
                         aw2 = data2(k:(k+w-1),:);
-                        if strcmpi(obj.PLSmethod,'Asymmetrical') 
-                            error('Asymmetrical time shifted PLS not yet implemented')
-                        elseif strcmpi(obj.PLSmethod,'Symmetrical') 
+                        if strcmpi(obj.PLSmethod,'Asymmetric') 
+                            error('Asymmetric time shifted PLS not yet implemented')
+                        elseif strcmpi(obj.PLSmethod,'Symmetric') 
                             [~,~,XS,YS] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
 
                             obj.Corr.timescales(g,k,j) = mean(diag(corr(XS,YS))); %Score correlations for SYMMETRICAL PLS
@@ -235,6 +269,7 @@ classdef twodancers < dancers
         function obj = windowed_cca_over_pca(obj)
             data1 = obj.Dancer1.res.MocapStructPCs.data;
             data2 = obj.Dancer2.res.MocapStructPCs.data;
+            disp('computing Windowed CCA...')
             %nobs = size(data1,1);
             g = 1;
             if isempty(obj.SingleTimeScale)
@@ -262,6 +297,7 @@ classdef twodancers < dancers
         function obj = windowed_pca_cca(obj)
             data1 = obj.Dancer1.res.MocapStruct.data;
             data2 = obj.Dancer2.res.MocapStruct.data;
+            disp('computing Windowed PCA...')
             %nobs = size(data1,1);
             g = 1;
             if isempty(obj.SingleTimeScale)

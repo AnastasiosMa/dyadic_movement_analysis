@@ -127,10 +127,8 @@ classdef dancers
         % of the frontal plane of the body, defined by the hip
         % markers, is parallel to the first axis of the coordinate
         % system
-        
             obj.MocapStruct.data = obj.MocapStruct.data- ...
                 repmat(obj.MocapStruct.data(:,1:3),1,obj.nMarkers); % subtract
-
                                                                     % 3D
                                                                     % representation of
                                                                     % root
