@@ -268,7 +268,7 @@ classdef dancers
             if obj.AnWindow(2)*obj.SampleRate-1<length(obj.MocapStruct.data) 
                obj.MocapStruct = mctrim(obj.MocapStruct,obj.AnWindow(1)*obj.SampleRate,obj.AnWindow(2)*obj.SampleRate-1,'frame');
             else 
-                disp('Attempting to crop window with out of range time limits')
+                disp('Attempting to crop window outside of range time limits')
                 disp('Adjusting cropping window to the start of Mocap data t1=0, t2=15')
                 UpperAnWindow=15;
                 obj.MocapStruct = mctrim(obj.MocapStruct,1,UpperAnWindow*obj.SampleRate,'frame');
