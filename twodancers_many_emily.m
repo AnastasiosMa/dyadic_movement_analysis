@@ -31,7 +31,7 @@ classdef twodancers_many_emily < twodancers_emily
                 obj.MeanRatedInteraction = meanRatedInteraction;
                 obj.MeanRatedSimilarity = meanRatedSimilarity;
                 obj = correlate_with_perceptual_measures(obj);
-                %obj = plot_corr_distribution(obj);
+                %obj = plot_estimated_interaction_distribution(obj);
             end
             %obj = plot_average_loadings_pls(obj); %Plots average PLS XL and XL across dyads
             %corrtable(obj);
@@ -206,15 +206,19 @@ classdef twodancers_many_emily < twodancers_emily
             title(['PLS predictor loadings for all dancers and ' ...
                    'analysis windows'])
         end
-        function obj = plot_corr_distribution(obj) %create line histogram with PLS corrs distributions
+        function obj = plot_estimated_interaction_distribution(obj) %create line
+                                                   %histogram with
+                                                   %distribution of 
+                                                   %estimated
+                                                   %interaction 
             for k = 1:numel(obj.Res(1).res.Corr.means) % for each timescale
                 meancorrs(k,:) = arrayfun(@(x) x.res.Corr.means(k),obj.Res)';
                 winlength=obj.Res(1).res.WindowLengths ./obj.Res(1).res.SampleRate;
                 figure
                 histogram(meancorrs,'BinWidth',0.1)
-                title(['Distribution of PLS results for Timescale (' num2str(winlength(k)) ' seconds)'])
+                title(['Distribution of estimated interaction for Timescale (' num2str(winlength(k)) ' seconds)'])
                 ylabel('Number of Dyads')
-                xlabel('Correlation Coefficient')
+                xlabel('Interaction Estimate')
             end
         end
         function [MeanBinSize,StdBinSize] = binsizestats(obj)
