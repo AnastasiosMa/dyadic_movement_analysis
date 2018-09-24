@@ -69,13 +69,13 @@ classdef twodancers_many_emily < twodancers_emily
                    varnames = [fieldnames(obj.Corr);{'PLSstdScales'}];
                    results = num2cell([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
                                                'UniformOutput', ...
-                                               false)'); obj.Res(1).res.PLSstdScales/120]');
+                                               false)'); obj.Res(1).res.PLSstdScales/obj.Res(1).res.SampleRate]');
                                            %obj.PLSstdScales
                 elseif strcmpi(obj.WindowedAnalysis,'Yes') || obj.Res(1).res.Dancer1.res.IsomorphismOrder==2
                     varnames = [fieldnames(obj.Corr);{'WindowingScales'}];
                     results=num2cell([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
                                                'UniformOutput', ...
-                                               false)'); obj.Res(1).res.WindowLengths/120]');
+                                               false)'); obj.Res(1).res.WindowLengths/obj.Res(1).res.SampleRate]');
                                            %obj.WindowLengths
                 elseif obj.Res(1).res.Dancer1.res.IsomorphismOrder==1 && strcmpi(obj.WindowedAnalysis,'No')
                     varnames = [fieldnames(obj.Corr)];
