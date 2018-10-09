@@ -390,7 +390,7 @@ classdef twodancers < dancers
             %xlabel('Dancer 2')
         end
         function obj = correlate_SSMs_main_diag(obj)
-            disp('Correlating SSM diagonals')
+            disp('Correlating self-similarity matrices along the main diagonal...')
             ssm1 = obj.Dancer1.res.SSM;
             ssm2 = obj.Dancer2.res.SSM;
             g = 1;
