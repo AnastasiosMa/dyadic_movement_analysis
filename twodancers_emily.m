@@ -2,7 +2,7 @@ classdef twodancers_emily < twodancers
     properties
         MethodSel = 'PLS'; %MethodsSel = 'PLS'; MethodsSel = 'PCA';
         CCAWindowing = 'BeforePCA'; % 'BeforePCA' or 'AfterPCA'
-        WindowedAnalysis = 'No';
+        WindowedAnalysis = 'Yes';
         GetPLSCluster ='No'
     end
     methods
@@ -38,10 +38,10 @@ classdef twodancers_emily < twodancers
             if nargin > 0
                 if isomorphismorder == 1
                     if strcmpi(obj.MethodSel,'PLS') 
-                        if strcmpi(obj.WindowedAnalysis,'No')
-                           obj = getpls(obj); 
+                        if strcmpi(obj.PLSmethod,'Dynamic')
+                           obj = getdynamicpls(obj); 
                         %obj = windowed_corr_over_pls(obj);
-                        elseif strcmpi(obj.WindowedAnalysis,'Yes')
+                        elseif strcmpi(obj.PLSmethod,'Symmetric') || strcmpi(obj.PLSmethod,'Asymmetric')
                                if isempty(obj.TimeShift)
                                   obj = windowed_pls(obj);
                                else

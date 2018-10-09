@@ -25,19 +25,40 @@ classdef twodancers < dancers
         JointRecurrenceThres = 50; % percentile
         PLSScores
         PLSloadings % PLS predictor loadings of participants
-        PLScomp = 3; %number of components to be extracted
-        PLSmethod = 'Dynamic',%'Dynamic'; % 'Symmetric' or 'Asymmetric'
+        PLScomp = 2; %number of components to be extracted
+        PLSmethod = 'Symmetric',%'Dynamic'; % 'Symmetric' or 'Asymmetric'
         PLSCorrMethod %= 'Eigenvalues';
         EigenNum=5;
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
         PLSstdNum = 20; %Number of different std's to test
-        SinglePLSstd %= 480;%Specify a single PLSstd.Needs to be empty to use multiple std's
+        SinglePLSstd = 600;%Specify a single PLSstd.Needs to be empty to use multiple std's
         PLSstdScales %Number of frames of each used std
-        MutualInfo = 'Yes'
+        MutualInfo %= 'Yes'
         BinSize = 310.5752%Median = 269.8557 %Mean=310.5752;% Leave empty to compute the optimal Binsize for each dancer using Freedman-Diaconis rule
         %Specify value to use default binsize for all dyads
         OptimalBinSize %Optimal binsize for each dancer
+        %Wavelet Analysis Inputs
+        WaveletTransform = 'Yes'
+        BPM
+        BeatofInt = [0.25 0.5 1 2 4]; %Select some Beat levels of Interest (e.g. 1 or 2 beats) and extract their energy
+        OctaveNum = 6 
+        VoiceOctave = 32 %number of voices per octave
+        %Wavelet Analysis outputs
+        OneBeatFreq
+        BeatFreqEnergy %Energy for all scales/frequencies
+        MeanBeatFreqEnergy %mean energy of each scale
+        BeatofIntEnergy %mean energy of the specified beat levels of BeatLevel property
+        BeatofIntIndex %index of the beats specified in Beat Level
+        MaxBeatFreq %scale with the max mean power  
+        MaxBeatFreqEnergy  %Energy of the scale with the max mean power
+        f1           %Frequency in Hz of the scales used.
+        BeatLabels %Labels of the beat level each scale represents
+        PhaseAnalysis = 'Yes'
+        BeatPhase
+        BeatPhaseMean
+        BeatPhaseLength
+        
     end
     methods
         function obj = twodancers(mocapstruct1,mocapstruct2,m2jpar, ...
@@ -53,26 +74,25 @@ classdef twodancers < dancers
                                           NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
                 obj.Dancer2.res = dancers(mocapstruct2,m2jpar, ...
                                           NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
+                if strcmpi(obj.Dancer1.res.MocapStruct.stimnames{1},'11Pop2');
+                   obj.BPM = 120;
+                elseif strcmpi(obj.Dancer1.res.MocapStruct.stimnames{1},'12Pop4');
+                   obj.BPM = 132;
+                else
+                   error('Undefined stimuli name')
+                end
             else
                 
             end
 
         end
-        %COMPUTE PLS (Common for both ISO's)
-        function obj = getpls(obj)
+        %FIRST ORDER ISOMORPHISM
+        function obj = getdynamicpls(obj)
         %computes PLS by centering the data across columns (substracts
         %mean column values). 
-        %Returns the XS and YS scores for n PLScomp, with default order
-        %(dancer1=predictor, dancer2=outcome) and inversed.
-        %XS=PLS components that are linear combinations of variables in X.
-        %Rows=observations (mocapframes), Col=PLS components
-        %YS=linear combinations of responses with which PLS components XS 
-        %have maximum covariance.
+            disp('computing Dynamic Symmetric PLS...')
             data1 = obj.Dancer1.res.MocapStruct.data;
             data2 = obj.Dancer2.res.MocapStruct.data;
-
-             if strcmpi(obj.PLSmethod,'Dynamic') 
-                disp('computing Dynamic Symmetric PLS...')
                 if isempty(obj.SinglePLSstd)
                    PLSstd = round(linspace(size(data1,1),obj.MinPLSstd,obj.PLSstdNum));
                 else 
@@ -90,54 +110,19 @@ classdef twodancers < dancers
                        else
                           [MI] = mutinfo(XS,YS,'size',obj.BinSize); 
                        end
-                       obj.Corr.means(k,1) = mean(diag(MI)); 
+                       obj.Corr.means(k,1) = mean(diag(MI)); %DynamicPLS+MutualInformation
+                    elseif strcmpi(obj.WaveletTransform,'Yes')
+                       disp('Computing Wavelet Transform')
+                       Fs = obj.Dancer1.res.SampleRate;
+                       obj = getcwt(obj,XS,YS,Fs);
+                       obj.Corr.means(k,1,:) = obj.MaxBeatFreqEnergy; %DynamicPLS+Wavelet
                     else
-                       obj.Corr.means(k,1) = corr(XS,YS);
+                       obj.Corr.means(k,1) = corr(XS,YS); %DynamicPLS+Correlation
                     end
                     if strcmpi(obj.GetPLSCluster,'Yes')
                             obj.PLSloadings = [obj.PLSloadings;XL';YL'];
                     end
                 end
-             else   
-                disp('computing PLS...')
-                [obj.PLSScores.XLdef,obj.PLSScores.YLdef,obj.PLSScores.XSdef,obj.PLSScores.YSdef] = plsregress(data1,data2,obj.PLScomp); %default
-                [obj.PLSScores.XLinv,obj.PLSScores.YLinv,obj.PLSScores.XSinv,obj.PLSScores.YSinv] = plsregress(data2,data1,obj.PLScomp); %inverted
-             end
-        end
-        function obj = plot_YScores(obj)
-            plot(1:length(obj.PLSScores.XSdef),obj.PLSScores.YSdef,1:length(obj.PLSScores.XSdef),obj.PLSScores.YSinv)
-            title('Default and inverted Yscores')
-            ylabel('Response scores (YS) for 1st PLS component (XS)')
-            xlabel('Mocap frames')
-        end
-        
-        % FIRST ORDER ISOMORPHISM, PLS version
-        %Windowing and correlation of default and inverted PLSScores
-        function obj = windowed_corr_over_pls(obj)
-            g = 1;
-            if isempty(obj.SingleTimeScale)
-                if isempty(obj.MaxWindowLength) %checks if there is a maximum window length
-                    wparam = linspace(size(obj.PLSScores.XSdef,1),obj.MinWindowLength,obj.NumWindows); %create x number of window
-                else
-                    wparam = round(linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows)); 
-                end
-            else                                                                     %lengths
-                wparam = obj.SingleTimeScale; 
-            end
-            obj.WindowLengths = wparam;
-            for w = wparam
-                for k = 1:obj.WindowSteps:(size(data1,1)-(w-1))
-                    % analysis window. 
-                    aw_def1 = obj.PLSScores.XSdef(k:(k+w-1)); aw_def2 = obj.PLSScores.YSdef(k:(k+w-1));
-                    aw_inv1 = obj.PLSScores.XSinv(k:(k+w-1)); aw_inv2 = obj.PLSScores.YSinv(k:(k+w-1));              
-                    obj.Corr.timescalesdef(g,k) = corr(aw_def1,aw_def2);
-                    obj.Corr.timescalesinv(g,k) = corr(aw_inv1,aw_inv2);
-                end
-                g = g + 1; %g=the different time length window used, k the number of windows for each window length
-            end
-            obj.Corr.timescales=[obj.Corr.timescalesdef+obj.Corr.timescalesinv]./2; %mean corr.timescales
-            
-            %across default and inverted PLS
         end
         % FIRST ORDER ISOMORPHISM, WINDOWED PLS            
         function obj = windowed_pls(obj)
@@ -493,6 +478,35 @@ classdef twodancers < dancers
             yticks([1,size(equilateral,1)])
             xticklabels(xlabels)
             yticklabels({num2str(ylabelmax),sprintf('%0.1g',ylabelmin)})
+        end
+        function obj = getcwt(obj,XS,YS,Fs)
+                 BPMtoBeatFreq=obj.BPM./[60*obj.BeatofInt];
+                 obj.OneBeatFreq = obj.BPM/60; %frequency of 1-beat for a given BPM
+                       for k=1:obj.PLScomp
+                          %[w1 f1]=wsst(XS(:,k),Fs,'VoicesPerOctave',obj.VoiceOctave);
+                          %[w2 f2]=wsst(YS(:,k),Fs,'VoicesPerOctave',obj.VoiceOctave);
+                          [w1 obj.f1]=cwt(XS(:,k),Fs,'FrequencyLimits',[obj.OneBeatFreq/2^[obj.OctaveNum/2], obj.OneBeatFreq*2^[obj.OctaveNum/2]],'VoicesPerOctave',obj.VoiceOctave);
+                          [w2 f2] = cwt(YS(:,k),Fs,'FrequencyLimits',[obj.OneBeatFreq/2^[obj.OctaveNum/2], obj.OneBeatFreq*2^[obj.OctaveNum/2]],'VoicesPerOctave',obj.VoiceOctave);
+                          %The continuous wavelet transform adjusts the used scales to correspond with the beat
+                          %frequencies of different tempi
+                          
+                          %obj.f1=flipud(f1'); %for WSST
+                          for j=1:length(BPMtoBeatFreq)
+                                 [~,obj.BeatofIntIndex(j)] = min(abs(obj.f1-BPMtoBeatFreq(j))); 
+                          end
+                          %obj.FreqPower(:,:,k) = flipud(abs(w1.*conj(w2))); %for WSST
+                          obj.BeatFreqEnergy(:,:,k) = abs(w1.*conj(w2));
+                          obj.MeanBeatFreqEnergy(k,:) = mean(obj.BeatFreqEnergy(:,:,k),2)';
+                          obj.BeatofIntEnergy(:,k) = mean(obj.BeatFreqEnergy(obj.BeatofIntIndex,:,k),2);
+                          obj.MaxBeatFreqEnergy(k) = max(obj.MeanBeatFreqEnergy(k,:));
+                          obj.MaxBeatFreq(k) = obj.f1(find(obj.MeanBeatFreqEnergy(k,:)==max(obj.MeanBeatFreqEnergy(k,:))));
+                          if strcmpi(obj.PhaseAnalysis,'Yes')
+                              obj.BeatPhase(:,:,k) = angle(w1.*conj(w2));
+                              obj.BeatPhaseMean(:,k) = pi - abs(mean(obj.BeatPhase(:,:,k),2));
+                              obj.BeatPhaseLength=mean(squeeze(abs(sum(exp(i*obj.BeatPhase),2))/size(obj.BeatPhase,2)),2);
+                          end
+                       end
+                 obj.BeatLabels = obj.OneBeatFreq./obj.f1;      
         end
     end
 end
