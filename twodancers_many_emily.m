@@ -41,7 +41,7 @@ classdef twodancers_many_emily < twodancers_emily
                 obj = correlate_with_perceptual_measures(obj);
                 %obj = plot_estimated_interaction_distribution(obj);
             end
-            %corrtable(obj);
+            corrtable(obj);
             toc
         end
         function obj = correlate_with_perceptual_measures(obj)
