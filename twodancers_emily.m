@@ -58,8 +58,13 @@ classdef twodancers_emily < twodancers
                     else
                         error('Select a method')
                     end
-                else
-                    obj = correlate_SSMs_main_diag(obj);
+                elseif isomorphismorder == 2
+                    if strcmpi(obj.Iso2Method,'corrSSMs')
+                        obj = correlate_SSMs_main_diag(obj);
+                    elseif strcmpi(obj.Iso2Method,'corrConcatenatedSSMs')
+                        obj = concatenate_and_SSM(obj);
+                    end
+
                     %obj = joint_recurrence_analysis(obj);
                 end
                 if ~strcmpi(obj.PLSmethod,'Dynamic') || strcmpi(obj.MethodSel,'PCA') ||...

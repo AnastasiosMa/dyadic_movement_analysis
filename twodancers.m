@@ -58,7 +58,7 @@ classdef twodancers < dancers
         BeatPhase
         BeatPhaseMean
         BeatPhaseLength
-        
+        Iso2Method = 'corrConcatenatedSSMs'; % corrSSMs or corrConcatenatedSSMs (method used for second order isomorphism)        
     end
     methods
         function obj = twodancers(mocapstruct1,mocapstruct2,m2jpar, ...
@@ -405,6 +405,36 @@ classdef twodancers < dancers
                     aw1 = ssm1(k:(k+w-1),k:(k+w-1));
                     aw2 = ssm2(k:(k+w-1),k:(k+w-1));
                     obj.Corr.timescales(g,k) = corr(aw1(:),aw2(:));
+                end
+                g = g + 1;
+            end
+        end
+        function obj = concatenate_and_SSM(obj)
+            thres = 20; % a percentile
+            Y = obj.Dancer1.res.MocapStructPCs.data;
+            X = obj.Dancer2.res.MocapStructPCs.data;
+            concat_data = [X Y];
+            g = 1;
+            %% two kernels
+            % EUCLIDEAN-BASED
+            SSM = 1-squeeze(sqrt(sum((X - reshape(Y',1,size(Y,2),size(Y,1))).^2,2)));
+            % CORRENTROPY-BASED
+            %SSM = exp(-(squareform(pdist(X,'squaredeuclidean')))/(2*obj.Sigma.^2));
+            if isempty(obj.SingleTimeScale)
+                wparam = linspace(size(SSM,1),obj.MinWindowLength,obj.NumWindows);
+            else
+                wparam = obj.SingleTimeScale;
+            end
+
+            obj.WindowLengths = wparam;
+            for w = wparam
+                for k = 1:obj.WindowSteps:(size(SSM,1)-(w-1))
+            %% two approaches
+            % get mean value
+            aw = SSM(k:(k+w-1),k:(k+w-1));
+            obj.Corr.timescales(g,k) = mean(aw(:)); 
+            % threshold and sum
+            %obj.Corr.timescales(g,k) = SSM >= prctile(aw(:),thres)
                 end
                 g = g + 1;
             end
