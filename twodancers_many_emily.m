@@ -39,7 +39,7 @@ classdef twodancers_many_emily < twodancers_emily
                 else
                 end
                 obj = correlate_with_perceptual_measures(obj);
-                %obj = plot_corr_distribution(obj);
+                %obj = plot_estimated_interaction_distribution(obj);
             end
             %corrtable(obj);
             toc
@@ -76,13 +76,13 @@ classdef twodancers_many_emily < twodancers_emily
                    varnames = [fieldnames(obj.Corr);{'PLSstdScales'}];
                    results = num2cell([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
                                                'UniformOutput', ...
-                                               false)'); obj.Res(1).res.PLSstdScales/120]');
+                                               false)'); obj.Res(1).res.PLSstdScales/obj.Res(1).res.SampleRate]');
                                            %obj.PLSstdScales
                 elseif strcmpi(obj.WindowedAnalysis,'Yes') || obj.Res(1).res.Dancer1.res.IsomorphismOrder==2
                     varnames = [fieldnames(obj.Corr);{'WindowingScales'}];
                     results=num2cell([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
                                                'UniformOutput', ...
-                                               false)'); obj.Res(1).res.WindowLengths/120]');
+                                               false)'); obj.Res(1).res.WindowLengths/obj.Res(1).res.SampleRate]');
                                            %obj.WindowLengths
                 end
                 starcell=makestars(cell2mat(arrayfun(@(x) x.PVAL', struct2array(obj.Corr), ...
@@ -209,15 +209,19 @@ classdef twodancers_many_emily < twodancers_emily
             title(['PLS predictor loadings for all dancers and ' ...
                    'analysis windows'])
         end
-        function obj = plot_corr_distribution(obj) %create line histogram with PLS corrs distributions
+        function obj = plot_estimated_interaction_distribution(obj) %create line
+                                                   %histogram with
+                                                   %distribution of 
+                                                   %estimated
+                                                   %interaction 
             for k = 1:numel(obj.Res(1).res.Corr.means) % for each timescale
                 meancorrs(k,:) = arrayfun(@(x) x.res.Corr.means(k),obj.Res)';
                 winlength=obj.Res(1).res.WindowLengths ./obj.Res(1).res.SampleRate;
                 figure
                 histogram(meancorrs,'BinWidth',0.1)
-                title(['Distribution of PLS results for Timescale (' num2str(winlength(k)) ' seconds)'])
+                title(['Distribution of estimated interaction for Timescale (' num2str(winlength(k)) ' seconds)'])
                 ylabel('Number of Dyads')
-                xlabel('Correlation Coefficient')
+                xlabel('Interaction Estimate')
             end
         end
         function [MeanBinSize,StdBinSize] = binsizestats(obj)

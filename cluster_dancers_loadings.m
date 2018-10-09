@@ -21,7 +21,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        ClusterNum = 2;
        Clustermethod %valid inputs: %'eval', 'linkage','kmeans','gmm'
        Linkmethod = 'average'; %any acceptable input for the method used in linkage e.g. average, weighted
-       Steps = '1step'; %'1step','2step'. Defines if the a squareform of modified cosine distance
+       Steps = '1step'; %'1step','2step'. Defines if a squareform of modified cosine distance
        %pairwise comparisons is applied on Data before clustering
        Distance = 'euclidean'; %'euclidean',@cosdist. Defines the distance measure used for clustering/evaluation.
        %kmeans only support modified cosine distance or squareduclidean.
@@ -185,7 +185,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                kmeansmethod = @(x,k) kmeans(x,k,'Distance',tempDistance,'Replicates',20);
                obj.Evakmeans = evalclusters(obj.Data,kmeansmethod,'Silhouette','Distance',obj.Distance,'KList',[1:10]);
             else
-               error('Select a valid Ditance measure') 
+               error('Select a valid Distance measure') 
             end
         end
         function obj = getlinkage(obj) %Hierarchical clustering
