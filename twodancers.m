@@ -26,7 +26,7 @@ classdef twodancers < dancers
         PLSScores
         PLSloadings % PLS predictor loadings of participants
         PLScomp = 2; %number of components to be extracted
-        PLSmethod = 'Symmetric',%'Dynamic'; % 'Symmetric' or 'Asymmetric'
+        PLSmethod = 'Dynamic',%'Dynamic'; % 'Symmetric' or 'Asymmetric'
         PLSCorrMethod %= 'Eigenvalues';
         EigenNum=5;
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 

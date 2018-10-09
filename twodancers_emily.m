@@ -2,7 +2,7 @@ classdef twodancers_emily < twodancers
     properties
         MethodSel = 'PLS'; %MethodsSel = 'PLS'; MethodsSel = 'PCA';
         CCAWindowing = 'BeforePCA'; % 'BeforePCA' or 'AfterPCA'
-        WindowedAnalysis = 'Yes';
+        WindowedAnalysis = 'No';
         GetPLSCluster ='No'
     end
     methods
