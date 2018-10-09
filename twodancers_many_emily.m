@@ -85,7 +85,7 @@ classdef twodancers_many_emily < twodancers_emily
                                                false)'); obj.Res(1).res.WindowLengths/obj.Res(1).res.SampleRate]');
                                            %obj.WindowLengths
                 end
-                starcell=makestars(cell2mat(arrayfun(@(x) x.PVAL', struct2array(obj.Corr), ...
+                starcell=twodancers_many_emily.makestars(cell2mat(arrayfun(@(x) x.PVAL', struct2array(obj.Corr), ...
                     'UniformOutput', false))); %create cell array of pstars
                 starcell{numel(results)} = []; %add empty elements to bring it to the same size as restable
                 for i=1:numel(results)
@@ -350,6 +350,19 @@ classdef twodancers_many_emily < twodancers_emily
             title('Correlations of Beat Level Energy with Similarity')
             xlabel('Beat Levels')
             ylabel('Correlation Coefficients')
+        end
+    end
+    methods (Static)
+        function out = makestars(p)
+        % Create a cell array with stars from p-values (* p < .05; ** p < .01; *** p <
+        % .001). Input must be a matrix
+            names = {'','*', '**','***'};
+            stars = zeros(size(p));
+            stars(find(p < .001)) = 4;
+            stars(find(p >= .001 & p < .01)) = 3;
+            stars(find(p >= .01 & p < .05)) = 2;
+            stars(find(stars == 0)) = 1;
+            out = names(stars);
         end
     end
 end
