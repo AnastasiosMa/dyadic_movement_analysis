@@ -28,6 +28,7 @@ classdef twodancers_many_emily < twodancers_emily
             end
             tic
             for k = 1:numel(mocap_array)                  
+                disp(['Processing dyad ' num2str(k) '...']);
                 obj.Res(k).res = twodancers_emily(mocap_array(k),m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             end
             if nargin > 0
