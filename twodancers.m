@@ -354,6 +354,38 @@ classdef twodancers < dancers
                 g = g + 1;
             end
         end
+        function obj = PCA_concatenated_dims(obj)
+            data1 = obj.Dancer1.res.MocapStruct.data;
+            data2 = obj.Dancer2.res.MocapStruct.data;
+            disp('Concatenating...')
+            data = [data1 data2];
+            disp('computing Windowed PCA...')
+            %nobs = size(data1,1);
+            g = 1;
+            if isempty(obj.SingleTimeScale)
+                if isempty(obj.MaxWindowLength) %checks if there is a maximum window length
+                    wparam = round(linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows),0); %create x number of window lengths
+                else
+                    wparam = round(linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows),0);
+                end 
+            else                                                                      
+                wparam = obj.SingleTimeScale;
+            end
+            obj.WindowLengths = wparam;
+            for w = wparam
+                for k = 1:obj.WindowSteps:(size(data1,1)-(w-1))
+                    % analysis window
+                    aw = data1(k:(k+w-1),:);
+                    % compute PCA
+                    [PCA.coeff,PCA.score, PCA.latent]=pca(aw,'Algorithm','svd','Centered',true,'Economy',true,'Rows','complete');
+                    % normalize eigenvalues
+                    PCA.eig = PCA.latent/sum(PCA.latent);
+                    
+                    obj.Corr.timescales(g,k) = std(PCA.eig); %the r values stored in Corr.timescales matrix
+                end
+                g = g + 1; %g=the different time length window used, k the number of windows for each window length
+            end
+        end
         function plotcrossrec(obj)
             markersize = .1;
             figure

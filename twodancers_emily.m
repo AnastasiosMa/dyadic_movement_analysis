@@ -1,6 +1,6 @@
 classdef twodancers_emily < twodancers
     properties
-        MethodSel = 'PLS'; %MethodsSel = 'PLS'; MethodsSel = 'PCA';
+        MethodSel = 'PCA_concatenated_dims'% 'PLS'; % 'PLS' or 'PCA' or 'PCA_concatenated_dims';
         CCAWindowing = 'BeforePCA'; % 'BeforePCA' or 'AfterPCA'
         WindowedAnalysis = 'No';
         GetPLSCluster ='No'
@@ -55,6 +55,8 @@ classdef twodancers_emily < twodancers
                             obj = windowed_cca_over_pca(obj);
                         end
                         %obj = cross_recurrence_analysis(obj);
+                    elseif strcmpi(obj.MethodSel,'PCA_concatenated_dims')
+                        obj = PCA_concatenated_dims(obj);
                     else
                         error('Select a method')
                     end
@@ -67,7 +69,7 @@ classdef twodancers_emily < twodancers
 
                     %obj = joint_recurrence_analysis(obj);
                 end
-                if ~strcmpi(obj.PLSmethod,'Dynamic') || strcmpi(obj.MethodSel,'PCA') ||...
+                if ~strcmpi(obj.PLSmethod,'Dynamic') || strcmpi(obj.MethodSel,'PCA') || strcmpi(obj.MethodSel,'PCA_concatenated_dims')||...
                         isomorphismorder==2
                 obj = mean_max_corr_for_each_timescale(obj);
                 %obj = plot_triangle(obj);
