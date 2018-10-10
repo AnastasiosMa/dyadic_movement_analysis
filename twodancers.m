@@ -379,7 +379,7 @@ classdef twodancers < dancers
                     % compute PCA
                     [PCA.coeff,PCA.score, PCA.latent]=pca(aw,'Algorithm','svd','Centered',true,'Economy',true,'Rows','complete');
                     % normalize eigenvalues
-                    PCA.eig = PCA.latent/sum(PCA.latent);
+                    PCA.eig = PCA.latent(1:obj.Dancer1.res.NumPrinComp)/sum(PCA.latent);
                     
                     obj.Corr.timescales(g,k) = std(PCA.eig); %the r values stored in Corr.timescales matrix
                 end
