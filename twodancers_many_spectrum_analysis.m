@@ -1,8 +1,5 @@
 classdef twodancers_many_spectrum_analysis < twodancers_many_emily
     properties
-        Res
-        MeanRatedInteraction
-        MeanRatedSimilarity
         WaveletCorrMethod = 'Phase'; %'Gaussian','Sum','Max' %Choose feature to correlate with perceptual ratings
         MCPhaseEstimations
     end
@@ -30,6 +27,7 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
                 obj.Res(k).res = twodancers_emily(mocap_array(k),m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             end
             if nargin > 0
+                load MonteCarloPhaseEstimation
                 obj.MCPhaseEstimations = ps0;
                 obj.MeanRatedInteraction = meanRatedInteraction;
                 obj.MeanRatedSimilarity = meanRatedSimilarity;
@@ -80,7 +78,7 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
             imagesc(sqrt(SumMeanFreq)),colormap(jet), axis xy
                 colorbar
                 set(gca,'xtick',flipud(obj.Res(2).res.BeatofIntIndex))
-                set(gca,'xticklabel',cellfun(@num2str, a, 'UniformOutput', false))
+                set(gca,'xticklabel',cellfun(@num2str,num2cell(obj.Res(2).res.BeatofInt), 'UniformOutput', false))
                 title('Summed Energy of PLS Components across Beats')
                 xlabel('Beat Levels ')             
             %%Correlate with the sum
@@ -127,15 +125,19 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
             %plot
             figure
             subplot(1,2,1)
-            plot(BeatLabels,corr_Int); 
+            plot(corr_Int); 
             title('Correlations of Beat Level Energy with Interaction')
+            set(gca,'xtick',flipud(obj.Res(2).res.BeatofIntIndex))
+            set(gca,'xticklabel',cellfun(@num2str,num2cell(obj.Res(2).res.BeatofInt), 'UniformOutput', false))
             xlabel('Beat Levels')
             ylabel('Correlation Coefficients')
             
             subplot(1,2,2)
-            plot(BeatLabels,corr_Sim)
+            plot(corr_Sim)
             title('Correlations of Beat Level Energy with Similarity')
             xlabel('Beat Levels')
+            set(gca,'xtick',flipud(obj.Res(2).res.BeatofIntIndex))
+            set(gca,'xticklabel',cellfun(@num2str,num2cell(obj.Res(2).res.BeatofInt), 'UniformOutput', false))
             ylabel('Correlation Coefficients')
         end
     end

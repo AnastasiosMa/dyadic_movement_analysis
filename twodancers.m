@@ -20,7 +20,7 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        Iso1Method = 'DynamicPLS'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet'
+        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet'
         %'PCAConcatenatedDims','WinBeforePCA,'WinAfterPCA','(method used for first order isomorphism)        
         %PLS properties
         PLSScores
@@ -119,7 +119,7 @@ classdef twodancers < dancers
                        obj = getcwt(obj,XS,YS,Fs);
                        obj.Corr.means(k,1,:) = obj.MaxBeatFreqEnergy; %DynamicPLS+Wavelet
                     else
-                       obj.Corr.means(k,1) = corr(XS,YS); %DynamicPLS+Correlation
+                       obj.Corr.means(k,1) = mean(diag(corr(XS,YS))); %DynamicPLS+Correlation
                     end
                     if strcmpi(obj.GetPLSCluster,'Yes')
                             obj.PLSloadings = [obj.PLSloadings;XL';YL'];
@@ -504,7 +504,7 @@ classdef twodancers < dancers
         %CREATE MEAN CORRELATION COEF FOR EACH TIMESCALE (Common for both
         %ISO's
         function obj = mean_max_corr_for_each_timescale(obj) 
-            data = obj.Corr.timescales;
+            data = obj.Corr.timescales; 
             data(data==0) = NaN;
             obj.Corr.means = nanmean(data,2); %find average across timescales
             obj.Corr.max = max(data,[],2);    %find max across timescales
