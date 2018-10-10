@@ -1,9 +1,5 @@
 classdef twodancers_emily < twodancers
     properties
-        MethodSel = 'PCA_concatenated_dims'% 'PLS'; % 'PLS' or 'PCA' or 'PCA_concatenated_dims';
-        CCAWindowing = 'BeforePCA'; % 'BeforePCA' or 'AfterPCA'
-        WindowedAnalysis = 'No';
-        GetPLSCluster ='No'
     end
     methods
         function obj = twodancers_emily(mocapstruct,m2jpar, ...
@@ -37,25 +33,20 @@ classdef twodancers_emily < twodancers
                            NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             if nargin > 0
                 if isomorphismorder == 1
-                    if strcmpi(obj.MethodSel,'PLS') 
-                        if strcmpi(obj.PLSmethod,'Dynamic')
-                           obj = getdynamicpls(obj); 
-                        %obj = windowed_corr_over_pls(obj);
-                        elseif strcmpi(obj.PLSmethod,'Symmetric') || strcmpi(obj.PLSmethod,'Asymmetric')
-                               if isempty(obj.TimeShift)
-                                  obj = windowed_pls(obj);
-                               else
-                                  obj = windowed_pls_time_shifts(obj);
-                               end
-                        end
-                    elseif strcmpi(obj.MethodSel,'PCA') 
-                        if strcmpi(obj.CCAWindowing,'BeforePCA') 
-                            obj = windowed_pca_cca(obj);
-                        elseif strcmpi(obj.CCAWindowing,'AfterPCA') 
-                            obj = windowed_cca_over_pca(obj);
-                        end
-                        %obj = cross_recurrence_analysis(obj);
-                    elseif strcmpi(obj.MethodSel,'PCA_concatenated_dims')
+                    if sum(strcmpi(obj.Iso1Method,{'DynamicPLS','DynamicPLSMI','DynamicPLSWavelet'}))
+                       obj = getdynamicpls(obj); 
+                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','AsymmetricPLS'}))
+                       if isempty(obj.TimeShift)
+                          obj = windowed_pls(obj);
+                       else
+                          obj = windowed_pls_time_shifts(obj);
+                       end
+                    elseif strcmpi(obj.Iso1Method,'WinBeforePCA') 
+                         obj = windowed_pca_cca(obj);
+                    elseif strcmpi(obj.CCAWindowing,'WinAfterPCA') 
+                         obj = windowed_cca_over_pca(obj);
+                         %obj = cross_recurrence_analysis(obj);
+                    elseif strcmpi(obj.MethodSel,'PCAConcatenatedDims')
                         obj = PCA_concatenated_dims(obj);
                     else
                         error('Select a method')
@@ -66,13 +57,11 @@ classdef twodancers_emily < twodancers
                     elseif strcmpi(obj.Iso2Method,'corrConcatenatedSSMs')
                         obj = concatenate_and_SSM(obj);
                     end
-
                     %obj = joint_recurrence_analysis(obj);
                 end
-                if ~strcmpi(obj.PLSmethod,'Dynamic') || strcmpi(obj.MethodSel,'PCA') || strcmpi(obj.MethodSel,'PCA_concatenated_dims')||...
-                        isomorphismorder==2
-                obj = mean_max_corr_for_each_timescale(obj);
-                %obj = plot_triangle(obj);
+                if ~sum(strcmpi(obj.Iso1Method,{'DynamicPLS','DynamicPLSMI','DynamicPLSWavelet'})) && isomorphismorder == 1
+                else    
+                obj = mean_max_corr_for_each_timescale(obj);    
                 end
             end
         end
