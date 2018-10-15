@@ -30,11 +30,14 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
             end
             figHandles = findobj('Type', 'figure');
             g = 1;
-            for k = numel(obj):-1:1
-                for j = 1:obj(k).NumWindows
-                sgtitle(figHandles(g),['Experiment ' num2str(k)]);
-                g = g + 1;
+            try % otherwise gives error for MATLAB releases prior to 2018b
+                for k = numel(obj):-1:1
+                    for j = 1:obj(k).NumWindows
+                        sgtitle(figHandles(g),['Experiment ' num2str(k)]);
+                        g = g + 1;
+                    end
                 end
+            catch
             end
         end
     end
