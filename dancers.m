@@ -98,7 +98,7 @@ classdef dancers
                     obj = normalize_eigenvalues(obj);
                     obj = makeMocapStructPCs(obj);
 
-                else
+                elseif isomorphismorder == 2
                     obj.IsomorphismOrder = 2;
                     obj = getpca(obj);
                     obj = normalize_eigenvalues(obj);
