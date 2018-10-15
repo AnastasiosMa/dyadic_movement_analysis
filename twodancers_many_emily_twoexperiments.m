@@ -29,7 +29,7 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
                 plotcorr@twodancers_many_emily(obj(k));
             end
             figHandles = findobj('Type', 'figure');
-            g = 1
+            g = 1;
             for k = numel(obj):-1:1
                 for j = 1:obj(k).NumWindows
                 sgtitle(figHandles(g),['Experiment ' num2str(k)]);
