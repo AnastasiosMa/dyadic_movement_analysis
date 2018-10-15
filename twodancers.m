@@ -388,6 +388,43 @@ classdef twodancers < dancers
                 g = g + 1; %g=the different time length window used, k the number of windows for each window length
             end
         end
+        function obj = optimize_mutual_information(obj)
+        %find latent spaces that minimize the negative of mutual information
+            data1 = obj.Dancer1.res.MocapStruct.data;
+            data2 = obj.Dancer2.res.MocapStruct.data;
+            g = 1;
+            if isempty(obj.SingleTimeScale)
+                if isempty(obj.MaxWindowLength) %checks if there is a maximum window length
+                    wparam = round(linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows),0);
+                else
+                    wparam = round(linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows),0);
+                end
+            else
+                wparam = obj.SingleTimeScale;
+                % if time scale is duration of data, then use window step
+                if wparam == size(data1,1)
+                    obj.WindowSteps = 1;
+                end
+            end
+            obj.WindowLengths = wparam;
+            for w = wparam
+                j = 1;
+                for k = 1:obj.WindowSteps:(size(data1,1)-(w-1))
+                    disp('Optimizing mutual information...')
+                    % analysis window
+                    global aw1_SPAkXLhcxWk aw2_SPAkXLhcxWk
+                    aw1_SPAkXLhcxWk = data1(k:(k+w-1),:);
+                    aw2_SPAkXLhcxWk = data2(k:(k+w-1),:);
+                    x0 = randn(2*size(obj.Dancer1.res.MocapStruct.data,2),1);
+                    [x, fval,exitflag] = fminsearch(@twodancers.objectivefcn_mutinfo,x0);
+                    obj.Corr.timescales(j,k) = fval;
+                    clear aw1_SPAkXLhcxWk aw2_SPAkXLhcxWk;
+                    j = j + 1; % a counter
+                end
+                g = g + 1; %g=the different time length window used, k the number of windows for each window length
+            end
+
+        end
         function plotcrossrec(obj)
             markersize = .1;
             figure
@@ -566,6 +603,27 @@ classdef twodancers < dancers
                           obj.BeatPhaseLength=mean(squeeze(abs(sum(exp(i*obj.BeatPhase),2))/size(obj.BeatPhase,2)),2);
                        end
                  obj.BeatLabels = obj.OneBeatFreq./obj.f1;      
+        end
+    end
+    methods (Static)
+        function f = objectivefcn_mutinfo(x)
+            global aw1_SPAkXLhcxWk aw2_SPAkXLhcxWk
+            X = aw1_SPAkXLhcxWk;
+            Y = aw2_SPAkXLhcxWk;
+
+            numloadings = numel(x)/2;
+
+            XL = x(1:numloadings);
+            YL = x(numloadings+1:end);
+
+            XL = XL/norm(XL);
+            YL = YL/norm(YL);
+
+            XS = X*XL;
+            YS = Y*YL;
+
+            f = -mutinfo(XS,YS);
+
         end
     end
 end
