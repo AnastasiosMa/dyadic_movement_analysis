@@ -401,10 +401,6 @@ classdef twodancers < dancers
                 end
             else
                 wparam = obj.SingleTimeScale;
-                % if time scale is duration of data, then use window step
-                if wparam == size(data1,1)
-                    obj.WindowSteps = 1;
-                end
             end
             obj.WindowLengths = wparam;
             for w = wparam
