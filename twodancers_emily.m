@@ -43,11 +43,13 @@ classdef twodancers_emily < twodancers
                        end
                     elseif strcmpi(obj.Iso1Method,'WinBeforePCA') 
                          obj = windowed_pca_cca(obj);
-                    elseif strcmpi(obj.CCAWindowing,'WinAfterPCA') 
+                    elseif strcmpi(obj.Iso1Method,'WinAfterPCA') 
                          obj = windowed_cca_over_pca(obj);
                          %obj = cross_recurrence_analysis(obj);
-                    elseif strcmpi(obj.MethodSel,'PCAConcatenatedDims')
+                    elseif strcmpi(obj.Iso1Method,'PCAConcatenatedDims')
                         obj = PCA_concatenated_dims(obj);
+                    elseif strcmpi(obj.Iso1Method,'optimMutInfo')
+                        obj = optimize_mutual_information(obj);
                     else
                         error('Select a method')
                     end
