@@ -62,7 +62,7 @@ classdef twodancers_many_emily < twodancers_emily
             end
             disp(array2table(cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
                                                'UniformOutput', ...
-                                               false)')','VariableNames',varnames(:)'))
+                                               false)')','VariableNames',varnames(:)'));
             else
                 if obj.Res(1).res.Dancer1.res.IsomorphismOrder==1 && strcmpi(obj.Iso1Method,'DynamicPLS') 
                    varnames = [fieldnames(obj.Corr);{'PLSstdScales'}];
@@ -83,23 +83,23 @@ classdef twodancers_many_emily < twodancers_emily
                 for i=1:numel(results)
                     results{i}=[num2str(results{i}) starcell{i}]; %makes matrix with significance stars
                 end
-                disp(array2table(results,'VariableNames',varnames))
+                disp(array2table(results,'VariableNames',varnames));
             end
         end
         function obj = plot_corr_time_shifts(obj)
             figure
             names = fieldnames(obj.Corr);
             for k = 1:numel(fieldnames(obj.Corr))
-                subplot(numel(fieldnames(obj.Corr)),1,k)
-                imagesc(obj.Corr.(names{k}).RHO')
-                colorbar()
-                title(names{k})
-                yticks(1:size(obj.Res(1).res.Corr.means,3))
-                yticklabels(obj.TimeShift)
-                xticks(1:size(obj.Res(1).res.Corr.means,1))
-                xticklabels(obj.Res(1).res.WindowLengths/obj.Res(1).res.SampleRate)
-                xlabel('Time scale (\tau)')
-                ylabel('Time shift (s)')
+                subplot(numel(fieldnames(obj.Corr)),1,k);
+                imagesc(obj.Corr.(names{k}).RHO');
+                colorbar();
+                title(names{k});
+                yticks(1:size(obj.Res(1).res.Corr.means,3));
+                yticklabels(obj.TimeShift);
+                xticks(1:size(obj.Res(1).res.Corr.means,1));
+                xticklabels(obj.Res(1).res.WindowLengths/obj.Res(1).res.SampleRate);
+                xlabel('Time scale (\tau)');
+                ylabel('Time shift (s)');
             end
         end
         function plotcorr(obj)
@@ -111,34 +111,34 @@ classdef twodancers_many_emily < twodancers_emily
             xSimi = obj.MeanRatedSimilarity;           
             xInt = obj.MeanRatedInteraction;           
             figure
-            subplot(2,2,1)
-            scatter(xSimi,y)
-            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),TimeScalesUsed(j)))
-            xlabel('Mean Rated Similarity')
-            ylabel('Prediction')
-            subplot(2,2,2)
-            scatter(xInt,y)
-            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),TimeScalesUsed(j)))
-            xlabel('Mean Rated Interaction')
-            ylabel('Prediction')
-            subplot(2,2,3)
+            subplot(2,2,1);
+            scatter(xSimi,y);
+            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),TimeScalesUsed(j)));
+            xlabel('Mean Rated Similarity');
+            ylabel('Prediction');
+            subplot(2,2,2);
+            scatter(xInt,y);
+            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),TimeScalesUsed(j)));
+            xlabel('Mean Rated Interaction');
+            ylabel('Prediction');
+            subplot(2,2,3);
             % just look at indices for Similarity
-            axis([min(xSimi)-1, max(xSimi)+1, min(y)-.01, max(y)+.01])
+            axis([min(xSimi)-1, max(xSimi)+1, min(y)-.01, max(y)+.01]);
             for k=1:length(xSimi)
-                text(xSimi(k),y(k),num2str(k))
+                text(xSimi(k),y(k),num2str(k));
             end
-            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),TimeScalesUsed(j)))
-            xlabel('Mean Rated Similarity')
-            ylabel('Prediction')
-            subplot(2,2,4)
+            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),TimeScalesUsed(j)));
+            xlabel('Mean Rated Similarity');
+            ylabel('Prediction');
+            subplot(2,2,4);
             % just look at indices for Interaction
-            axis([min(xInt)-1, max(xInt)+1, min(y)-.01, max(y)+.01])
+            axis([min(xInt)-1, max(xInt)+1, min(y)-.01, max(y)+.01]);
             for k=1:length(xInt)
-                text(xInt(k),y(k),num2str(k))
+                text(xInt(k),y(k),num2str(k));
             end
-            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),TimeScalesUsed(j)))
-            xlabel('Mean Rated Interaction')
-            ylabel('Prediction')
+            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),TimeScalesUsed(j)));
+            xlabel('Mean Rated Interaction');
+            ylabel('Prediction');
             end
         end
         function obj = plot_SSMs_from_highest_to_lowest_prediction(obj)
@@ -151,9 +151,9 @@ classdef twodancers_many_emily < twodancers_emily
             % [sInt, iInt] = sort(xInt); % iInt are song indices
             %                               % based on interaction ratings
             [sy, iy] = sort(y); % iy are song indices based on prediction
-            disp(iy)
+            disp(iy);
             for k = numel(iy):-1:1
-                plotssm(obj.Res(iy(k)).res)
+                plotssm(obj.Res(iy(k)).res);
                 %set(gcf,'units','normalized','outerposition',[0 0 1 1])
             end
         end
@@ -167,9 +167,9 @@ classdef twodancers_many_emily < twodancers_emily
             % [sInt, iInt] = sort(xInt); % iInt are song indices
             %                               % based on interaction ratings
             [sy, iy] = sort(y); % iy are song indices based on prediction
-            disp(iy)
+            disp(iy);
             for k = numel(iy):-1:1
-                plotcrossrec(obj.Res(iy(k)).res)
+                plotcrossrec(obj.Res(iy(k)).res);
                 %set(gcf,'units','normalized','outerposition',[0 0 1 1])
             end
         end
@@ -177,9 +177,9 @@ classdef twodancers_many_emily < twodancers_emily
         function obj = plot_joint_recurrence_from_highest_to_lowest_prediction(obj)
             y = arrayfun(@(x) x.res.Corr.means,obj.Res)';
             [sy, iy] = sort(y); % iy are song indices based on prediction
-            disp(sy)
+            disp(sy);
             for k = numel(iy):-1:1
-                plotjointrecurrence(obj.Res(iy(k)).res)
+                plotjointrecurrence(obj.Res(iy(k)).res);
                 %set(gcf,'units','normalized','outerposition',[0 0 1 1])
             end
         end

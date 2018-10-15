@@ -92,7 +92,7 @@ classdef twodancers < dancers
         function obj = getdynamicpls(obj)
         %computes PLS by centering the data across columns (substracts
         %mean column values). 
-            disp('computing Dynamic Symmetric PLS...')
+            disp('Computing Dynamic Symmetric PLS...')
             data1 = obj.Dancer1.res.MocapStruct.data;
             data2 = obj.Dancer2.res.MocapStruct.data;
                 if isempty(obj.SinglePLSstd)
@@ -105,7 +105,7 @@ classdef twodancers < dancers
                 for k=1:obj.PLSstdNum  %loop for different std Scales 
                     [XL,YL,XS,YS] = dynamicpls(data1,data2,PLSstd(k),obj.PLScomp);
                     if strcmpi(obj.Iso1Method,'DynamicPLSMI')
-                       disp('computing Mutual Information...') 
+                       disp('Computing Mutual Information...') 
                        if isempty(obj.BinSize)
                           [MI,BinSizeX,BinSizeY] = mutinfo(XS,YS); %outputs best bin size for each dancer
                           obj.OptimalBinSize = [obj.OptimalBinSize;BinSizeX;BinSizeY]; 
@@ -129,9 +129,9 @@ classdef twodancers < dancers
         % FIRST ORDER ISOMORPHISM, WINDOWED PLS            
         function obj = windowed_pls(obj)
             if strcmpi(obj.Iso1Method,'AsymmetricPLS') 
-                disp('computing Asymmetric PLS...')
+                disp('Computing Asymmetric PLS...')
             elseif strcmpi(obj.Iso1Method,'SymmetricPLS') 
-                disp('computing Symmetric PLS...')
+                disp('Computing Symmetric PLS...')
             end
             data1 = obj.Dancer1.res.MocapStruct.data;
             data2 = obj.Dancer2.res.MocapStruct.data;

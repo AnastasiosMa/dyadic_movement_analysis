@@ -12,7 +12,7 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
             matnames = {Dataset1_24Dyads,Dataset2_38Dyads};
             data = cellfun(@(x) load(x),matnames,'UniformOutput',false);
             for k = 1:numel(matnames)
-                disp(['Experiment ' num2str(k) '...'])
+                disp(['Experiment ' num2str(k) '...']);
                 obj(k) = obj@twodancers_many_emily(data{k}.STIMULI,data{k}.meanRatedInteraction,data{k}.meanRatedSimilarity,data{k}.m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             end
             disp(corrtable(obj));
