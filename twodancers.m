@@ -20,7 +20,7 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet'
+        Iso1Method = 'DynamicPLSWavelet'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet'
         %'PCAConcatenatedDims','WinBeforePCA,'WinAfterPCA','(method used for first order isomorphism)        
         %PLS properties
         PLSScores
@@ -39,7 +39,7 @@ classdef twodancers < dancers
         OptimalBinSize %Optimal binsize for each dancer
         %Wavelet Analysis Inputs
         BPM
-        BeatofInt = [0.25 0.5 1 2 4]; %Select some Beat levels of Interest (e.g. 1 or 2 beats) and extract their energy
+        BeatofInt = [1 2 4]; %Select some Beat levels of Interest (e.g. 1 or 2 beats) and extract their energy
         OctaveNum = 6 
         VoiceOctave = 32 %number of voices per octave
         %Wavelet Analysis outputs
@@ -114,7 +114,7 @@ classdef twodancers < dancers
                        end
                        obj.Corr.means(k,1) = mean(diag(MI)); %DynamicPLS+MutualInformation
                     elseif strcmpi(obj.Iso1Method,'DynamicPLSWavelet')
-                       disp('Computing Wavelet Transform')
+                       disp('Computing Wavelet Transform...')
                        Fs = obj.Dancer1.res.SampleRate;
                        obj = getcwt(obj,XS,YS,Fs);
                        obj.Corr.means(k,1,:) = obj.MaxBeatFreqEnergy; %DynamicPLS+Wavelet
@@ -544,7 +544,7 @@ classdef twodancers < dancers
             yticklabels({num2str(ylabelmax),sprintf('%0.1g',ylabelmin)})
         end
         function obj = getcwt(obj,XS,YS,Fs)
-                 BPMtoBeatFreq=obj.BPM./[60*obj.BeatofInt];
+                 BPMtoBeatFreq=obj.BPM./[60*obj.BeatofInt]; %find frequencies corresponding to Beat of Interest
                  obj.OneBeatFreq = obj.BPM/60; %frequency of 1-beat for a given BPM
                        for k=1:obj.PLScomp
                           [w1 obj.f1]=cwt(XS(:,k),Fs,'FrequencyLimits',[obj.OneBeatFreq/2^[obj.OctaveNum/2], obj.OneBeatFreq*2^[obj.OctaveNum/2]],'VoicesPerOctave',obj.VoiceOctave);
