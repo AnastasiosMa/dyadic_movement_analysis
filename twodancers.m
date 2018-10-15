@@ -20,7 +20,7 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet'
+        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','optimMutInfo'
         %'PCAConcatenatedDims','WinBeforePCA,'WinAfterPCA','(method used for first order isomorphism)        
         %PLS properties
         PLSScores
