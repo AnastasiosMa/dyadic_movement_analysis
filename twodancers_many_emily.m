@@ -104,38 +104,39 @@ classdef twodancers_many_emily < twodancers_emily
         end
         function plotcorr(obj)
         % Scatter plots to show correlation with perceptual measures. works only if you have computed results for one time scale
-            for j = 1:obj.NumTimeScales
+            NumTimeScales = numel(obj.Res(1).res.WindowLengths);
+            for j = 1:NumTimeScales
+            TimeScalesUsed(j) = obj.Res(1).res.WindowLengths(j)/obj.SampleRate;
             y = arrayfun(@(x) x.res.Corr.means(j),obj.Res)';
             xSimi = obj.MeanRatedSimilarity;           
             xInt = obj.MeanRatedInteraction;           
             figure
-            subplot(2,1,1)
+            subplot(2,2,1)
             scatter(xSimi,y)
-            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),obj.Res(1).res.TimeScalesUsed(j)))
+            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),TimeScalesUsed(j)))
             xlabel('Mean Rated Similarity')
             ylabel('Prediction')
-            subplot(2,1,2)
+            subplot(2,2,2)
             scatter(xInt,y)
-            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),obj.Res(1).res.TimeScalesUsed(j)))
+            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),TimeScalesUsed(j)))
             xlabel('Mean Rated Interaction')
             ylabel('Prediction')
-            figure
-            subplot(2,1,1)
+            subplot(2,2,3)
             % just look at indices for Similarity
             axis([min(xSimi)-1, max(xSimi)+1, min(y)-.01, max(y)+.01])
             for k=1:length(xSimi)
                 text(xSimi(k),y(k),num2str(k))
             end
-            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),obj.Res(1).res.TimeScalesUsed(j)))
+            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),TimeScalesUsed(j)))
             xlabel('Mean Rated Similarity')
             ylabel('Prediction')
-            subplot(2,1,2)
+            subplot(2,2,4)
             % just look at indices for Interaction
             axis([min(xInt)-1, max(xInt)+1, min(y)-.01, max(y)+.01])
             for k=1:length(xInt)
                 text(xInt(k),y(k),num2str(k))
             end
-            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),obj.Res(1).res.TimeScalesUsed(j)))
+            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),TimeScalesUsed(j)))
             xlabel('Mean Rated Interaction')
             ylabel('Prediction')
             end
