@@ -406,7 +406,7 @@ classdef twodancers < dancers
             for w = wparam
                 j = 1;
                 for k = 1:obj.WindowSteps:(size(data1,1)-(w-1))
-                    disp('Optimizing mutual information...')
+                    disp('Optimizing mutual information...');
                     % analysis window
                     global aw1_SPAkXLhcxWk aw2_SPAkXLhcxWk
                     aw1_SPAkXLhcxWk = data1(k:(k+w-1),:);
