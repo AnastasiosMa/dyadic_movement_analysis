@@ -15,7 +15,7 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
                 disp(['Experiment ' num2str(k) '...']);
                 obj(k) = obj@twodancers_many_emily(data{k}.STIMULI,data{k}.meanRatedInteraction,data{k}.meanRatedSimilarity,data{k}.m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             end
-            disp(corrtable(obj));
+            corrtable(obj);
         end
         function obj = corrtable(obj)
             for k = 1:numel(obj)
