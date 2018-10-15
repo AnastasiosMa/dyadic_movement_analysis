@@ -56,7 +56,7 @@ classdef twodancers < dancers
         BeatPhaseMean
         BeatPhaseLength
         %Second order Isomorphism properties
-        Iso2Method = 'corrConcatenatedSSMs'; % corrSSMs or corrConcatenatedSSMs (method used for second order isomorphism)        
+        Iso2Method = 'corrSSMs'; % corrSSMs or corrConcatenatedSSMs (method used for second order isomorphism)        
         CrossRec
         CrossRecurrenceThres = 2; % percentile
         JointRec
