@@ -100,10 +100,15 @@ classdef dancers
 
                 elseif isomorphismorder == 2
                     obj.IsomorphismOrder = 2;
-                    obj = getpca(obj);
-                    obj = normalize_eigenvalues(obj);
-                    obj = makeMocapStructPCs(obj);
-                    obj = getssm(obj,obj.Sigma);
+                    if isnumeric(NPC) % this can be used to bypass
+                                      % this step by using a string
+                                      % instead of a number when setting NPCs
+                        obj = getpca(obj);
+                        obj = normalize_eigenvalues(obj);
+                        obj = makeMocapStructPCs(obj);
+                        obj = getssm(obj,obj.Sigma);
+                    else
+                    end
                 end
             end
         end
