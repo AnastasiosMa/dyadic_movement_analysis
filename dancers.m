@@ -35,8 +35,8 @@ classdef dancers
         nMarkers
     end
     properties %(Abstract) % MAKE ABSTRACT TO TRY DIFFERENT SIGMAS Abstract properties are set from subclass
-        SSM_Type = 'Correntropy'; % or 'AdaptiveCorrentropy'
-                 % or 'Cosine' or 'Covariance'
+        SSM_Type = 'Correntropy'%'Correntropy'; % or 'AdaptiveCorrentropy'
+                 % or 'Cosine' or 'Covariance' or 'Euclidean'
         CorrentropyType = 'Gaussian'; % or
                         % 'LaplacianL1_normalize' or
                         % 'Laplacian'
@@ -325,6 +325,9 @@ classdef dancers
             if strcmpi(obj.SSM_Type,'Correntropy')
                 % Laplacian RBFK SSM
                 obj.SSM = dancers.getcorrentropy(X,sigma,obj.CorrentropyType);
+            elseif strcmpi(obj.SSM_Type,'Euclidean')
+                % Euclidean SSM
+                obj.SSM = 1-(squareform(pdist(X,'Euclidean')));
             elseif strcmpi(obj.SSM_Type,'Cosine')
                 % Cosine SSM
                 obj.SSM = 1-(squareform(pdist(X,'cosine')));
