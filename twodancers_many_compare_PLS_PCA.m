@@ -8,7 +8,6 @@ classdef twodancers_many_compare_PLS_PCA
     methods
         function obj = twodancers_many_compare_PLS_PCA(method1,method2)
         % Syntax e.g.:
-        % addpath(genpath('~/Dropbox/MATLAB/MocapToolbox_v1.5'))
         % load('mcdemodata','m2jpar')
         % load('EPdyads_ratings.mat')
         % m1 = twodancers_many_emily(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,1,'local','noTDE','vel');

@@ -55,7 +55,6 @@ classdef dancers
         % TDE=Time delay embedding, TDE==1, NOTDE==0
         %kinemfeat= pos, vel, acc
             if nargin > 0 % else, create an empty instance of the class
-                addpath(genpath('~/Dropbox/MocapToolbox_v1.5'))               
                 obj.MocapStruct = mocapstruct;
                 obj.M2jpar = m2jpar;
                 obj.NumPrinComp = NPC;

@@ -7,7 +7,6 @@ classdef twodancers_many_emily_compare_two_methods
     methods
         function obj = twodancers_many_emily_compare_two_methods(method1,method2)
         % Syntax e.g.:
-        % addpath(genpath('~/Dropbox/MATLAB/MocapToolbox_v1.5'))
         % load('mcdemodata','m2jpar')
         % load('EPdyads_ratings.mat')
         % m1 = twodancers_many_emily(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,1,'local','TDE','vel');

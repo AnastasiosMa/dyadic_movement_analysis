@@ -16,7 +16,6 @@ classdef twodancers_many_emily_joint_rec_timescales_thresholds_sigma < ...
         function obj = twodancers_many_emily_joint_rec_timescales_thresholds_sigma(mocap_array, ...
                                                               meanRatedInteraction,meanRatedSimilarity,m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat,sigmas)
             % Syntax e.g.:
-            % addpath(genpath('~/Dropbox/MATLAB/MocapToolbox_v1.5'))
             % load('mcdemodata','m2jpar')
             % load('EPdyads_ratings.mat')
             % a = twodancers_many_emily_joint_rec_timescales_thresholds_sigma(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,2,5,20,2,'global','TDE','vel',75:25:175);

@@ -69,7 +69,6 @@ classdef twodancers < dancers
         function obj = twodancers(mocapstruct1,mocapstruct2,m2jpar, ...
                                   NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
             % Syntax e.g.:
-            % addpath(genpath('~/Dropbox/MATLAB/MocapToolbox_v1.5'))
             % load('mcdemodata')
             % a = twodancers(dance1,dance2,m2jpar,5,5,20,1,'local','TDE','vel');
             % But you should do marker to joint mapping in dancers.m

@@ -5,7 +5,6 @@ classdef twodancers_emily < twodancers
         function obj = twodancers_emily(mocapstruct,m2jpar, ...
                                         NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
             % Syntax e.g.:
-            % addpath(genpath('~/Dropbox/MATLAB/MocapToolbox_v1.5'))
             % load('mcdemodata','m2jpar')
             % load('EPdyads_ratings.mat','STIMULI')
             % a =

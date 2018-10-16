@@ -7,7 +7,6 @@ classdef twodancers_many_emily < twodancers_emily
     methods
         function obj = twodancers_many_emily(mocap_array,meanRatedInteraction,meanRatedSimilarity,m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
         % Syntax e.g.:
-        % addpath(genpath('~/Dropbox/MATLAB/MocapToolbox_v1.5'))
         % load('mcdemodata','m2jpar')
         % load('EPdyads_ratings.mat')
         % a = twodancers_many_emily(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,1,'global','noTDE','vel');

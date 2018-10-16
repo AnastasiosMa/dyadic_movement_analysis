@@ -16,7 +16,6 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
         function obj = twodancers_many_spectrum_analysis(data,mocap_array,meanRatedInteraction,meanRatedSimilarity,m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
             %keyboard
             % Syntax e.g.:
-        % addpath(genpath('~/Dropbox/MATLAB/MocapToolbox_v1.5'))
         % load('mcdemodata','m2jpar')
         %load('Combined62_dyads_ratings')
         %obj= twodancers_many_spectrum_analysis(obj,STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,1,'global','noTDE','vel');

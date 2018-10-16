@@ -8,7 +8,6 @@ classdef twodancers_many_emily_coord_systems_isomorphisms < twodancers_many_emil
     methods
         function obj = twodancers_many_emily_coord_systems_isomorphisms(mocap_array,meanRatedInteraction,meanRatedSimilarity,m2jpar, NPC,t1,t2,TDE,kinemfeat)
         % Syntax e.g.:
-        % addpath(genpath('~/Dropbox/MATLAB/MocapToolbox_v1.5'))
         % load('mcdemodata','m2jpar')
         % load('EPdyads_ratings.mat')
         % a = twodancers_many_emily_coord_systems_isomorphisms(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,3,5,20,'TDE','vel');

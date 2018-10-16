@@ -6,7 +6,6 @@ classdef twodancers_emily_explore
     methods
         function obj = twodancers_emily_explore(mocapstruct,m2jpar,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
         % Syntax e.g.:
-        % addpath(genpath('~/Dropbox/MATLAB/MocapToolbox_v1.5'))
         % load('mcdemodata','m2jpar')
         % load('EPdyads_ratings.mat','STIMULI')
         % twodancers_emily_explore(STIMULI(1),m2jpar,1:5,5,20,1,'local','TDE','Vel')

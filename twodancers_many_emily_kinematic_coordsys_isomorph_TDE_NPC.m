@@ -15,7 +15,6 @@ classdef twodancers_many_emily_kinematic_coordsys_isomorph_TDE_NPC < twodancers_
     methods
         function obj = twodancers_many_emily_kinematic_coordsys_isomorph_TDE_NPC(mocap_array,meanRatedInteraction,meanRatedSimilarity,m2jpar,t1,t2)
         % Syntax e.g.:
-        % addpath(genpath('~/Dropbox/MATLAB/MocapToolbox_v1.5'))
         % load('mcdemodata','m2jpar')
         % load('EPdyads_ratings.mat')
         % a = twodancers_many_emily_kinematic_coordsys_isomorph_TDE_NPC(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,20);
