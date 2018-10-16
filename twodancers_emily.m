@@ -58,6 +58,9 @@ classdef twodancers_emily < twodancers
                         obj = correlate_SSMs_main_diag(obj);
                     elseif strcmpi(obj.Iso2Method,'corrConcatenatedSSMs')
                         obj = concatenate_and_SSM(obj);
+                    elseif strcmpi(obj.Iso2Method,'corrSSMsPLS')
+                        obj = SSM_symmPLS(obj,obj.Sigma);
+                        obj = correlate_SSMs_main_diag(obj);
                     end
                     %obj = joint_recurrence_analysis(obj);
                 end

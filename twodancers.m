@@ -23,7 +23,7 @@ classdef twodancers < dancers
         Iso1Method = 'DynamicPLSWavelet'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','optimMutInfo'
         %'PCAConcatenatedDims','WinBeforePCA,'WinAfterPCA','(method used for first order isomorphism)        
         %PLS properties
-        PLSScores
+        PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
         PLScomp = 2; %number of components to be extracted
         EigenNum=5;
@@ -56,7 +56,10 @@ classdef twodancers < dancers
         BeatPhaseMean
         BeatPhaseLength
         %Second order Isomorphism properties
-        Iso2Method = 'corrSSMs'; % corrSSMs or corrConcatenatedSSMs (method used for second order isomorphism)        
+        Iso2Method = 'corrSSMs'; % corrSSMs, corrSSMsPLS or
+                                    % corrConcatenatedSSMs (method
+                                    % used for second order
+                                    % isomorphism).
         CrossRec
         CrossRecurrenceThres = 2; % percentile
         JointRec
@@ -419,7 +422,53 @@ classdef twodancers < dancers
                 end
                 g = g + 1; %g=the different time length window used, k the number of windows for each window length
             end
+        end
+        function obj = SSM_symmPLS(obj,sigma)
+            disp('Computing SSMs from PLS scores...');
+            data1 = obj.Dancer1.res.MocapStruct.data;
+            data2 = obj.Dancer2.res.MocapStruct.data;
+            [XL,YL,XS,YS,Eigenvalues] = symmpls(data1,data2,size(data1,2)); %Compute SYMMETRICAL PLS
+            if isempty(obj.PLScomp) % if number of PLS components
+                                    % is not specified, then get
+                                    % PLS components corresponding
+                                    % to normalized eigenvalues
+                                    % that are higher than a
+                                    % random distribution of
+                                    % normalized eigenvalues
+                rand_eig_mean_dist = twodancers.PLS_rand_eig_mean_dist(size(data1),1000);
+                norm_eig_rand = rand_eig_mean_dist/sum(rand_eig_mean_dist);
+                norm_eig = Eigenvalues/sum(Eigenvalues);
+                obj.PLSScores{1} = XS(:,norm_eig > norm_eig_rand);
+                obj.PLSScores{2} = YS(:,norm_eig > norm_eig_rand);
+            else
+            obj.PLSScores{1} = XS(:,obj.PLScomp);
+            obj.PLSScores{2} = XS(:,obj.PLScomp);
+            end
 
+            dancernames = {'Dancer1','Dancer2'};
+            for k = 1:numel(obj.PLSScores)
+                X = obj.PLSScores{k};
+                if strcmpi(obj.SSM_Type,'Correntropy')
+                    % Laplacian RBFK SSM
+                    obj.(dancernames{k}).res.SSM = dancers.getcorrentropy(X,sigma,obj.CorrentropyType);
+                elseif strcmpi(obj.SSM_Type,'Cosine')
+                    % Cosine SSM
+                    obj.(dancernames{k}).res.SSM = 1-(squareform(pdist(X,'cosine')));
+                elseif strcmpi(obj.SSM_Type,'Covariance')
+                    % Covariance SSM
+                    Xc = X - mean(X,2);
+                    obj.(dancernames{k}).res.SSM = Xc * Xc';
+                elseif strcmpi(obj.SSM_Type,'AdaptiveCorrentropy')
+                    SSMd = (squareform(pdist(X,'euclidean')));
+                    obj.AdaptiveSigma = prctile(SSMd(:),obj.AdaptiveSigmaPercentile);
+                    %sigma = median(SSMd(:));
+                    disp('sigma')
+                    disp(obj.AdaptiveSigma)
+                    obj.(dancernames{k}).res.SSM = dancers.getcorrentropy(X,obj.AdaptiveSigma,obj.CorrentropyType);
+                    disp('skewness')
+                    disp(skewness(obj.(dancernames{k}).res.SSM(:)))
+                end
+            end
         end
         function plotcrossrec(obj)
             markersize = .1;
@@ -620,6 +669,15 @@ classdef twodancers < dancers
 
             f = -mutinfo(XS,YS);
 
+        end
+        function y = PLS_rand_eig_mean_dist(sizedata,numIterations)
+            disp('Getting random distribution...')
+            for k = 1:numIterations
+            rdata1 = rand(sizedata);
+            rdata2 = rand(sizedata);
+            [XL,YL,XS,YS,Eigenvalues(k,:)] = symmpls(rdata1,rdata2,size(rdata1,2));
+            end
+            y = mean(Eigenvalues)';
         end
     end
 end
