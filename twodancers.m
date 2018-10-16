@@ -162,7 +162,22 @@ classdef twodancers < dancers
                         obj.Corr.timescalesdef(j,k) = corr(XSdef,YSdef); 
                         obj.Corr.timescalesinv(j,k) = corr(XSinv,YSinv);
                     elseif strcmpi(obj.Iso1Method,'SymmetricPLS') || strcmpi(obj.Iso1Method,'PLSEigenvalues')
-                        [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
+                        if isempty(obj.PLScomp) % if number of PLS components
+                                                % is not specified
+                            [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,size(aw1,2)); ...
+                            %Compute SYMMETRICAL PLS for all PLS components
+                            if k == 1
+                                rand_eig_mean_dist = twodancers.PLS_rand_eig_mean_dist(size(aw1),100);
+                                norm_eig_rand = rand_eig_mean_dist/sum(rand_eig_mean_dist);
+                            end
+                            norm_eig = Eigenvalues/sum(Eigenvalues);
+                            newPLScomp = sum(norm_eig > norm_eig_rand);
+                            [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,newPLScomp); ...
+                            %Compute SYMMETRICAL PLS for all PLS components
+                        else
+                            [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
+                        end
+
                         if strcmpi(obj.GetPLSCluster,'Yes')
                             obj.PLSloadings = [obj.PLSloadings;XL';YL'];
                         end
