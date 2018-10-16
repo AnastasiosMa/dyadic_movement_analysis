@@ -11,7 +11,7 @@ classdef twodancers < dancers
         MaxWindowLength  %optional argument, defines the maximum length of Windows                     
         NumWindows = 10;%180%120%30; % number of windows
         WindowLengths
-        TimeShift %= -1:.5:1; % leave empty for no time shifting, otherwise
+        TimeShift %= -2:.5:2; % leave empty for no time shifting, otherwise
                           % add a vector of shifts (in seconds) 
         Timeshifts_corr                  
         WindowSteps = 20; % get a window every N steps. To get a regular
@@ -20,12 +20,12 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        Iso1Method = 'DynamicPLSWavelet'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','optimMutInfo'
+        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','optimMutInfo'
         %'PCAConcatenatedDims','WinBeforePCA,'WinAfterPCA','(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
-        PLScomp = 2; %number of components to be extracted
+        PLScomp = 1; %number of components to be extracted
         EigenNum=5;
         GetPLSCluster ='No'
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
@@ -132,7 +132,7 @@ classdef twodancers < dancers
         function obj = windowed_pls(obj)
             if strcmpi(obj.Iso1Method,'AsymmetricPLS') 
                 disp('Computing Asymmetric PLS...')
-            elseif strcmpi(obj.Iso1Method,'SymmetricPLS') 
+            elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues'})) 
                 disp('Computing Symmetric PLS...')
             end
             data1 = obj.Dancer1.res.MocapStruct.data;
@@ -182,6 +182,7 @@ classdef twodancers < dancers
                             obj.PLSloadings = [obj.PLSloadings;XL';YL'];
                         end
                         if strcmpi(obj.Iso1Method,'PLSEigenvalues')
+                           disp('Computing Eigenvalues...') 
                            obj.Corr.timescales(g,j) = sum(Eigenvalues(1:obj.EigenNum)); 
                         else
                            obj.Corr.timescales(g,j) = mean(diag(corr(XS,YS)));

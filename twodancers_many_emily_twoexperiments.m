@@ -18,7 +18,8 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
         end
         function obj = corrtable(obj)
             for k = 1:numel(obj)
-                disp(['Experiment ' num2str(k)]);
+                disp(['Experiment ' num2str(k) ' ' eval(['obj(k).Res(1).res.Iso' ...
+                num2str(obj(1).Res(1).res.Dancer1.res.IsomorphismOrder) 'Method'])]);
                 corrtable@twodancers_many_emily(obj(k));
             end
         end

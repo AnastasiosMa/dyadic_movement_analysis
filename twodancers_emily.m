@@ -34,7 +34,7 @@ classdef twodancers_emily < twodancers
                 if isomorphismorder == 1
                     if sum(strcmpi(obj.Iso1Method,{'DynamicPLS','DynamicPLSMI','DynamicPLSWavelet'}))
                        obj = getdynamicpls(obj); 
-                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','AsymmetricPLS'}))
+                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','AsymmetricPLS','PLSEigenvalues'}))
                        if isempty(obj.TimeShift)
                           obj = windowed_pls(obj);
                        else
