@@ -21,7 +21,7 @@ classdef twodancers < dancers
         Corr
         %First order isomorphism properties
         Iso1Method = 'SymmetricPLS'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','optimMutInfo'
-        %'PCAConcatenatedDims','WinBeforePCA,'WinAfterPCA','(method used for first order isomorphism)        
+        %'PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants

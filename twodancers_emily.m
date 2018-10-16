@@ -40,9 +40,9 @@ classdef twodancers_emily < twodancers
                        else
                           obj = windowed_pls_time_shifts(obj);
                        end
-                    elseif strcmpi(obj.Iso1Method,'WinBeforePCA') 
+                    elseif strcmpi(obj.Iso1Method,'Win_PCA_CCA') 
                          obj = windowed_pca_cca(obj);
-                    elseif strcmpi(obj.Iso1Method,'WinAfterPCA') 
+                    elseif strcmpi(obj.Iso1Method,'PCA_Win_CCA') 
                          obj = windowed_cca_over_pca(obj);
                          %obj = cross_recurrence_analysis(obj);
                     elseif strcmpi(obj.Iso1Method,'PCAConcatenatedDims')
