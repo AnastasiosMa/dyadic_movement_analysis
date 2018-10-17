@@ -67,7 +67,7 @@ classdef twodancers_many_emily < twodancers_emily
             obj.CorrTable = array2table(results,'VariableNames',varnames(:)');
             disp(obj.CorrTable);
             else
-                if obj.Res(1).res.Dancer1.res.IsomorphismOrder==1 && (strcmpi(obj.Iso1Method,'DynamicPLS') || strcmpi(obj.Iso1Method,'DynamicPLSMI') || strcmpi(obj.Iso1Method,'DynamicPLSWavelet'))
+                if obj.Res(1).res.Dancer1.res.IsomorphismOrder==1 && strcmpi(obj.Iso1Method,'DynamicPLS')
                    varnames = [fieldnames(obj.Corr);{'PLSstdScales'}];
                    results = num2cell([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
                                                'UniformOutput', ...
