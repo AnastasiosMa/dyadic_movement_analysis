@@ -431,6 +431,7 @@ classdef twodancers < dancers
                     aw2_SPAkXLhcxWk = data2(k:(k+w-1),:);
                     x0 = randn(2*size(obj.Dancer1.res.MocapStruct.data,2),1);
                     [x, fval,exitflag] = fminsearch(@twodancers.objectivefcn_mutinfo,x0);
+                    %[x, fval,exitflag,output]= simulannealbnd(@twodancers.objectivefcn_mutinfo,x0);
                     obj.Corr.timescales(g,k) = -fval;
                     clear aw1_SPAkXLhcxWk aw2_SPAkXLhcxWk;
                     j = j + 1; % a counter
