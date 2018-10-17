@@ -3,6 +3,8 @@ classdef twodancers_many_emily < twodancers_emily
         Res
         MeanRatedInteraction
         MeanRatedSimilarity
+        CorrTable
+        CorrTableData
     end
     methods
         function obj = twodancers_many_emily(mocap_array,meanRatedInteraction,meanRatedSimilarity,m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
@@ -59,11 +61,13 @@ classdef twodancers_many_emily < twodancers_emily
                 g = g + 1;
                 end
             end
-            disp(array2table(cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
+            results = cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
                                                'UniformOutput', ...
-                                               false)')','VariableNames',varnames(:)'));
+                                               false)')'
+            obj.CorrTable = array2table(results,'VariableNames',varnames(:)');
+            disp(obj.CorrTable);
             else
-                if obj.Res(1).res.Dancer1.res.IsomorphismOrder==1 && strcmpi(obj.Iso1Method,'DynamicPLS') 
+                if obj.Res(1).res.Dancer1.res.IsomorphismOrder==1 && (strcmpi(obj.Iso1Method,'DynamicPLS') || strcmpi(obj.Iso1Method,'DynamicPLSMI') || strcmpi(obj.Iso1Method,'DynamicPLSWavelet'))
                    varnames = [fieldnames(obj.Corr);{'PLSstdScales'}];
                    results = num2cell([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
                                                'UniformOutput', ...
@@ -79,11 +83,14 @@ classdef twodancers_many_emily < twodancers_emily
                 starcell=twodancers_many_emily.makestars(cell2mat(arrayfun(@(x) x.PVAL', struct2array(obj.Corr), ...
                     'UniformOutput', false))); %create cell array of pstars
                 starcell{numel(results)} = []; %add empty elements to bring it to the same size as restable
+                results_stars = results;
                 for i=1:numel(results)
-                    results{i}=[num2str(results{i}) starcell{i}]; %makes matrix with significance stars
+                    results_stars{i}=[num2str(results{i}) starcell{i}]; %makes matrix with significance stars
                 end
-                disp(array2table(results,'VariableNames',varnames));
+                obj.CorrTable = array2table(results_stars,'VariableNames',varnames);
+                disp(obj.CorrTable);
             end
+            obj.CorrTableData = results;
         end
         function obj = plot_corr_time_shifts(obj)
             figure

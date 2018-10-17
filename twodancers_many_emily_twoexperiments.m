@@ -14,13 +14,24 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
                 disp(['Experiment ' num2str(k) '...']);
                 obj(k) = obj@twodancers_many_emily(data{k}.STIMULI,data{k}.meanRatedInteraction,data{k}.meanRatedSimilarity,data{k}.m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             end
-            corrtable(obj);
+            obj = corrtable(obj);
+            display_best_timescale(obj);
         end
         function obj = corrtable(obj)
             for k = 1:numel(obj)
                 disp(['Experiment ' num2str(k) ' ' eval(['obj(k).Res(1).res.Iso' ...
                 num2str(obj(1).Res(1).res.Dancer1.res.IsomorphismOrder) 'Method'])]);
-                corrtable@twodancers_many_emily(obj(k));
+                obj(k) = corrtable@twodancers_many_emily(obj(k));
+            end
+        end
+        function obj = display_best_timescale(obj)
+            if size(obj(1).CorrTableData,2) == 3
+                concatdata = cell2mat([obj(1).CorrTableData obj(2).CorrTableData]);
+                concatdata(:,[3 6]) = [];
+                [M I] = max(mean(concatdata,2));
+                best_timescale = obj(1).CorrTableData{I,3};
+                str = ['Timescale of ' num2str(best_timescale) ...
+                      ' s yields best results (mean correlation: ' num2str(M) ')']
             end
         end
         function obj = plotcorr(obj)
