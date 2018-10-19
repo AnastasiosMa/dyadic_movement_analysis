@@ -7,7 +7,7 @@ classdef dancers
         %KDEincrement = .01; % in beats (by how much will elements
                             % of KDE vector increment)
         %PeriodRange = 5; % in beats (period range to analyze)
-        Delays = linspace(12,60,9); %12,240,20; % Time delay embedding delays to use,
+        Delays = linspace(1,10,10)% (8.3 ms to 83 ms)%%linspace(2,10,5)%linspace(12,60,9); %12,240,20; % Time delay embedding delays to use,
                                     % in samples (not in seconds)
         SampleRate = 120;
         JointBodyMarker = 1:12; % all markers
