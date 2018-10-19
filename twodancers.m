@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SingleTimeScale % time scale of 9 seconds; leave this empty if you want to use
+        SingleTimeScale =1080;% time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -25,9 +25,9 @@ classdef twodancers < dancers
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
-        PLScomp = 1; %number of components to be extracted
+        PLScomp = 3; %number of components to be extracted
         EigenNum=5;
-        GetPLSCluster ='No'
+        GetPLSCluster ='YesDyad'% YesDyad computes the mean of both dancers loadings for each window
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
         PLSstdNum = 20; %Number of different std's to test
@@ -125,6 +125,8 @@ classdef twodancers < dancers
                     end
                     if strcmpi(obj.GetPLSCluster,'Yes')
                             obj.PLSloadings = [obj.PLSloadings;XL';YL'];
+                    elseif strcmpi(obj.GetPLSCluster,'YesDyad')
+                           obj.PLSloadings = [obj.PLSloadings; mean([XL';YL'])];
                     end
                 end
         end
@@ -180,6 +182,8 @@ classdef twodancers < dancers
 
                         if strcmpi(obj.GetPLSCluster,'Yes')
                             obj.PLSloadings = [obj.PLSloadings;XL';YL'];
+                        elseif strcmpi(obj.GetPLSCluster,'YesDyad')
+                           obj.PLSloadings = [obj.PLSloadings; [(XL+YL)/2]'];
                         end
                         if strcmpi(obj.Iso1Method,'PLSEigenvalues')
                            disp('Computing Eigenvalues...') 

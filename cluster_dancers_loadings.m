@@ -20,13 +20,14 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        %Input parameters
        ClusterNum = 2;
        Clustermethod %valid inputs: %'eval', 'linkage','kmeans','gmm'
-       Linkmethod = 'average'; %any acceptable input for the method used in linkage e.g. average, weighted
-       Steps = '1step'; %'1step','2step'. Defines if a squareform of modified cosine distance
+       Linkmethod %= 'average'; %any acceptable input for the method used in linkage e.g. average, weighted
+       Steps %= '1step'; %'1step','2step'. Defines if a squareform of modified cosine distance
        %pairwise comparisons is applied on Data before clustering
-       Distance = 'euclidean'; %'euclidean',@cosdist. Defines the distance measure used for clustering/evaluation.
+       Distance %= 'euclidean'; %'euclidean',@cosdist. Defines the distance measure used for clustering/evaluation.
        %kmeans only support modified cosine distance or squareduclidean.
-       ApplyPCA = 'Yes';%'No'
-       PCNum = 3; %Select number of PCs 
+       ApplyPCA %= 'Yes';%'No'
+       PCNum = 3; %Select number of PCs
+       Regress
        
        %Variables of PCA on Data
        PCLoads
@@ -42,7 +43,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        MedoidLoc  %indexes of Medoids 
        MedoidDist %mean Distance of each medoid to other points in the cluster
        GMM        %object with GMM distribution information, result of the gm function 
-       threshold = [0.3 0.7]; %thresholds to identify a window having mixed membership (GMM only), threshold values are probabilities [0-1]
+       threshold = [0.4 0.6]; %thresholds to identify a window having mixed membership (GMM only), threshold values are probabilities [0-1]
        PostProb   %n-by-ClusterNum sized vector with posterior probabilities values for membership of each windows to all clusters
        idxCommon  %index numbers of all mixed membership windows
        numCommon  %number of mixed membership windows
@@ -54,6 +55,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        Evagmm
        CophCoeff %Cophenetic correlation coefficient (Hierarchical clustering only)
        InconsistCoeff %Mean Inconsistency coefficient (Hierarchical clustering only)
+       GetMeanWindow='No'
     end
     methods
         function obj = cluster_dancers_loadings(ClusterNum,Clustermethod,Linkmethod,Steps,Distance,ApplyPCA,PCNum)    
@@ -61,7 +63,8 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             cd '~/Desktop/isomorphism'
             addpath(genpath('~/Dropbox/MocapToolbox_v1.5'))               
             %load('EPdyads_ratings.mat');
-            load Combined64_dyads_ratings
+            %obj = cluster_dancers_loadings(2,'linkage','average','1step',@cosdist,'No',3)
+            load Dataset2_38Dyads
             obj.AllDancersData = twodancers_many_emily(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,1,'global','noTDE','vel');
             
             obj.ClusterNum = ClusterNum;
@@ -99,6 +102,9 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             else
                obj.Labels=obj.OriginalLabels;
             end
+            if strcmpi(obj.GetMeanWindow,'Yes')
+               obj = get_dyad_cluster_mean(obj);              
+            end
             if strcmpi(Clustermethod,'eval')
                obj = findbesteval(obj);
             elseif strcmpi(Clustermethod,'linkage')
@@ -120,11 +126,11 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             if strcmpi(Clustermethod,'eval')
                disp('Evaluation of cluster solution completed')
             else
-               obj = evalclustersol(obj);
+               %obj = evalclustersol(obj);
                obj = plotclustersize(obj);
                obj = plotdyadtoclust(obj);
+               obj = clusterperceptualmeans(obj); 
                obj = scattercluster(obj);
-               %obj = clusterperceptualmeans(obj); 
                %obj = plotclusterratings(obj);
             end
         end      
@@ -147,7 +153,8 @@ classdef cluster_dancers_loadings < twodancers_many_emily
         end                 
         function obj = pcaondata(obj)
             [obj.PCLoads,obj.PCScores,obj.EigenValues,~,obj.PCExplainedVar]=pca(obj.Data,'Algorithm','svd','Centered','on','NumComponents',obj.PCNum);
-            obj.PCLabels = cellfun(@(x) ['PC' num2str(x)], sprintfc('%g',1:obj.PCNum), 'UniformOutput', false);            
+            obj.PCLabels = cellfun(@(x) ['PC' num2str(x)], sprintfc('%g',1:obj.PCNum), 'UniformOutput', false);
+            disp('Computing PCA on Loadings...')
         end
         function obj = plotpcares(obj)
             figure %Plot loadings for each PC
@@ -189,14 +196,17 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             end
         end
         function obj = getlinkage(obj) %Hierarchical clustering
+            disp('Computing Linkage...')
             obj.Z = linkage(obj.Data,obj.Linkmethod,{obj.Distance}); %compute linkage using the cosine distance formula to evaluate 
             %dissimilarities across leaves
             figure;
-            dendrogram(obj.Z)            
+            dendrogram(obj.Z)
+            disp(['Clustering data (Linkage) for ' num2str(obj.ClusterNum) ' Clusters...'])
             obj.ClusterSol = clusterdata(obj.Data,obj.Clustermethod,obj.Linkmethod,'distance',obj.Distance,'Maxclust',...
             obj.ClusterNum);
         end                      
         function obj = getkmeans(obj) %kmeans clustering
+            disp(['Clustering data (kMeans) for ' num2str(obj.ClusterNum) ' Clusters...'])
             opts = statset('Display','final');
             %[obj.ClusterSol, obj.Centroids] = kmedoids(obj.Data, ClusterNum,'Distance',Distance,'Replicates',5, 'Options',opts);
             if isa(obj.Distance, 'function_handle')
@@ -208,6 +218,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                [obj.ClusterSol, obj.Centroids] = kmeans(obj.Data, obj.ClusterNum, 'Distance',obj.Distance,'Replicates',20, 'Options',opts);
         end
         function obj = getgmm(obj) %compute GMM
+            disp(['Clustering data (GMM) for ' num2str(obj.ClusterNum) ' Clusters...'])
             obj.GMM = fitgmdist(obj.Data,obj.ClusterNum,'Start','plus','Replicates',10,'CovarianceType','full', 'SharedCovariance',false);
             obj.PostProb = posterior(obj.GMM,obj.Data);
             obj.ClusterSol = cluster(obj.GMM,obj.Data);
@@ -221,6 +232,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             disp(['Mixed membership identified in ' num2str(obj.numCommon) 'Windows'])
         end
         function obj = evalclustersol(obj) %Evaluate cluster solution
+            disp('Evaluating cluster solution...')
             if isa(obj.Distance, 'function_handle') & isa(obj.Clustermethod, 'kmeans') 
                obj.Distance ='cos' 
             end
@@ -307,16 +319,16 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             h(3) = plot(0,0,'or', 'visible', 'off');
             legend(h, 'Cluster1','Cluster2','Cluster3');
         end
-        function obj = plotdyadtoclust(obj) %Plot Windows belonging to each dyad per cluster
+        function obj = plotdyadtoclust(obj) %Plot percentage of Windows belonging to each dyad per cluster
             for i=1:obj.ClusterNum
                 for k=1:length(obj.AllDancersData.Res)
-                    obj.DyadtoCluster(k,i) = sum(obj.ClusterSol([k-1]*obj.DyadWin+1:k*obj.DyadWin)==i);
+                    obj.DyadtoCluster(k,i) = sum(obj.ClusterSol([k-1]*obj.DyadWin+1:k*obj.DyadWin)==i)/obj.DyadWin;
                 end
             end
             dim = [.02 .02 .02 .02]; %parameters for annotation function
             str = ['Parameters. Clustering method: ' obj.Clustermethod ', ClusterNumber:' num2str(obj.ClusterNum)];
             figure
-            bar3(obj.DyadtoCluster/obj.DyadWin)
+            bar3(obj.DyadtoCluster)
             zlabel('Ratio of Windows')
             set(gca, 'YTick',1:length(obj.AllDancersData.Res))
             title('Windows belonging to each cluster per dyad')
@@ -345,11 +357,13 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             end
             dim = [.02 .02 .02 .02]; %parameters for annotation function
             str = ['Parameters. Clustering method: ' obj.Clustermethod ', ClusterNumber:' num2str(obj.ClusterNum)];
-            bar(obj.ClusterMeanPerceptual')
-            set(gca,'XTick',1:obj.ClusterNum,'XTickLabel',obj.ClusterLabels)
+            figure
+            bar(obj.ClusterMeanPerceptual)
+            set(gca,'XTick',1:obj.ClusterNum,'XTickLabel',{'Interaction','Similarity'})
             ylabel('Mean Ratings')
-            xlabel('Clusters')
+            xlabel('Ratings')
             title('Mean Perceptual ratings for each cluster')
+            legend(obj.ClusterLabels)
             annotation('textbox',dim,'String',str,'FitBoxToText','on');  
         end
         function obj = plotclusterratings(obj)
@@ -366,7 +380,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             text(-11, 4, 'Ascending Interaction Ratings per dyad', 'FontSize', 11,'Rotation',-34);
             annotation('textbox',dim,'String',str,'FitBoxToText','on');
             
-            [AscSim,AscSimorder]=sort(obj.AllDancersData.MeanRatedSimilarity); %orders dyads in ascending interaction order
+            [AscSim,AscSimorder]=sort(obj.AllDancersData.MeanRatedSimilarity); %orders dyads in ascending similarity order
             figure
             bar3(obj.DyadtoCluster(AscSimorder,:)/obj.DyadWin)
             zlabel('Ratio of Windows')
@@ -384,7 +398,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             gscatter((obj.Data(:,1)),(obj.Data(:,2)),obj.ClusterSol,'rbg','+ox',5) %scatterplot over first 2 PC's
             hold on
             if strcmpi(obj.Clustermethod,'linkage') %show medoid or centroid location according to selected method
-               plot(obj.Medoids(:,1),obj.Medoids(:,2),'kx','LineWidth',2,'MarkerSize',10) 
+               plot(obj.Data(obj.MedoidLoc,1),obj.Data(obj.MedoidLoc,2),'kx','LineWidth',2,'MarkerSize',10) 
             else 
                 plot(obj.Centroids(:,1),obj.Centroids(:,2),'kx','LineWidth',2,'MarkerSize',10)
             end    
@@ -393,6 +407,27 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             xlabel('PC1'); ylabel('PC2')
             annotation('textbox',dim,'String',str,'FitBoxToText','on');
             hold off
+        end
+        function obj = ttest_cluster(obj) % ttest on perceptual ratings for different clusters
+            K1Dyads=find(obj.DyadtoCluster(:,1)>0.6);
+            K2Dyads=find(obj.DyadtoCluster(:,2)>0.6);
+            [h,p,ci,stats]=ttest2(obj.AllDancersData.MeanRatedSimilarity(K1Dyads),obj.AllDancersData.MeanRatedSimilarity(K2Dyads)); 
+            [h,p,ci,stats]=ttest2(obj.AllDancersData.MeanRatedInteraction(K1Dyads),obj.AllDancersData.MeanRatedInteraction(K2Dyads));
+            %mean(meanRatedInteraction(K1Dyads)); mean(meanRatedInteraction(K2Dyads))
+        end
+        function obj = get_dyad_cluster_mean(obj) %get cluster medoid window for each dyad
+            for i=1:obj.DyadNum %get mean scores across PC's
+                MeanPCScores(i,:) = mean(abs(obj.PCScores([i-1]*obj.DyadWin+1:i*obj.DyadWin,:)));             
+            end
+            obj.Data = MeanPCScores;
+            obj.DataDistVector=pdist(obj.Data,obj.Distance); %Change Distance matrices with mean PCScores
+            obj.DataDistSquare=squareform(obj.DataDistVector); 
+            obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res); 
+        end
+        function obj = regress_cluster(obj)
+            obj.Data = [ones(size(obj.Data,1),1) zscore(obj.Data)];
+            [obj.Regress.BInt,~,obj.Regress.RInt,~,obj.Regress.statsInt] = regress(zscore(obj.AllDancersData.MeanRatedInteraction),obj.Data);
+            [obj.Regress.BSim,~,obj.Regress.RSim,~,obj.Regress.statsSim] = regress(zscore(obj.AllDancersData.MeanRatedSimilarity),obj.Data);
         end
     end
 end
