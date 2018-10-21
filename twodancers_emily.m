@@ -32,7 +32,8 @@ classdef twodancers_emily < twodancers
                            NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             if nargin > 0
                 if isomorphismorder == 1
-                    if sum(strcmpi(obj.Iso1Method,{'DynamicPLS','DynamicPLSMI','DynamicPLSWavelet'}))
+                    if sum(strcmpi(obj.Iso1Method,{'DynamicPLS','DynamicPLSMI','DynamicPLSWavelet',...
+                       'DynamicPLSCrossWaveletPairing'}))
                        obj = getdynamicpls(obj); 
                     elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','AsymmetricPLS','PLSEigenvalues'}))
                        if isempty(obj.TimeShift)
@@ -63,7 +64,8 @@ classdef twodancers_emily < twodancers
                     end
                     %obj = joint_recurrence_analysis(obj);
                 end
-                if sum(strcmpi(obj.Iso1Method,{'DynamicPLS','DynamicPLSMI','DynamicPLSWavelet'})) && isomorphismorder == 1
+                if sum(strcmpi(obj.Iso1Method,{'DynamicPLS','DynamicPLSMI','DynamicPLSWavelet',...
+                   'DynamicPLSCrossWaveletPairing'})) && isomorphismorder == 1
                 else    
                 obj = mean_max_corr_for_each_timescale(obj);    
                 end

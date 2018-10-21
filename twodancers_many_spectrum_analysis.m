@@ -1,8 +1,9 @@
 classdef twodancers_many_spectrum_analysis < twodancers_many_emily
     properties
         Data
-        WaveletCorrMethod ='Spectral Energy'%'Period','Max','Phase','PhaseLock' %Choose feature to correlate with perceptual ratings
+        WaveletCorrMethod ='Spectral Energy'%'Spectral Energy','Max','Phase','PhaseLock' %Choose feature to correlate with perceptual ratings
         GaussianWindow = 'Yes';
+        PairwiseWavelets = 'Yes';
         SumSpectralEnergy
         MCPhaseEstimations
         Gaussianstd = 3;
@@ -11,6 +12,7 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
         CorrMatrix
         MaxEnergyBeat
         Regress
+        CompNum %Number of PLS components. In pairwise spectral energy CompNum=1
     end
     methods
         function obj = twodancers_many_spectrum_analysis(data,mocap_array,meanRatedInteraction,meanRatedSimilarity,m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
@@ -46,12 +48,18 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
                 obj.MCPhaseEstimations = ps0;
                 obj.MeanRatedInteraction = meanRatedInteraction;
                 obj.MeanRatedSimilarity = meanRatedSimilarity;
+                if strcmpi(obj.PairwiseWavelets,'Yes')
+                    obj.CompNum = 1;
+                    plot_pairwise_frequency(obj)
+                else
+                    obj.CompNum = obj.Res(1).res.PLScomp;
+                end
                 %obj = plot_wavelet_frequency_energy(obj);
                 if sum(strcmpi(obj.WaveletCorrMethod,{'Spectral Energy','Max'}))
-                   obj = getspectralsum(obj);
-                   obj = plotsumenergy(obj);
+                   obj = get_spectral_sum(obj);
+                   obj = plot_sum_energy(obj);
                    if strcmpi(obj.WaveletCorrMethod,'Max')
-                      obj = getmaxenergybeat(obj);
+                      obj = get_max_energy_beat(obj);
                    end
                 elseif sum(strcmpi(obj.WaveletCorrMethod,{'Phase','PhaseLock'}))
                    obj = getphase(obj);
@@ -60,9 +68,9 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
                     obj = getgaussian(obj);
                 end
                 if ~strcmpi(obj.WaveletCorrMethod,'Max')
-                   obj = getbeatofint(obj);
+                   obj = get_beat_of_int(obj);
                 end
-                obj = regressbeatofint(obj);
+                obj = regress_beat_of_int(obj);
                 obj = regresstable(obj);
                 obj = correlate_with_perceptual_measures(obj);
                 obj = plot_corr_matrix(obj);
@@ -72,7 +80,7 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
         function obj = plot_wavelet_frequency_energy(obj) %plots spectrogram of mean frequencies for each PLS
                                                           %component across all dancers
         tempall = cell2mat(arrayfun(@(x) x.res.MeanBeatFreqEnergy,obj.Res,'UniformOutput',false)');
-            for k=1:obj.Res(1).res.PLScomp
+            for k=1:obj.CompNum
                 figure
                 temp = cell2mat(arrayfun(@(x) x.res.MeanBeatFreqEnergy(k,:),obj.Res,'UniformOutput',false)'); 
                 hold on
@@ -99,15 +107,15 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
             %imagesc(tempMaxBeat),colormap(jet)
             %colorbar
         end
-        function obj = getspectralsum(obj) %sums spectral energy across PLS components
+        function obj = get_spectral_sum(obj) %sums spectral energy across PLS components
             temp = cell2mat(arrayfun(@(x) x.res.MeanBeatFreqEnergy,obj.Res,'UniformOutput',false)');
             obj.Data = zeros(length(obj.Res),size(temp,2));
-            for i=1:size(temp,1)/obj.Res(1).res.PLScomp %sum energy across PLS components
-               obj.SumSpectralEnergy(i,:) = sum(temp([i-1]*obj.Res(1).res.PLScomp+1:i*obj.Res(1).res.PLScomp,:));
+            for i=1:size(temp,1)/obj.CompNum %sum energy across PLS components
+               obj.SumSpectralEnergy(i,:) = sum(temp([i-1]*obj.CompNum+1:i*obj.CompNum,:),1);
             end
             obj.Data = sqrt(obj.SumSpectralEnergy);
         end
-        function obj = plotsumenergy(obj) %Plot sum energy of PLScomponents
+        function obj = plot_sum_energy(obj) %Plot sum energy of PLScomponents
             %BeatLabels = obj.Res(1).res.BeatLabels;
             imagesc(obj.Data),colormap(jet), axis xy
                 colorbar
@@ -116,7 +124,7 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
                 title('Summed Energy of PLS Components across Beats')
                 xlabel('Beat Levels ')
         end
-        function obj = getmaxenergybeat(obj) %use max energy beat levels for each dyad
+        function obj = get_max_energy_beat(obj) %use max energy beat levels for each dyad
                    Orderedsum = sort(obj.SumSpectralEnergy,2,'descend');
                    obj.Data = sqrt(sum(Orderedsum(:,1:obj.MaxFreqNum),2)); %sum n first beat levels
                    %with maximal energy
@@ -128,7 +136,7 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
                obj.Data(obj.Data<0)=0;
                %plot(mean(tempPhaseMean)); %plot mean phaselocking across scales     
             elseif strcmpi(obj.WaveletCorrMethod,'Phase')%correlate with the average phase (theta angle)
-               obj.Data = cell2mat(arrayfun(@(x) mean(x.res.BeatPhaseMean'),obj.Res,'UniformOutput',false)'); 
+               obj.Data = cell2mat(arrayfun(@(x) mean(x.res.BeatPhaseMean',1),obj.Res,'UniformOutput',false)'); 
             end
         end 
         function obj = getgaussian(obj)
@@ -151,31 +159,35 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
                    corr(obj.Data(:,i),obj.MeanRatedInteraction);
                    [obj.CorrMatrix.Sim.RHO(i),obj.CorrMatrix.Sim.PVAL(i)] = ...
                    corr(obj.Data(:,i),obj.MeanRatedSimilarity);       
-            end  
+            end
         end
         function obj = plot_corr_matrix(obj)
             figure
             subplot(1,2,1)
             plot(obj.CorrMatrix.Int.RHO); 
             title(['Correlations of ' obj.WaveletCorrMethod  ' with Interaction'])
-            set(gca,'xtick',flipud(obj.Res(1).res.BeatofIntIndex))
-            set(gca,'xticklabel',cellfun(@num2str,num2cell(obj.Res(1).res.BeatofInt), 'UniformOutput', false))
             xlabel('Beat Levels')
+            set(gca,'xtick',1:numel(obj.Res(1).res.BeatofIntIndex))
+            set(gca,'xticklabel',cellfun(@num2str,num2cell(obj.Res(1).res.BeatofInt), 'UniformOutput', false))
+            %set(gca,'xtick',flipud(obj.Res(1).res.BeatofIntIndex))
+            %set(gca,'xticklabel',cellfun(@num2str,num2cell(obj.Res(1).res.BeatofInt), 'UniformOutput', false))
             ylabel('Correlation Coefficients')
             
             subplot(1,2,2)
             plot(obj.CorrMatrix.Sim.RHO)
             title(['Correlations of ' obj.WaveletCorrMethod  ' with Similarity'])
             xlabel('Beat Levels')
-            set(gca,'xtick',flipud(obj.Res(1).res.BeatofIntIndex))
+            set(gca,'xtick',1:numel(obj.Res(1).res.BeatofIntIndex))
             set(gca,'xticklabel',cellfun(@num2str,num2cell(obj.Res(1).res.BeatofInt), 'UniformOutput', false))
+            %set(gca,'xtick',flipud(obj.Res(1).res.BeatofIntIndex))
+            %set(gca,'xticklabel',cellfun(@num2str,num2cell(obj.Res(1).res.BeatofInt), 'UniformOutput', false))
             ylabel('Correlation Coefficients')
         end
-        function obj = getbeatofint(obj)
-           idx = obj.Res(2).res.BeatofIntIndex; %get indexes of Beats of Interest (1,2,4)
+        function obj = get_beat_of_int(obj)
+           idx = obj.Res(1).res.BeatofIntIndex; %get indexes of Beats of Interest (1,2,4)
            obj.Data = obj.Data(:,idx); %get data only for those fequencies
         end
-        function obj = regressbeatofint(obj) %use beats as predictors in multiple regression
+        function obj = regress_beat_of_int(obj) %use beats as predictors in multiple regression
             %standardize predictors and add column of 1
            predictors=[ones(size(obj.Data,1),1) zscore(obj.Data)];        
            [obj.Regress.Inter.Beta,~,obj.Regress.Inter.R,~,obj.Regress.Inter.Stats] = ...
@@ -202,6 +214,16 @@ classdef twodancers_many_spectrum_analysis < twodancers_many_emily
               disp(array2table([num2cell(cell2mat(arrayfun(@(x) x.Beta(2:end)',struct2array(obj.Regress),'UniformOutput', ...
               false)'))' BeatValuesNames],'VariableNames',[fieldnames(obj.Regress)' {'Beats'}]))
            end
+        end
+        function obj = plot_pairwise_frequency(obj)
+              figure
+              PairFreq = mean(cell2mat(arrayfun(@(x) x.res.PairCount,obj.Res,'UniformOutput',false)'),1); 
+              %make square matrix
+              sqPairFreq=reshape(PairFreq,[obj.Res(1).res.PLScomp,obj.Res(1).res.PLScomp]);
+              imagesc(sqPairFreq/sum(PairFreq)),colormap(jet), axis xy,colorbar
+              title('Number of Maximum energies per pair')
+              xlabel('PLS components dancer1')
+              ylabel('PLS components dancer2')
         end
     end
 end
