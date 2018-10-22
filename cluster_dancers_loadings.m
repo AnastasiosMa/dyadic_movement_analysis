@@ -23,8 +23,8 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        Linkmethod %= 'average'; %any acceptable input for the method used in linkage e.g. average, weighted
        Steps %= '1step'; %'1step','2step'. Defines if a squareform of modified cosine distance
        %pairwise comparisons is applied on Data before clustering
-       Distance %= 'euclidean'; %'euclidean',@cosdist. Defines the distance measure used for clustering/evaluation.
-       %kmeans only support modified cosine distance or squareduclidean.
+       Distance %= 'euclidean'; %'squaredeuclidean',@cosdist. Defines the distance measure used for clustering/evaluation.
+       %kmeans only support modified cosine distance or squaredeuclidean.
        ApplyPCA %= 'Yes';%'No'
        PCNum = 3; %Select number of PCs
        Regress
@@ -108,7 +108,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             if strcmpi(ApplyPCA,'Yes')
                obj = pcaondata(obj);
                plotpcaloadings(obj)
-               %plotpcavariance(obj)
+               plotpcavariance(obj)
                obj.Data=abs(obj.PCScores); 
                obj.Labels=obj.PCLabels;
             else
@@ -121,10 +121,10 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                obj = findbesteval(obj);
             elseif strcmpi(Clustermethod,'linkage')
                obj = getlinkage(obj);
-               %obj = plotdendrogram(obj)
+               obj = plotdendrogram(obj)
                obj = evalhierarchicalsol(obj);
                obj = getmedoids(obj);
-               %obj = plotmedoids(obj)
+               obj = plotmedoids(obj)
             elseif strcmpi(Clustermethod,'kmeans')
                obj = getkmeans(obj);
                obj = plotcentroids(obj)
@@ -198,24 +198,30 @@ classdef cluster_dancers_loadings < twodancers_many_emily
         function obj = findbesteval(obj) %find the best cluster solution for different clustering methods 
             %and number of clusters.
             %evaluate linkage
-            tempDistance = obj.Distance; %change the string input of obj.Distance to match linkage, kmeans and evalclusters inputs
+            tempDistance = obj.Distance;
+            if strcmpi(obj.Distance,'squaredeuclidean')
+               tempDistance = 'sqEuclidean';
+            end
+            %change the string input of obj.Distance to match linkage, kmeans and evalclusters inputs
             %disp(['Distance used for Linkage/eval: ' obj.Distance])
-            linkmethod = @(x,k) clusterdata(x,'linkage',obj.Linkmethod,'distance',tempDistance,'maxclust',k);
-            obj.Evalinkage = evalclusters(obj.Data,linkmethod,'Silhouette','Distance',obj.Distance,'KList',[1:6]);
+            linkmethod = @(x,k) clusterdata(x,'linkage',obj.Linkmethod,'distance',obj.Distance,'maxclust',k);
+            obj.Evalinkage = evalclusters(obj.Data,linkmethod,'Silhouette','Distance',tempDistance,'KList',[1:6]);
             disp(['Linkage evaluation completed'])
             
             %evaluate kmeans
             tempDistance = obj.Distance;
-            if strcmpi(obj.Distance, 'Euclidean')
-               tempDistance = 'sqEuclidean'; 
-               warning('Kmeans does not support Euclidean, using SquaredEuclidean instead')
+            if sum(strcmpi(obj.Distance, {'Euclidean','squaredeuclidean'}))
+               tempDistance = 'sqEuclidean';
+               if strcmpi(obj.Distance,'Euclidean')
+                  warning('Kmeans does not support Euclidean, using SquaredEuclidean instead')
+               end
                kmeansmethod = @(x,k) kmeans(x,k,'Distance',tempDistance,'Replicates',20);
-               obj.Evakmeans = evalclusters(obj.Data,kmeansmethod,'Silhouette','Distance',tempDistance,'KList',[1:10]);
+               obj.Evakmeans = evalclusters(obj.Data,kmeansmethod,'Silhouette','Distance',tempDistance,'KList',[1:7]);
             elseif isa(obj.Distance, 'function_handle') 
                tempDistance ='cos';   
                disp(['Distance used: ' tempDistance])
                kmeansmethod = @(x,k) kmeans(x,k,'Distance',tempDistance,'Replicates',20);
-               obj.Evakmeans = evalclusters(obj.Data,kmeansmethod,'Silhouette','Distance',obj.Distance,'KList',[1:10]);
+               obj.Evakmeans = evalclusters(obj.Data,kmeansmethod,'Silhouette','Distance',obj.Distance,'KList',[1:7]);
             else
                error('Select a valid Distance measure') 
             end
@@ -240,6 +246,9 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                obj.Distance ='cos'
             elseif strcmpi(obj.Distance, 'euclidean')
                 obj.Distance = 'sqeuclidean'
+                warning('Kmeans does not support Euclidean, using SquaredEuclidean instead')
+            elseif strcmpi(obj.Distance, 'squaredeuclidean')
+                obj.Distance = 'sqeuclidean';
             end
             disp(['Distance used: ' obj.Distance])
                [obj.ClusterSol, obj.Centroids] = kmeans(obj.Data, obj.ClusterNum, 'Distance',obj.Distance,'Replicates',20, 'Options',opts);
@@ -260,10 +269,13 @@ classdef cluster_dancers_loadings < twodancers_many_emily
         end
         function obj = evalclustersol(obj) %Evaluate cluster solution
             disp('Evaluating cluster solution...')
+            tempDistance = obj.Distance;
             if isa(obj.Distance, 'function_handle') & isa(obj.Clustermethod, 'kmeans') 
-               obj.Distance ='cos' 
+               tempDistance ='cos'
+            elseif strcmpi(obj.Distance,'squaredeuclidean')
+                tempDistance = 'sqeuclidean';
             end
-            obj.Eva = evalclusters(obj.Data,obj.ClusterSol,'Silhouette','Distance',obj.Distance);               
+            obj.Eva = evalclusters(obj.Data,obj.ClusterSol,'Silhouette','Distance',tempDistance);               
                %silhouette(obj.Data,obj.ClusterSol,Distance) %Check silouette values for each instance
         end    
         function obj = evalhierarchicalsol(obj)    
@@ -279,7 +291,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             end
             obj.Medoids = accumarray(obj.ClusterSol,meandist,[],@min); % find medoids
             for k = 1:numel(obj.Medoids)
-                obj.MedoidLoc(k) = find(meandist == obj.Medoids(k));
+                obj.MedoidLoc(k) = find(meandist == obj.Medoids(k),1);
             end
         end
         function obj = plotmedoids(obj)
@@ -369,7 +381,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             clusterfreq = accumarray(obj.ClusterSol,obj.ClusterSol,[],@length);
             bar(clusterfreq/length(obj.ClusterSol)); 
             title(['Proportion of Windows belonging to each cluster'])
-            ylabel('Proportion of instances'); xlabel('Clusters')
+            ylabel('Proportion of Windows'); xlabel('Clusters')
             annotation('textbox',dim,'String',str,'FitBoxToText','on');
         end
         function obj = plotclusterperceptualmeans(obj)
