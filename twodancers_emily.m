@@ -50,6 +50,8 @@ classdef twodancers_emily < twodancers
                         obj = PCA_concatenated_dims(obj);
                     elseif strcmpi(obj.Iso1Method,'optimMutInfo')
                         obj = optimize_mutual_information(obj);
+                    elseif strcmpi(obj.Iso1Method,'corrVertMarker')
+                        obj = correlate_vertical_marker(obj);
                     else
                         error('Select a method')
                     end

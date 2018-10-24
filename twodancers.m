@@ -20,8 +20,8 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing',
-        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','(method used for first order isomorphism)        
+        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS','AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing'
+        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
@@ -491,6 +491,35 @@ classdef twodancers < dancers
                     disp('skewness')
                     disp(skewness(obj.(dancernames{k}).res.SSM(:)))
                 end
+            end
+        end
+        function obj = correlate_vertical_marker(obj)
+            if size(data,2) ~= 3
+                error(['This function is only meant for a single ' ...
+                       'marker with 3 dimensions'])
+            end
+            disp('Computing correlation for a vertical marker...');
+            data1 = obj.Dancer1.res.MocapStruct.data(:,3);
+            data2 = obj.Dancer2.res.MocapStruct.data(:,3);
+            g = 1;
+            if isempty(obj.SingleTimeScale)
+                if isempty(obj.MaxWindowLength) %checks if there is a maximum window length
+                    wparam = round(linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows),0);
+                else
+                    wparam = round(linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows),0);
+                end
+            else
+                wparam = obj.SingleTimeScale;
+            end
+            obj.WindowLengths = wparam;
+            for w = wparam
+                for k = 1:obj.WindowSteps:(size(data1,1)-(w-1))
+                    % analysis window
+                    aw1 = data1(k:(k+w-1),:);
+                    aw2 = data2(k:(k+w-1),:);
+                    obj.Corr.timescales(g,k) = corr(aw1,aw2);
+                end
+                g = g + 1; %g=the different time length window used, k the number of windows for each window length
             end
         end
         function plotcrossrec(obj)
