@@ -20,14 +20,14 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        Iso1Method = 'DynamicPLSCrossWaveletPairing'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing',
+        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing',
         %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
-        PLScomp = 3; %number of components to be extracted
+        PLScomp =3; %number of components to be extracted
         EigenNum=5;
-        GetPLSCluster ='YesDyad'% YesDyad computes the mean of both dancers loadings for each window
+        GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
         PLSstdNum = 20; %Number of different std's to test
@@ -184,7 +184,9 @@ classdef twodancers < dancers
                         if strcmpi(obj.GetPLSCluster,'Yes')
                             obj.PLSloadings = [obj.PLSloadings;XL';YL'];
                         elseif strcmpi(obj.GetPLSCluster,'YesDyad')
-                           obj.PLSloadings = [obj.PLSloadings; [(XL+YL)/2]'];
+                           obj.PLSloadings = [obj.PLSloadings; [((XL)+(YL))/2]'];
+                           %obj.PLSloadings = [obj.PLSloadings; [(abs(XL)+abs(YL))/2]'];
+                           %obj.PLSloadings = [obj.PLSloadings; [(XL).*(YL)]'];
                         end
                         if strcmpi(obj.Iso1Method,'PLSEigenvalues')
                            disp('Computing Eigenvalues...') 
