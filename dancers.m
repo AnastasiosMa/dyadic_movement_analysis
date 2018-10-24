@@ -10,7 +10,6 @@ classdef dancers
         Delays = linspace(1,10,10)% (8.3 ms to 83 ms)%%linspace(2,10,5)%linspace(12,60,9); %12,240,20; % Time delay embedding delays to use,
                                     % in samples (not in seconds)
         SampleRate = 120;
-        JointBodyMarker = 1:12; % all markers
         MocapStruct
         NumPrinComp
         %KDE
@@ -33,6 +32,7 @@ classdef dancers
     end
     properties (Dependent)
         nMarkers
+        JointBodyMarker
     end
     properties %(Abstract) % MAKE ABSTRACT TO TRY DIFFERENT SIGMAS Abstract properties are set from subclass
         SSM_Type = 'Correntropy'; % or 'AdaptiveCorrentropy'
@@ -116,6 +116,10 @@ classdef dancers
                     end
                 end
             end
+        end
+        function val = get.JointBodyMarker(obj)
+            global JointBodyMarker20181019
+            val = JointBodyMarker20181019;
         end
         function val = get.nMarkers(obj)
             val = size(obj.MocapStruct.data,2)/3;
@@ -259,6 +263,7 @@ classdef dancers
                                             %markers/joints. Default is all
             obj.MocapStruct.data = obj.MocapStruct.data(:, ...
                                                         regular3Dmarker);
+            %            disp(['Using these marker(s): ' num2str(obj.JointBodyMarker) '...'])
 
         end
         function obj = getvelocity(obj)
