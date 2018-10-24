@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SingleTimeScale % time scale of 9 seconds; leave this empty if you want to use
+        SingleTimeScale =1080;% time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -20,14 +20,14 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','optimMutInfo'
-        %'PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','(method used for first order isomorphism)        
+        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing',
+        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
-        PLScomp = 1; %number of components to be extracted
+        PLScomp =3; %number of components to be extracted
         EigenNum=5;
-        GetPLSCluster ='No'
+        GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
         PLSstdNum = 20; %Number of different std's to test
@@ -55,6 +55,8 @@ classdef twodancers < dancers
         BeatPhase
         BeatPhaseMean
         BeatPhaseLength
+        PairCount %For PLS pairwise wavelet analysis. Stores frequency 
+        %of each pair having max values
         %Second order Isomorphism properties
         Iso2Method = 'corrSSMs'; % corrSSMs, corrSSMsPLS or
                                     % corrConcatenatedSSMs (method
@@ -119,12 +121,13 @@ classdef twodancers < dancers
                        disp('Computing Wavelet Transform...')
                        Fs = obj.Dancer1.res.SampleRate;
                        obj = getcwt(obj,XS,YS,Fs);
-                       obj.Corr.means(k,1,:) = obj.MaxBeatFreqEnergy; %DynamicPLS+Wavelet
+                    elseif strcmpi(obj.Iso1Method,'DynamicPLSCrossWaveletPairing')
+                       disp('Computing Wavelet Transform...')
+                       Fs = obj.Dancer1.res.SampleRate;
+                       obj = get_paired_cwt(obj,XS,YS,Fs); 
+                       %obj.Corr.means(k,1,:) = obj.MaxBeatFreqEnergy; %DynamicPLS+Wavelet
                     else
                        obj.Corr.means(k,1) = mean(diag(corr(XS,YS))); %DynamicPLS+Correlation
-                    end
-                    if strcmpi(obj.GetPLSCluster,'Yes')
-                            obj.PLSloadings = [obj.PLSloadings;XL';YL'];
                     end
                 end
         end
@@ -180,6 +183,10 @@ classdef twodancers < dancers
 
                         if strcmpi(obj.GetPLSCluster,'Yes')
                             obj.PLSloadings = [obj.PLSloadings;XL';YL'];
+                        elseif strcmpi(obj.GetPLSCluster,'YesDyad')
+                           obj.PLSloadings = [obj.PLSloadings; [((XL)+(YL))/2]'];
+                           %obj.PLSloadings = [obj.PLSloadings; [(abs(XL)+abs(YL))/2]'];
+                           %obj.PLSloadings = [obj.PLSloadings; [(XL).*(YL)]'];
                         end
                         if strcmpi(obj.Iso1Method,'PLSEigenvalues')
                            disp('Computing Eigenvalues...') 
@@ -642,28 +649,57 @@ classdef twodancers < dancers
             yticklabels({num2str(ylabelmax),sprintf('%0.1g',ylabelmin)})
         end
         function obj = getcwt(obj,XS,YS,Fs)
-                 BPMtoBeatFreq=obj.BPM./[60*obj.BeatofInt]; %find frequencies corresponding to Beat of Interest
-                 obj.OneBeatFreq = obj.BPM/60; %frequency of 1-beat for a given BPM
-                       for k=1:obj.PLScomp
-                          [w1 obj.f1]=cwt(XS(:,k),Fs,'FrequencyLimits',[obj.OneBeatFreq/2^[obj.OctaveNum/2], obj.OneBeatFreq*2^[obj.OctaveNum/2]],'VoicesPerOctave',obj.VoiceOctave);
-                          [w2 f2] = cwt(YS(:,k),Fs,'FrequencyLimits',[obj.OneBeatFreq/2^[obj.OctaveNum/2], obj.OneBeatFreq*2^[obj.OctaveNum/2]],'VoicesPerOctave',obj.VoiceOctave);
-                          %The continuous wavelet transform adjusts the used scales to correspond with the beat
-                          %frequencies of different tempi
+            BPMtoBeatFreq=obj.BPM./[60*obj.BeatofInt]; %find frequencies corresponding to Beat of Interest
+            obj.OneBeatFreq = obj.BPM/60; %frequency of 1-beat for a given BPM
+            for k=1:obj.PLScomp
+                [w1 obj.f1]=cwt(XS(:,k),Fs,'FrequencyLimits',[obj.OneBeatFreq/2^[obj.OctaveNum/2], obj.OneBeatFreq*2^[obj.OctaveNum/2]],'VoicesPerOctave',obj.VoiceOctave);
+                [w2 f2] = cwt(YS(:,k),Fs,'FrequencyLimits',[obj.OneBeatFreq/2^[obj.OctaveNum/2], obj.OneBeatFreq*2^[obj.OctaveNum/2]],'VoicesPerOctave',obj.VoiceOctave);
+                %The continuous wavelet transform adjusts the used scales to correspond with the beat
+                %frequencies of different tempi
                           
-                          %find the index of the Beat levels of interest
-                          for j=1:length(BPMtoBeatFreq)
-                                 [~,obj.BeatofIntIndex(j)] = min(abs(obj.f1-BPMtoBeatFreq(j))); 
-                          end
-                          obj.BeatFreqEnergy(:,:,k) = abs(w1.*conj(w2));
-                          obj.MeanBeatFreqEnergy(k,:) = mean(obj.BeatFreqEnergy(:,:,k),2)';
-                          obj.BeatofIntEnergy(:,k) = mean(obj.BeatFreqEnergy(obj.BeatofIntIndex,:,k),2);
-                          obj.MaxBeatFreqEnergy(k) = max(obj.MeanBeatFreqEnergy(k,:));
-                          obj.MaxBeatFreq(k) = obj.f1(find(obj.MeanBeatFreqEnergy(k,:)==max(obj.MeanBeatFreqEnergy(k,:))));
-                          obj.BeatPhase(:,:,k) = angle(w1.*conj(w2));
-                          obj.BeatPhaseMean(:,k) = pi - abs(mean(obj.BeatPhase(:,:,k),2));
-                          obj.BeatPhaseLength=mean(squeeze(abs(sum(exp(i*obj.BeatPhase),2))/size(obj.BeatPhase,2)),2);
-                       end
-                 obj.BeatLabels = obj.OneBeatFreq./obj.f1;      
+                %find the index of the Beat levels of interest
+                for j=1:length(BPMtoBeatFreq)
+                    [~,obj.BeatofIntIndex(j)] = min(abs(obj.f1-BPMtoBeatFreq(j))); 
+                end
+                obj.BeatFreqEnergy(:,:,k) = abs(w1.*conj(w2));
+                obj.MeanBeatFreqEnergy(k,:) = mean(obj.BeatFreqEnergy(:,:,k),2)';
+                obj.BeatPhase(:,:,k) = angle(w1.*conj(w2));
+                obj.BeatPhaseMean(:,k) = pi - abs(mean(obj.BeatPhase(:,:,k),2));
+                obj.BeatPhaseLength=mean(squeeze(abs(sum(exp(i*obj.BeatPhase),2))/size(obj.BeatPhase,2)),2);
+            end
+            obj.BeatLabels = obj.OneBeatFreq./obj.f1;      
+        end
+        function obj = get_paired_cwt(obj,XS,YS,Fs);
+            BPMtoBeatFreq=obj.BPM./[60*obj.BeatofInt]; %find frequencies corresponding to Beat of Interest
+            obj.OneBeatFreq = obj.BPM/60; %frequency of 1-beat for a given BPM
+            g=0;
+            for k=1:obj.PLScomp %wavelet transform for all pairs of XS and YS
+                for j=1:obj.PLScomp
+                    g=g+1;
+                    [w1(:,:,k) obj.f1]=cwt(XS(:,k),Fs,'FrequencyLimits',[obj.OneBeatFreq/2^[obj.OctaveNum/2], obj.OneBeatFreq*2^[obj.OctaveNum/2]],'VoicesPerOctave',obj.VoiceOctave);
+                    [w2(:,:,j) f2] = cwt(YS(:,j),Fs,'FrequencyLimits',[obj.OneBeatFreq/2^[obj.OctaveNum/2], obj.OneBeatFreq*2^[obj.OctaveNum/2]],'VoicesPerOctave',obj.VoiceOctave);
+                    CrossSpect(:,:,g)=abs(w1(:,:,k).*conj(w2(:,:,j))); %cross wavelet
+                    Phase(:,:,g) = angle(w1(:,:,k).*conj(w2(:,:,j)));
+                end
+            end
+            %find pair with max energy 
+            [obj.BeatFreqEnergy,MaxIndex]=max(CrossSpect,[],3);         
+            %get phase for pairs of maximal energy
+            for k=1:size(MaxIndex,1)
+                for j=1:size(MaxIndex,2)
+                    obj.BeatPhase(k,j) = Phase(k,j,MaxIndex(k,j));
+                end
+            end
+            %Count number of maximal points in each pair
+            [obj.PairCount,Edges] = histcounts(MaxIndex,[1:obj.PLScomp^2+1]-0.5); 
+            %find the index of the Beat levels of interest
+            for j=1:length(BPMtoBeatFreq)
+                [~,obj.BeatofIntIndex(j)] = min(abs(obj.f1-BPMtoBeatFreq(j))); 
+            end
+            obj.MeanBeatFreqEnergy = mean(obj.BeatFreqEnergy,2)'; 
+            obj.BeatPhaseMean = pi - abs(mean(obj.BeatPhase,2));
+            obj.BeatPhaseLength=abs(sum(exp(i*obj.BeatPhase),2))/size(obj.BeatPhase,2);
+            obj.BeatLabels = obj.OneBeatFreq./obj.f1;        
         end
     end
     methods (Static)
