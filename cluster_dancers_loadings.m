@@ -12,6 +12,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        DyadWin    %number of windows per dyad
        DyadtoCluster %returns a Dyads-to-ClusterNum matrix showing how many windows of each dyad belong to each cluster
        DyadNum %Number of Dyads
+       DancersNum %Number of Dancers
        
        Labels %cell array with variable names to be used in the analysis
        OriginalLabels %Labels of original variables (Markers)
@@ -55,9 +56,10 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        Evagmm
        CophCoeff %Cophenetic correlation coefficient (Hierarchical clustering only)
        InconsistCoeff %Mean Inconsistency coefficient (Hierarchical clustering only)
-       GetMeanWindow='No'
+       GetDyadMean='Yes'
        MeanPCScores
-
+       Predictors
+       PLSCompNum %number of PLS components
     end
     methods
         function obj = cluster_dancers_loadings(Dataset,ClusterNum,ClusterMethod,Linkmethod,Steps,Distance,ApplyPCA,PCNum)    
@@ -83,22 +85,26 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             obj.Distance = Distance;
             obj.ApplyPCA = ApplyPCA;
             obj.PCNum = PCNum;
-            obj.DyadNum = length(obj.AllDancersData.Res); 
-            
-            temp = cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.AllDancersData.Res,'UniformOutput',false)'); %store loadings in default order
+            obj.PLSCompNum = obj.AllDancersData.Res(1).res.PLScomp;
+            obj.DyadNum = length(obj.AllDancersData.Res);
+            obj.DancersNum = obj.DyadNum*2;
+            temp = cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.AllDancersData.Res,'UniformOutput',false)'); %store loadings
+            if strcmpi(obj.AllDancersData.Res(1).res.GetPLSCluster, 'YesMeanComp') %get mean across PLScomponents
+               temp = [reshape(temp',size(temp',1)/obj.PLSCompNum,obj.DancersNum*obj.PLSCompNum)]'; %each mean PLS component 
+               %is entered as an observation, temp is an m x n, where m = PLScomp number * number of dyads, n = number of dimensions
+               disp('Using Mean Loadings across PLS Components')
+            end  
             templabels=obj.AllDancersData.Res(1).res.Dancer1.res.markers3d';
             obj.OriginalLabels=cell(1,size(temp,2)); %group Labels and Loadings columns based on the axes
             obj.ClusterLabels = cellfun(@(x) ['Cluster' num2str(x)], sprintfc('%g',1:obj.ClusterNum), 'UniformOutput', false);            
             obj.Loadings=zeros(size(temp,1),size(temp,2));
-            for k=1:3 
+            for k=1:3 %order loadings and labels based on axes (first all x, then y, then z)
                 for i=1:size(temp,2)/3
                     obj.Loadings(:,i+[k-1]*size(temp,2)/3)=temp(:,(i-1)*3+k);
                     obj.OriginalLabels(i+[k-1]*size(temp,2)/3)=templabels((i-1)*3+k);
                 end
             end
             obj.Data = obj.Loadings; 
-            obj.DataDistVector=pdist(obj.Data,obj.Distance); %To be used for cophenetic correlation and medoid calculation
-            obj.DataDistSquare=squareform(obj.DataDistVector); %creates a square matrix of loadings
             obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res); %Number of windows per dyad
             if strcmpi(Steps,'2step')
                obj = squarecosinedist(obj);
@@ -107,15 +113,17 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             end
             if strcmpi(ApplyPCA,'Yes')
                obj = pcaondata(obj);
+               if strcmpi(obj.GetDyadMean,'Yes')
+                  obj = get_dyad_PC_mean(obj);
+               end
                %plotpcaloadings(obj)
                %plotpcavariance(obj)
                obj.Labels=obj.PCLabels;
             else
                obj.Labels=obj.OriginalLabels;
             end
-            if strcmpi(obj.GetMeanWindow,'Yes')
-               obj = get_dyad_cluster_mean(obj);              
-            end
+            obj.DataDistVector=pdist(obj.Data,obj.Distance); %vectorise pairwise distances of observations (pdist output)
+            obj.DataDistSquare=squareform(obj.DataDistVector); %creates a square matrix of pairwise distances
             if strcmpi(ClusterMethod,'eval')
                obj = findbesteval(obj);
             elseif strcmpi(ClusterMethod,'linkage')
@@ -129,7 +137,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                %obj = plotcentroids(obj)
             elseif strcmpi(ClusterMethod,'gmm')
                obj = getgmm(obj);
-               obj = plotgmmprob(obj)
+               obj = plotgmmprob(obj);
                %plotgmmpdf(obj)
                %obj = scattergmm(obj); %ellipses only work for 2PC's
                %scatter3dgmm(obj)
@@ -143,12 +151,12 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                %silhvalues(obj)
                %obj = plotclustersize(obj)
                obj = getdyadtoclust(obj);
+               obj = ttest_cluster(obj);
+               obj = regress_cluster(obj);
                %obj = plotdyadtoclust(obj)
-               %obj = clusterperceptualmeans(obj); 
                %obj = scattercluster(obj)
                %obj = plotclusterratings(obj)
-               obj = get_dyad_cluster_mean(obj);
-               %obj =scattermeancluster(obj) 
+               %plot_cluster_perceptual_means(obj)
             end
           end
         end      
@@ -180,11 +188,9 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             obj.PCScores = obj.PCScores(:,1:obj.PCNum);
             obj.PCLabels = cellfun(@(x) ['PC' num2str(x)], sprintfc('%g',1:obj.PCNum), 'UniformOutput', false);
             obj.Data=abs(obj.PCScores);
-            obj.DataDistVector=pdist(obj.Data,obj.Distance); %To be used for cophenetic correlation and medoid calculation
-            obj.DataDistSquare=squareform(obj.DataDistVector); %creates a square matrix of PCScores
         end
         function obj = plotpcaloadings(obj)
-            bar(abs(obj.PCLoads(:,1:10)))
+            bar(abs(obj.PCLoads(:,1:3)))
             set(gca,'XTick',1:length(obj.PCLoads),'XTickLabel',obj.OriginalLabels)
             xtickangle(90)
             legend(obj.PCLabels,'location','NorthWest')
@@ -211,7 +217,6 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             disp(['Linkage evaluation completed'])
             
             %evaluate kmeans
-            tempDistance = obj.Distance;
             if sum(strcmpi(obj.Distance, {'Euclidean','squaredeuclidean'}))
                tempDistance = 'sqEuclidean';
                if strcmpi(obj.Distance,'Euclidean')
@@ -386,10 +391,10 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             ylabel('Proportion of Windows'); xlabel('Clusters')
             annotation('textbox',dim,'String',str,'FitBoxToText','on');
         end
-        function obj = plotclusterperceptualmeans(obj)
+        function obj = plot_cluster_perceptual_means(obj)
             %create of vector of perceptual scores corresponding to the number of windows
             Interaction = repelem(obj.AllDancersData.MeanRatedInteraction,obj.DyadWin);
-            Similarity= repelem(obj.AllDancersData.MeanRatedSimilarity,obj.DyadWin);
+            Similarity = repelem(obj.AllDancersData.MeanRatedSimilarity,obj.DyadWin);
             for i=1:obj.ClusterNum 
                 obj.ClusterMeanPerceptual(1,i) = mean(Interaction(obj.ClusterSol==i)); 
                 obj.ClusterMeanPerceptual(2,i) = mean(Similarity(obj.ClusterSol==i));
@@ -450,30 +455,23 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             [h,p,ci,stats]=ttest2(obj.AllDancersData.MeanRatedInteraction(K1Dyads),obj.AllDancersData.MeanRatedInteraction(K2Dyads));
             %mean(meanRatedInteraction(K1Dyads)); mean(meanRatedInteraction(K2Dyads))
         end
-        function obj = get_dyad_cluster_mean(obj) %get cluster medoid window for each dyad
-            obj.MeanPCScores=zeros(obj.DyadNum,obj.PCNum);
-            for i=1:obj.DyadNum %get mean scores across PC's
-                obj.MeanPCScores(i,:) = mean(abs(obj.PCScores([i-1]*obj.DyadWin+1:i*obj.DyadWin,:)));             
-            end
-            if strcmpi(obj.GetMeanWindow,'Yes')
-            obj.Data = obj.MeanPCScores;
-            obj.DataDistVector=pdist(obj.Data,obj.Distance); %Change Distance matrices with mean PCScores
-            obj.DataDistSquare=squareform(obj.DataDistVector); 
-            obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res);
-            end
-        end
-        function obj = scattermeancluster(obj)
-            dim = [.02 .02 .02 .02]; %parameters for annotation function
-            str = ['Parameters. Clustering method: ' obj.ClusterMethod ', ClusterNumber:' num2str(obj.ClusterNum)];
-            gscatter((obj.MeanPCScores(:,1)),(obj.MeanPCScores(:,2))) %scatterplot over first 2 PC's
-            title('Scatter Plot - Cluster Membership')
-            xlabel('PC1'); ylabel('PC2')
-            annotation('textbox',dim,'String',str,'FitBoxToText','on');
-        end
         function obj = regress_cluster(obj)
-            obj.Data = [ones(size(obj.Data,1),1) zscore(obj.Data)];
-            [obj.Regress.BInt,~,obj.Regress.RInt,~,obj.Regress.statsInt] = regress(zscore(obj.AllDancersData.MeanRatedInteraction),obj.Data);
-            [obj.Regress.BSim,~,obj.Regress.RSim,~,obj.Regress.statsSim] = regress(zscore(obj.AllDancersData.MeanRatedSimilarity),obj.Data);
+            obj.Predictors = [ones(size(obj.Data,1),1) zscore(obj.Data)];
+            [obj.Regress.BInt,~,obj.Regress.RInt,~,obj.Regress.statsInt] = regress(zscore(obj.AllDancersData.MeanRatedInteraction),obj.Predictors);
+            [obj.Regress.BSim,~,obj.Regress.RSim,~,obj.Regress.statsSim] = regress(zscore(obj.AllDancersData.MeanRatedSimilarity),obj.Predictors);
+        end
+        function obj = get_dyad_cluster_mean(obj) %get cluster medoid window for each dyad
+            for i=1:obj.DyadNum %get mean scores across PC's
+                MeanPCScores(i,:) = mean(abs(obj.PCScores([i-1]*obj.DyadWin+1:i*obj.DyadWin,:)));             
+            end
+            obj.Data = MeanPCScores;
+            obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res); 
+        end
+        function obj = get_dyad_PC_mean(obj); %get the mean of each dyad for each PCScore and PLScomponent
+            DyadScores = zeros(obj.DyadNum*obj.PLSCompNum,size(obj.Data,2));
+            for k=1:size(DyadScores,1)
+                    %DyadScores(k,:) = mean([obj.Data([k-1]*obj.PLSCompNum*2+1,:); obj.Data([k-1]*obj.PLSCompNum*2+1)
+            end
         end
         function obj = scatter3d(obj) %creates 3D scatter plot for first 3 PCs
             scatter3((obj.Data(:,1)),(obj.Data(:,2)),(obj.Data(:,3)),5,obj.ClusterSol)
@@ -487,7 +485,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
         end
         function obj = silhvalues(obj)
             silhouette(obj.Data,obj.ClusterSol)
-            title('Silhouette valuesob')
+            title('Silhouette values')
         end
     end
 end

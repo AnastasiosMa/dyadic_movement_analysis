@@ -27,7 +27,7 @@ classdef twodancers < dancers
         PLSloadings % PLS predictor loadings of participants
         PLScomp =3; %number of components to be extracted
         EigenNum=5;
-        GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
+        GetPLSCluster ='YesMeanComp'% YesDyad computes the mean of both dancers loadings for each window
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
         PLSstdNum = 20; %Number of different std's to test
@@ -187,6 +187,8 @@ classdef twodancers < dancers
                            obj.PLSloadings = [obj.PLSloadings; [((XL)+(YL))/2]'];
                            %obj.PLSloadings = [obj.PLSloadings; [(abs(XL)+abs(YL))/2]'];
                            %obj.PLSloadings = [obj.PLSloadings; [(XL).*(YL)]'];
+                        elseif strcmpi(obj.GetPLSCluster,'YesMeanComp') %get the mean loadings across PLS components
+                           obj.PLSloadings = [obj.PLSloadings;XL(:)';YL(:)']; 
                         end
                         if strcmpi(obj.Iso1Method,'PLSEigenvalues')
                            disp('Computing Eigenvalues...') 
@@ -198,6 +200,9 @@ classdef twodancers < dancers
                     j = j + 1; % a counter 
                 end
                 g = g + 1; %g=the different time length window used, k the number of windows for each window length
+                if strcmpi(obj.GetPLSCluster,'YesMeanComp') %get mean components for each dancer
+                   obj.PLSloadings = [mean(obj.PLSloadings(1:2:end,:),1); mean(obj.PLSloadings(2:2:end,:),1)]; 
+                end
             end
             if strcmpi(obj.Iso1Method,'AsymmetricPLS') 
                 obj.Corr.timescales=[obj.Corr.timescalesdef+obj.Corr.timescalesinv]./2; %mean corr.timescales
