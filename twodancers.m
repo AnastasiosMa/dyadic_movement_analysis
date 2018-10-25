@@ -20,8 +20,8 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS,'AssymetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing',
-        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','(method used for first order isomorphism)        
+        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing'
+        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
@@ -498,6 +498,35 @@ classdef twodancers < dancers
                 end
             end
         end
+        function obj = correlate_vertical_marker(obj)
+            if size(data,2) ~= 3
+                error(['This function is only meant for a single ' ...
+                       'marker with 3 dimensions'])
+            end
+            disp('Computing correlation for a vertical marker...');
+            data1 = obj.Dancer1.res.MocapStruct.data(:,3);
+            data2 = obj.Dancer2.res.MocapStruct.data(:,3);
+            g = 1;
+            if isempty(obj.SingleTimeScale)
+                if isempty(obj.MaxWindowLength) %checks if there is a maximum window length
+                    wparam = round(linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows),0);
+                else
+                    wparam = round(linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows),0);
+                end
+            else
+                wparam = obj.SingleTimeScale;
+            end
+            obj.WindowLengths = wparam;
+            for w = wparam
+                for k = 1:obj.WindowSteps:(size(data1,1)-(w-1))
+                    % analysis window
+                    aw1 = data1(k:(k+w-1),:);
+                    aw2 = data2(k:(k+w-1),:);
+                    obj.Corr.timescales(g,k) = corr(aw1,aw2);
+                end
+                g = g + 1; %g=the different time length window used, k the number of windows for each window length
+            end
+        end
         function plotcrossrec(obj)
             markersize = .1;
             figure
@@ -705,6 +734,42 @@ classdef twodancers < dancers
             obj.BeatPhaseMean = pi - abs(mean(obj.BeatPhase,2));
             obj.BeatPhaseLength=abs(sum(exp(i*obj.BeatPhase),2))/size(obj.BeatPhase,2);
             obj.BeatLabels = obj.OneBeatFreq./obj.f1;        
+        end
+        function obj = hand_movement(obj)
+        % static measure (no timescales), gives best results with acceleration
+            if ~obj.JointBodyMarker == 1:12
+                error(['Make sure to set obj.JointBodyMarker to ' ...
+                       'all markers (1:12)'])
+            end
+            data1 = mcnorm(obj.Dancer1.res.MocapStruct);
+            data2 = mcnorm(obj.Dancer2.res.MocapStruct);
+            data1_ = data1;
+            data2_ = data2;
+            data1_.data = data1.data(:,[15,19]);
+            data2_.data = data2.data(:,[15,19]);
+            data1 = data1_;
+            data2 = data2_;
+            mt1 = mean(data1.data); % mean across time
+            mt2 = mean(data2.data);
+            mh1 = mean(mt1); % mean across hands
+            mh2 = mean(mt2);
+            obj.Corr.timescales = mh1+mh2;
+            %% alternative approach (no mcnorm)
+            % if obj.JointBodyMarker == 1:12
+            %     data1 = obj.Dancer1.res.MocapStruct.data(:,[43:45 55:57]);
+            %     data2 = obj.Dancer2.res.MocapStruct.data(:,[43:45 55:57]);
+            % elseif obj.JointBodyMarker ~= 8
+            %     data1 = obj.Dancer1.res.MocapStruct.data;
+            %     data2 = obj.Dancer2.res.MocapStruct.data;
+            % else
+            %     error(['Make sure to set obj.JointBodyMarker to ' ...
+            %            'wrists (8) or to all markers (1:12)'])
+            % end
+            % mt1 = mean(data1); % mean across time
+            % mt2 = mean(data2);
+            % mh1 = mean(reshape(mt1,numel(mt1)/2,2)'); % mean across hands
+            % mh2 = mean(reshape(mt2,numel(mt2)/2,2)');
+            % obj.Corr.timescales = sum([mh1 mh2]);
         end
     end
     methods (Static)

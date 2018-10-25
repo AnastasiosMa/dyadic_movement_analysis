@@ -93,9 +93,15 @@ classdef dancers
                 if isomorphismorder == 1
                     obj.IsomorphismOrder = 1;
                     % try PCA before windowing
+                    if obj.NumPrinComp <= size(obj.MocapStruct.data,2)
                     obj = getpca(obj);
                     obj = normalize_eigenvalues(obj);
                     obj = makeMocapStructPCs(obj);
+                    else
+                        warning(['Not computing PCA because the ' ...
+                                 'number of required principal ' ...
+                                 'components requires more data dimensions ']);
+                    end
 
                 elseif isomorphismorder == 2
                     obj.IsomorphismOrder = 2;
