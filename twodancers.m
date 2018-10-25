@@ -494,11 +494,11 @@ classdef twodancers < dancers
             end
         end
         function obj = correlate_vertical_marker(obj)
-            if size(data,2) ~= 3
+            disp('Computing correlation for a vertical marker...');
+            if size(obj.Dancer1.res.MocapStruct.data,2) ~= 3
                 error(['This function is only meant for a single ' ...
                        'marker with 3 dimensions'])
             end
-            disp('Computing correlation for a vertical marker...');
             data1 = obj.Dancer1.res.MocapStruct.data(:,3);
             data2 = obj.Dancer2.res.MocapStruct.data(:,3);
             g = 1;
