@@ -766,6 +766,25 @@ classdef twodancers < dancers
             % mh2 = mean(reshape(mt2,numel(mt2)/2,2)');
             % obj.Corr.timescales = sum([mh1 mh2]);
         end
+        function obj = period_locking(obj)
+        % gives best results with velocity
+            data1 = obj.Dancer1.res.MocapStruct;
+            data2 = obj.Dancer2.res.MocapStruct;
+            apd = [];
+            win = 4;
+            hop = .25;
+            [per, ac, eac, lags, wtime] = mcwindow(@mcperiod, data1, ...
+                                                   win, hop); % windowed
+                                                              % autocorrelation
+            [per1, ac, eac, lags, wtime] = mcwindow(@mcperiod, data2, win, hop);
+            a = -abs(per - per1); 
+            a = nanmean(a); % mean across windows
+            obj.Corr.timescales = -nanmean(a); % mean across
+                                               % markers, take negative
+                                               % of result so it is
+                                               % not a period
+                                               % unlocking measure
+        end
     end
     methods (Static)
         function f = objectivefcn_mutinfo(x)
