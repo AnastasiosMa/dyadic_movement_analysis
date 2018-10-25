@@ -25,9 +25,9 @@ classdef twodancers < dancers
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
-        PLScomp =3; %number of components to be extracted
+        PLScomp =1; %number of components to be extracted
         EigenNum=5;
-        GetPLSCluster ='YesMeanComp'% YesDyad computes the mean of both dancers loadings for each window
+        GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
         PLSstdNum = 20; %Number of different std's to test

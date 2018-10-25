@@ -60,6 +60,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        MeanPCScores
        Predictors
        PLSCompNum %number of PLS components
+       DyadScores
     end
     methods
         function obj = cluster_dancers_loadings(Dataset,ClusterNum,ClusterMethod,Linkmethod,Steps,Distance,ApplyPCA,PCNum)    
@@ -105,7 +106,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                 end
             end
             obj.Data = obj.Loadings; 
-            obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res); %Number of windows per dyad
+            obj.DyadWin=size(obj.Data,1)/length(obj.AllDancersData.Res); %Number of windows per dyad
             if strcmpi(Steps,'2step')
                obj = squarecosinedist(obj);
                obj.Data=obj.DataDistSquare; 
@@ -151,8 +152,8 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                %silhvalues(obj)
                %obj = plotclustersize(obj)
                obj = getdyadtoclust(obj);
-               obj = ttest_cluster(obj);
-               obj = regress_cluster(obj);
+               %obj = ttest_cluster(obj);
+              %obj = regress_cluster(obj);
                %obj = plotdyadtoclust(obj)
                %obj = scattercluster(obj)
                %obj = plotclusterratings(obj)
@@ -468,10 +469,15 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res); 
         end
         function obj = get_dyad_PC_mean(obj); %get the mean of each dyad for each PCScore and PLScomponent
-            DyadScores = zeros(obj.DyadNum*obj.PLSCompNum,size(obj.Data,2));
-            for k=1:size(DyadScores,1)
-                    %DyadScores(k,:) = mean([obj.Data([k-1]*obj.PLSCompNum*2+1,:); obj.Data([k-1]*obj.PLSCompNum*2+1)
+            obj.DyadScores = zeros(obj.DyadNum*obj.PLSCompNum,size(obj.Data,2));
+            for k=1:size(obj.DyadScores,1)
+                obj.DyadScores(k,:) = mean([abs(obj.PCScores([k-1]*2+1,:));abs(obj.PCScores([k]*2,:))]);
             end
+        end
+        function obj = get_max_PC(obj)
+            [Max,idx] = max(obj.DyadScores,[],2); %get max component for each Dyad score
+            [Frequency,Edges] = histcounts(idx,[1:obj.PCNum+1]-0.5); %frequency of each component
+            obj.Data = reshape(Max,obj.PLSCompNum,obj.DyadNum)';
         end
         function obj = scatter3d(obj) %creates 3D scatter plot for first 3 PCs
             scatter3((obj.Data(:,1)),(obj.Data(:,2)),(obj.Data(:,3)),5,obj.ClusterSol)
