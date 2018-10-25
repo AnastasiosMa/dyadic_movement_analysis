@@ -54,6 +54,8 @@ classdef twodancers_emily < twodancers
                         obj = correlate_vertical_marker(obj);
                     elseif strcmpi(obj.Iso1Method,'HandMovement')
                         obj = hand_movement(obj);
+                    elseif strcmpi(obj.Iso1Method,'PeriodLocking')
+                        obj = period_locking(obj);
                     else
                         error('Select a method')
                     end
