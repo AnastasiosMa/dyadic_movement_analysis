@@ -730,6 +730,42 @@ classdef twodancers < dancers
             obj.BeatPhaseLength=abs(sum(exp(i*obj.BeatPhase),2))/size(obj.BeatPhase,2);
             obj.BeatLabels = obj.OneBeatFreq./obj.f1;        
         end
+        function obj = hand_movement(obj)
+        % static measure (no timescales), gives best results with acceleration
+            if ~obj.JointBodyMarker == 1:12
+                error(['Make sure to set obj.JointBodyMarker to ' ...
+                       'all markers (1:12)'])
+            end
+            data1 = mcnorm(obj.Dancer1.res.MocapStruct);
+            data2 = mcnorm(obj.Dancer2.res.MocapStruct);
+            data1_ = data1;
+            data2_ = data2;
+            data1_.data = data1.data(:,[15,19]);
+            data2_.data = data2.data(:,[15,19]);
+            data1 = data1_;
+            data2 = data2_;
+            mt1 = mean(data1.data); % mean across time
+            mt2 = mean(data2.data);
+            mh1 = mean(mt1); % mean across hands
+            mh2 = mean(mt2);
+            obj.Corr.timescales = mh1+mh2;
+            %% alternative approach (no mcnorm)
+            % if obj.JointBodyMarker == 1:12
+            %     data1 = obj.Dancer1.res.MocapStruct.data(:,[43:45 55:57]);
+            %     data2 = obj.Dancer2.res.MocapStruct.data(:,[43:45 55:57]);
+            % elseif obj.JointBodyMarker ~= 8
+            %     data1 = obj.Dancer1.res.MocapStruct.data;
+            %     data2 = obj.Dancer2.res.MocapStruct.data;
+            % else
+            %     error(['Make sure to set obj.JointBodyMarker to ' ...
+            %            'wrists (8) or to all markers (1:12)'])
+            % end
+            % mt1 = mean(data1); % mean across time
+            % mt2 = mean(data2);
+            % mh1 = mean(reshape(mt1,numel(mt1)/2,2)'); % mean across hands
+            % mh2 = mean(reshape(mt2,numel(mt2)/2,2)');
+            % obj.Corr.timescales = sum([mh1 mh2]);
+        end
     end
     methods (Static)
         function f = objectivefcn_mutinfo(x)
