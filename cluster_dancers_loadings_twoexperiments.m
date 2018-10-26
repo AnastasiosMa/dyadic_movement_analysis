@@ -76,7 +76,7 @@ classdef cluster_dancers_loadings_twoexperiments < cluster_dancers_loadings
                figure
                for i=1:length(obj)
                    subplot(1,2,i) 
-                   scattermeancluster(obj(i));
+                   %scattermeancluster(obj(i));
                    title(['Scatterplot Mean PCScores for first 2 PCs ' matnames{i}(1:8)])
                end
                figure
