@@ -31,7 +31,8 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
                 [obj(1).meanCorr I] = max(mean(concatdata,2));
                 best_timescale = obj(1).CorrTableData{I,3};
                 str = ['Timescale of ' num2str(best_timescale) ...
-                      ' s yields best results (mean correlation: ' num2str(obj(1).meanCorr) ')']
+                      ' s yields best results (mean correlation: ' num2str(obj(1).meanCorr) ')'];
+                disp(str);
             end
         end
         function obj = plotcorr(obj)
