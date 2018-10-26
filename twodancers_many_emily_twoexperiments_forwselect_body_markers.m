@@ -26,7 +26,7 @@ classdef twodancers_many_emily_twoexperiments_forwselect_body_markers
             KINEMFEAT20181019 = kinemfeat;
 
             NVARS = 12;
-
+            disp('Running forward selection for SIMILARITY...')
             %[obj.optFvals obj.optSolutions] = twodancers_many_emily_twoexperiments_forwselect_body_markers.forwfeatsel(@twodancers_many_emily_twoexperiments_forwselect_body_markers.toyfval,NVARS);
             [obj.optFvals obj.optSolutions] = twodancers_many_emily_twoexperiments_forwselect_body_markers.forwfeatsel(@twodancers_many_emily_twoexperiments_forwselect_body_markers.objectivefcn_bodymarkers,NVARS);
             plot_opt_solutions(obj);
@@ -112,7 +112,8 @@ classdef twodancers_many_emily_twoexperiments_forwselect_body_markers
             global JointBodyMarker20181019 
             JointBodyMarker20181019 = xbin;
             res = twodancers_many_emily_twoexperiments(DATASET1_24DYADS20181019,DATASET2_38DYADS20181019,NPC20181019,T120181019,T220181019,ISOMORPHISMORDER20181019,COORDINATESYSTEM20181019,TDE20181019,KINEMFEAT20181019);
-            f = res(1).meanCorr;
+            f = res(1).meanCorrSimilarity;
+            %f = res(1).meanCorr;
         end
         function y = bin2num(x)
             y = find(x == 1);

@@ -2,6 +2,8 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
 
     properties
         meanCorr
+        meanCorrInteraction
+        meanCorrSimilarity
     end
 
     methods
@@ -28,6 +30,8 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
             if size(obj(1).CorrTableData,2) == 3
                 concatdata = cell2mat([obj(1).CorrTableData obj(2).CorrTableData]);
                 concatdata(:,[3 6]) = [];
+                obj(1).meanCorrInteraction = max(mean(concatdata(:,[1 3]),2)); 
+                obj(1).meanCorrSimilarity = max(mean(concatdata(:,[2 4]),2));
                 [obj(1).meanCorr I] = max(mean(concatdata,2));
                 best_timescale = obj(1).CorrTableData{I,3};
                 str = ['Timescale of ' num2str(best_timescale) ...
