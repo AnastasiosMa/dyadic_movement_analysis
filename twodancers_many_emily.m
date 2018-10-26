@@ -33,7 +33,9 @@ classdef twodancers_many_emily < twodancers_emily
                 obj.MeanRatedInteraction = meanRatedInteraction;
                 obj.MeanRatedSimilarity = meanRatedSimilarity;
                 obj = correlate_with_perceptual_measures(obj);
-                obj = correlate_pdist_loadings(obj);
+                if strcmpi(obj.Res(1).res.GetPdistLoadings,'Yes')
+                   obj = correlate_pdist_loadings(obj);
+                end
                 %obj = plot_estimated_interaction_distribution(obj);
             end
             %corrtable(obj);
