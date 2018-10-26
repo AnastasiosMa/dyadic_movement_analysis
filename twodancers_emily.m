@@ -56,6 +56,8 @@ classdef twodancers_emily < twodancers
                         obj = hand_movement(obj);
                     elseif strcmpi(obj.Iso1Method,'PeriodLocking')
                         obj = period_locking(obj);
+                    elseif strcmpi(obj.Iso1Method,'TorsoOrientation')
+                        obj = torso_orientation(obj);
                     else
                         error('Select a method')
                     end

@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SingleTimeScale =1080;% time scale of 9 seconds; leave this empty if you want to use
+        SingleTimeScale = 900 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -20,7 +20,7 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing'
+        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
         %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
@@ -796,6 +796,38 @@ classdef twodancers < dancers
                                                % of result so it is
                                                % not a period
                                                % unlocking measure
+        end
+        function obj = torso_orientation(obj)
+        % to be used with position data
+        %
+        %variables o1 and o2 contain the direction of gaze of each dancer relative
+        %to the orientation of the other dancer as a function of time. 
+        %From this various measures such as the mean of absolute values etc. can be
+        %calculated. Additionally, variable r contains the distance of heads as a 
+        %function of time.
+            markerind1 = contains(string(obj.Dancer1.res.markers3d),"shoulder");
+            markerind2 = contains(string(obj.Dancer1.res.markers3d),"Torso");
+
+            markers1 = [obj.Dancer1.res.MocapStruct.data(:,markerind1) ...
+                        obj.Dancer1.res.MocapStruct.data(:,markerind2)];
+            markers2 = [obj.Dancer2.res.MocapStruct.data(:,markerind1) ...
+                        obj.Dancer2.res.MocapStruct.data(:,markerind2)];
+
+            [az1,r1]=cart2pol(mean(markers1(:,[1 4]),2)-markers1(:,7),mean(markers1(:,[2 5]),2)-markers1(:,8));
+            [az2,r]=cart2pol(mean(markers2(:,[1 4 7]),2)-mean(markers1(:,[1 4 7]),2),mean(markers2(:,[2 5 8]),2)-mean(markers1(:,[2 5 8]),2));
+            [az3,r3]=cart2pol(mean(markers2(:,[1 4]),2)-markers2(:,7),mean(markers2(:,[2 5]),2)-markers2(:,8));
+            [az4,r]=cart2pol(mean(markers1(:,[1 4 7]),2)-mean(markers2(:,[1 4 7]),2),mean(markers1(:,[2 5 8]),2)-mean(markers2(:,[2 5 8]),2));
+
+            o1=az1-az2;
+            o2=az3-az4;
+            abso1 = abs(o1);
+            abso2 = abs(o2);
+            absr = abs(r);
+            mo1 = nanmean(abso1);
+            mo2 = nanmean(abso2);
+
+            MeanDist = nanmean(absr);
+            %obj.Corr.timescales = % WHAT COULD WE HAVE HERE?
         end
     end
     methods (Static)
