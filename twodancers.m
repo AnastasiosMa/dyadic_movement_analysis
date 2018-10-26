@@ -642,6 +642,7 @@ classdef twodancers < dancers
             data(data==0) = NaN;
             obj.Corr.means = nanmean(data,2); %find average across timescales
             obj.Corr.max = max(data,[],2);    %find max across timescales
+            obj.Corr.std = nanstd(data,0,2);    %find max across timescales
         end
         % PLOT RESULT
         function obj = plot_triangle(obj)

@@ -113,6 +113,16 @@ classdef twodancers_many_emily < twodancers_emily
                 ylabel('Time shift (s)');
             end
         end
+        function plot_corrstd_each_dancer(obj)
+            stdmat = cell2mat(arrayfun(@(x) x.res.Corr.std, obj.Res,'UniformOutput',false));
+            figure
+            imagesc(stdmat);
+            yticks(1:size(obj.Res(1).res.Corr.std,1));
+            yticklabels(obj.Res(1).res.WindowLengths/obj.Res(1).res.SampleRate);
+            xlabel('Dyad');
+            ylabel('Time scale (\tau)');
+            colorbar()
+        end
         function plotcorr(obj)
         % Scatter plots to show correlation with perceptual measures. works only if you have computed results for one time scale
             NumTimeScales = numel(obj.Res(1).res.WindowLengths);

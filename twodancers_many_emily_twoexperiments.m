@@ -52,6 +52,12 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
             catch
             end
         end
+        function obj = plot_corrstd_each_dancer(obj)
+            for k = 1:numel(obj)
+                plot_corrstd_each_dancer@twodancers_many_emily(obj(k));
+                title(['Standard deviation across time windows (Experiment ' num2str(k) ')']);
+            end
+        end
     end
 
 end
