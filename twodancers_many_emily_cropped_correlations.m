@@ -42,12 +42,12 @@ classdef twodancers_many_emily_cropped_correlations
                 for exp = 1:numel(obj.Corr{1})
                     corrs = res.(obj.perc_measure{j}).experiment(exp).corr';
                     maxdur = max(max(obj.combs))-min(min(obj.combs));
-                    corrmat = zeros(maxdur,maxdur);
+                    corrmat = NaN(maxdur,maxdur);
                     combs_unit = obj.combs - min(min(obj.combs))+1;
                     for k = 1:size(corrs,1)
                         corrmat(combs_unit(k,1),combs_unit(k,2)) = corrs(k);
                     end
-                    obj.corrMat.(obj.perc_measure{j}).experiment(exp).data = flipud(corrmat);
+                    obj.corrMat.(obj.perc_measure{j}).experiment(exp).data = corrmat;
                 end
             end
         end
@@ -66,8 +66,8 @@ classdef twodancers_many_emily_cropped_correlations
                     ylabel('Beginning of extract (s)')
                     xticks([min(min(obj.combs)):max(max(obj.combs))]-min(min(obj.combs))+1);
                     yticks([min(min(obj.combs)):max(max(obj.combs))-1]-min(min(obj.combs))+1);
-                    xticklabels = [min(min(obj.combs)):max(max(obj.combs))];
-                    yticklabels = [min(min(obj.combs)):max(max(obj.combs))-1];
+                    xticklabels([min(min(obj.combs)):max(max(obj.combs))]);
+                    yticklabels([min(min(obj.combs)):max(max(obj.combs))-1]);
                     title(['Experiment ' num2str(exp) ', ' perc_names{j}])
                 end
             end
