@@ -57,12 +57,12 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        Evagmm
        CophCoeff %Cophenetic correlation coefficient (Hierarchical clustering only)
        InconsistCoeff %Mean Inconsistency coefficient (Hierarchical clustering only)
-       GetDyadCompMean='Yes' %Get mean PC scores for each PLS component
+       GetDyadCompMean='No' %Get mean PC scores for each PLS component
        MeanPCScores
        Predictors
        PLSCompNum %number of PLS components
        DyadScores
-       PredictionMethod = 'ClusterProportions'%'MeanPCScores','ClusterProportions','MeanClusterScores'
+       PredictionMethod = 'MeanPCScores'%'MeanPCScores','ClusterProportions','MeanClusterScores'
     end
     methods
         function obj = cluster_dancers_loadings(Dataset,ClusterNum,ClusterMethod,Linkmethod,Steps,Distance,ApplyPCA,PCNum)    
@@ -119,6 +119,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                if strcmpi(obj.GetDyadCompMean,'Yes')
                   obj = dyad_PC_mean(obj);
                   obj.Data = obj.DyadScores;
+                  obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res);
                end
                %plotpcaloadings(obj)
                %plotpcavariance(obj)
@@ -473,9 +474,9 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             %mean(meanRatedInteraction(K1Dyads)); mean(meanRatedInteraction(K2Dyads))
         end
         function obj = regress_cluster(obj)
-            obj.Predictors = [ones(size(obj.Predictors,1),1) zscore(obj.Predictors)];
-            [obj.Regress.BInt,~,obj.Regress.RInt,~,obj.Regress.statsInt] = regress(zscore(obj.AllDancersData.MeanRatedInteraction),obj.Predictors);
-            [obj.Regress.BSim,~,obj.Regress.RSim,~,obj.Regress.statsSim] = regress(zscore(obj.AllDancersData.MeanRatedSimilarity),obj.Predictors);
+            Predictors = [ones(size(obj.Predictors,1),1) zscore(obj.Predictors)];
+            [obj.Regress.BInt,~,obj.Regress.RInt,~,obj.Regress.statsInt] = regress(zscore(obj.AllDancersData.MeanRatedInteraction),Predictors);
+            [obj.Regress.BSim,~,obj.Regress.RSim,~,obj.Regress.statsSim] = regress(zscore(obj.AllDancersData.MeanRatedSimilarity),Predictors);
         end
         function obj = correlate_cluster(obj)
            [obj.CorrCluster.Int.RHO,obj.CorrCluster.Int.PVAL] = corr(obj.Predictors,obj.AllDancersData.MeanRatedInteraction);
@@ -485,8 +486,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             for i=1:obj.DyadNum %get mean scores across PC's
                 MeanPCScores(i,:) = mean(abs(obj.PCScores([i-1]*obj.DyadWin+1:i*obj.DyadWin,:)));             
             end
-            obj.Predictors = MeanPCScores;
-            %obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res); 
+            obj.Predictors = MeanPCScores; 
         end
         function obj = dyad_PC_mean(obj); %get the mean of each dyad for each PCScore and PLScomponent
             obj.DyadScores = zeros(obj.DyadNum*obj.PLSCompNum,size(obj.Data,2));

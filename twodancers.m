@@ -25,10 +25,11 @@ classdef twodancers < dancers
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
-        PLScomp =1; %number of components to be extracted
-        EigenNum=5;
+        PLScomp = 1; %number of components to be extracted
+        EigenNum = 5;
         GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
-        GetPdistLoadings = 'Yes'; 
+        GetPdistLoadings = 'No';
+        SelectPLScomp %= 3; %Choose which of the PLS components to include in the analysis
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
         PLSstdNum = 20; %Number of different std's to test
@@ -88,6 +89,9 @@ classdef twodancers < dancers
                    obj.BPM = 132;
                 else
                    error('Undefined stimuli name')
+                end
+                if isempty(obj.SelectPLScomp)
+                   obj.SelectPLScomp = 1:obj.PLScomp;
                 end
             else
                 
@@ -184,6 +188,17 @@ classdef twodancers < dancers
                         end
 
                         if strcmpi(obj.GetPLSCluster,'Yes')
+                           if ~isempty(obj.PLSloadings) %check for polarity changes
+                              polX=diag(corr(obj.PLSloadings([end-obj.PLScomp*2+1:end-obj.PLScomp],:)',XL));
+                              polY=diag(corr(obj.PLSloadings([end-obj.PLScomp+1:end],:)',YL));
+                           
+                              for p=1:length(polX)
+                                  if abs(polX(p))>0.7 && abs(polY(p))>0.7
+                                     XL(:,p) = XL(:,p)*sign(polX(p));
+                                     YL(:,p) = YL(:,p)*sign(polY(p));
+                                  end
+                              end
+                           end
                             obj.PLSloadings = [obj.PLSloadings;XL';YL'];
                         elseif strcmpi(obj.GetPLSCluster,'YesDyad')
                            obj.PLSloadings = [obj.PLSloadings; [((XL)+(YL))/2]'];
@@ -199,7 +214,7 @@ classdef twodancers < dancers
                            disp('Computing Eigenvalues...') 
                            obj.Corr.timescales(g,j) = sum(Eigenvalues(1:obj.EigenNum)); 
                         else
-                           obj.Corr.timescales(g,j) = mean(diag(corr(XS,YS)));
+                           obj.Corr.timescales(g,j) = mean(diag(corr(XS(:,[obj.SelectPLScomp]),YS(:,[obj.SelectPLScomp]))));
                         end%Average XS YS correlation of each PLS component
                     end
                     j = j + 1; % a counter 
