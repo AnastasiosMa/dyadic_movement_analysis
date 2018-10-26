@@ -28,7 +28,7 @@ classdef twodancers < dancers
         PLScomp =1; %number of components to be extracted
         EigenNum=5;
         GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
-        GetPdistLoadings = 'Yes';
+        GetPdistLoadings = 'Yes'; 
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
         PLSstdNum = 20; %Number of different std's to test

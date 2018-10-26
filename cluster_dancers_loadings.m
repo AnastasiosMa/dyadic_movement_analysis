@@ -29,7 +29,8 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        ApplyPCA %= 'Yes';%'No'
        PCNum = 3; %Select number of PCs
        Regress
-       
+       Wilcoxon %Wilcoxon non-parametric test
+       CorrCluster
        %Variables of PCA on Data
        PCLoads
        PCScores 
@@ -56,11 +57,12 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        Evagmm
        CophCoeff %Cophenetic correlation coefficient (Hierarchical clustering only)
        InconsistCoeff %Mean Inconsistency coefficient (Hierarchical clustering only)
-       GetDyadMean='Yes'
+       GetDyadCompMean='Yes' %Get mean PC scores for each PLS component
        MeanPCScores
        Predictors
        PLSCompNum %number of PLS components
        DyadScores
+       PredictionMethod = 'ClusterProportions'%'MeanPCScores','ClusterProportions','MeanClusterScores'
     end
     methods
         function obj = cluster_dancers_loadings(Dataset,ClusterNum,ClusterMethod,Linkmethod,Steps,Distance,ApplyPCA,PCNum)    
@@ -114,8 +116,9 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             end
             if strcmpi(ApplyPCA,'Yes')
                obj = pcaondata(obj);
-               if strcmpi(obj.GetDyadMean,'Yes')
-                  obj = get_dyad_PC_mean(obj);
+               if strcmpi(obj.GetDyadCompMean,'Yes')
+                  obj = dyad_PC_mean(obj);
+                  obj.Data = obj.DyadScores;
                end
                %plotpcaloadings(obj)
                %plotpcavariance(obj)
@@ -151,9 +154,20 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                obj = evalclustersol(obj);
                %silhvalues(obj)
                %obj = plotclustersize(obj)
-               obj = getdyadtoclust(obj);
+               obj = dyad_to_clust_proportion(obj);
+               if strcmpi(obj.PredictionMethod,'ClusterProportions')
+                   obj.Predictors = obj.DyadtoCluster;
+               elseif strcmpi(obj.PredictionMethod,'MaxPCScores')
+                   obj = dyad_PC_mean(obj); 
+                   obj = dyad_max_PC(obj);
+               elseif strcmpi(obj.PredictionMethod,'MeanPCScores')
+                   obj = dyad_cluster_mean(obj);
+               elseif strcmpi(obj.PredictionMethod,'MeanClusterScores')
+                   
+               end
                %obj = ttest_cluster(obj);
-              %obj = regress_cluster(obj);
+               obj = regress_cluster(obj);
+               obj = correlate_cluster(obj);
                %obj = plotdyadtoclust(obj)
                %obj = scattercluster(obj)
                %obj = plotclusterratings(obj)
@@ -364,7 +378,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             h(3) = plot(0,0,'or', 'visible', 'off');
             legend(h, 'Cluster1','Cluster2','Cluster3');
         end
-        function obj = getdyadtoclust(obj) %Plot percentage of Windows belonging to each dyad per cluster
+        function obj = dyad_to_clust_proportion(obj) %Plot percentage of Windows belonging to each dyad per cluster
             for i=1:obj.ClusterNum
                 for k=1:length(obj.AllDancersData.Res)
                     obj.DyadtoCluster(k,i) = sum(obj.ClusterSol([k-1]*obj.DyadWin+1:k*obj.DyadWin)==i)/obj.DyadWin;
@@ -452,32 +466,38 @@ classdef cluster_dancers_loadings < twodancers_many_emily
         function obj = ttest_cluster(obj) % ttest on perceptual ratings for different clusters
             K1Dyads=find(obj.DyadtoCluster(:,1)>0.6);
             K2Dyads=find(obj.DyadtoCluster(:,2)>0.6);
-            [h,p,ci,stats]=ttest2(obj.AllDancersData.MeanRatedSimilarity(K1Dyads),obj.AllDancersData.MeanRatedSimilarity(K2Dyads)); 
-            [h,p,ci,stats]=ttest2(obj.AllDancersData.MeanRatedInteraction(K1Dyads),obj.AllDancersData.MeanRatedInteraction(K2Dyads));
+            [obj.Wilcoxon.PvalSim,obj.Wilcoxon.HSim]=ranksum(obj.AllDancersData.MeanRatedSimilarity(K1Dyads),...
+            obj.AllDancersData.MeanRatedSimilarity(K2Dyads)); 
+            [obj.Wilcoxon.PvalInt,obj.Wilcoxon.HInt]=ranksum(obj.AllDancersData.MeanRatedInteraction(K1Dyads),...
+            obj.AllDancersData.MeanRatedInteraction(K2Dyads));
             %mean(meanRatedInteraction(K1Dyads)); mean(meanRatedInteraction(K2Dyads))
         end
         function obj = regress_cluster(obj)
-            obj.Predictors = [ones(size(obj.Data,1),1) zscore(obj.Data)];
+            obj.Predictors = [ones(size(obj.Predictors,1),1) zscore(obj.Predictors)];
             [obj.Regress.BInt,~,obj.Regress.RInt,~,obj.Regress.statsInt] = regress(zscore(obj.AllDancersData.MeanRatedInteraction),obj.Predictors);
             [obj.Regress.BSim,~,obj.Regress.RSim,~,obj.Regress.statsSim] = regress(zscore(obj.AllDancersData.MeanRatedSimilarity),obj.Predictors);
         end
-        function obj = get_dyad_cluster_mean(obj) %get cluster medoid window for each dyad
+        function obj = correlate_cluster(obj)
+           [obj.CorrCluster.Int.RHO,obj.CorrCluster.Int.PVAL] = corr(obj.Predictors,obj.AllDancersData.MeanRatedInteraction);
+           [obj.CorrCluster.Sim.RHO,obj.CorrCluster.Sim.PVAL] = corr(obj.Predictors,obj.AllDancersData.MeanRatedSimilarity);
+        end
+        function obj = dyad_cluster_mean(obj) %get cluster medoid window for each dyad
             for i=1:obj.DyadNum %get mean scores across PC's
                 MeanPCScores(i,:) = mean(abs(obj.PCScores([i-1]*obj.DyadWin+1:i*obj.DyadWin,:)));             
             end
-            obj.Data = MeanPCScores;
-            obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res); 
+            obj.Predictors = MeanPCScores;
+            %obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res); 
         end
-        function obj = get_dyad_PC_mean(obj); %get the mean of each dyad for each PCScore and PLScomponent
+        function obj = dyad_PC_mean(obj); %get the mean of each dyad for each PCScore and PLScomponent
             obj.DyadScores = zeros(obj.DyadNum*obj.PLSCompNum,size(obj.Data,2));
             for k=1:size(obj.DyadScores,1)
                 obj.DyadScores(k,:) = mean([abs(obj.PCScores([k-1]*2+1,:));abs(obj.PCScores([k]*2,:))]);
             end
         end
-        function obj = get_max_PC(obj)
+        function obj = dyad_max_PC(obj)
             [Max,idx] = max(obj.DyadScores,[],2); %get max component for each Dyad score
             [Frequency,Edges] = histcounts(idx,[1:obj.PCNum+1]-0.5); %frequency of each component
-            obj.Data = reshape(Max,obj.PLSCompNum,obj.DyadNum)';
+            obj.Predictors = reshape(Max,obj.PLSCompNum,obj.DyadNum)';
         end
         function obj = scatter3d(obj) %creates 3D scatter plot for first 3 PCs
             scatter3((obj.Data(:,1)),(obj.Data(:,2)),(obj.Data(:,3)),5,obj.ClusterSol)
