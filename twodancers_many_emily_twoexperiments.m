@@ -58,6 +58,15 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
                 title(['Standard deviation across time windows (Experiment ' num2str(k) ')']);
             end
         end
+        function obj = plot_mean_triangles(obj)
+            for k = 1:numel(obj)
+                plot_mean_triangles@twodancers_many_emily(obj(k));
+                try % otherwise gives error for MATLAB releases prior to 2018b
+                sgtitle(['Experiment ' num2str(k)]);
+                catch
+                end
+            end
+        end
     end
 
 end

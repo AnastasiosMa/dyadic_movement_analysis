@@ -123,6 +123,38 @@ classdef twodancers_many_emily < twodancers_emily
             ylabel('Time scale (\tau)');
             colorbar()
         end
+        function obj = plot_mean_triangles(obj)
+            all_triang = arrayfun(@(x) x.res.Corr.timescales,obj.Res,'UniformOutput',false);
+            for k = 1:numel(all_triang)
+                all_triang_mat(:,:,k) = all_triang{k};
+            end
+            mean_triang = mean(all_triang_mat,3);
+            std_triang = std(all_triang_mat,0,3);
+            figure
+            subplot(2,1,1)
+            imagesc(mean_triang)
+            xlabel('Time (s)')
+            ylabel('Time scale (\tau)')
+            ylabelmax = size(obj.Res(1).res.Dancer1.res.MocapStruct.data,1)/obj.SampleRate;
+            ylabelmin = obj.MinWindowLength/obj.SampleRate;
+            xlabels = obj.Res(1).res.Dancer1.res.AnWindow;
+            yticks(1:size(obj.Res(1).res.Corr.std,1));
+            yticklabels(obj.Res(1).res.WindowLengths/obj.Res(1).res.SampleRate);
+            colorbar
+            title('Mean Symmetric PLS score correlation across dancers')
+            subplot(2,1,2)
+            imagesc(std_triang)
+            xlabel('Time (s)')
+            ylabel('Time scale (\tau)')
+            ylabelmax = size(obj.Res(1).res.Dancer1.res.MocapStruct.data,1)/obj.SampleRate;
+            ylabelmin = obj.MinWindowLength/obj.SampleRate;
+            xlabels = obj.Res(1).res.Dancer1.res.AnWindow;
+            xticks([1,size(std_triang,2)])
+            yticks(1:size(obj.Res(1).res.Corr.std,1));
+            yticklabels(obj.Res(1).res.WindowLengths/obj.Res(1).res.SampleRate);
+            colorbar
+            title('Standard deviation of Symmetric PLS score correlation across dancers')
+        end
         function plotcorr(obj)
         % Scatter plots to show correlation with perceptual measures. works only if you have computed results for one time scale
             NumTimeScales = numel(obj.Res(1).res.WindowLengths);
