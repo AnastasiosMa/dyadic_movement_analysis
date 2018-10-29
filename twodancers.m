@@ -20,7 +20,7 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        Iso1Method = 'SymmetricPLS'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
+        Iso1Method = 'TorsoOrientation'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
         %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
@@ -834,16 +834,17 @@ classdef twodancers < dancers
             [az3,r3]=cart2pol(mean(markers2(:,[1 4]),2)-markers2(:,7),mean(markers2(:,[2 5]),2)-markers2(:,8));
             [az4,r]=cart2pol(mean(markers1(:,[1 4 7]),2)-mean(markers2(:,[1 4 7]),2),mean(markers1(:,[2 5 8]),2)-mean(markers2(:,[2 5 8]),2));
 
+            %o1 = abs(sum(exp(i*[az1,az2]),2))/2;
             o1=az1-az2;
+            %o2 = abs(sum(exp(i*[az3,az4]),2))/2;
             o2=az3-az4;
             abso1 = abs(o1);
             abso2 = abs(o2);
             absr = abs(r);
-            mo1 = nanmean(abso1);
-            mo2 = nanmean(abso2);
-
+            coso1 = cos(abso1);
+            coso2 = cos(abso2);
             MeanDist = nanmean(absr);
-            obj.Corr.timescales = -mean(abs(o1)+abs(o2));
+            obj.Corr.timescales = nanmean(coso1+coso2);
         end
     end
     methods (Static)

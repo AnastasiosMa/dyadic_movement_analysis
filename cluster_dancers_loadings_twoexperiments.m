@@ -76,12 +76,6 @@ classdef cluster_dancers_loadings_twoexperiments < cluster_dancers_loadings
                figure
                for i=1:length(obj)
                    subplot(1,2,i) 
-                   %scattermeancluster(obj(i));
-                   title(['Scatterplot Mean PCScores for first 2 PCs ' matnames{i}(1:8)])
-               end
-               figure
-               for i=1:length(obj)
-                   subplot(1,2,i) 
                    silhvalues(obj(i));
                    title(['Silhouette values ' matnames{i}(1:8)])
                end
@@ -97,6 +91,10 @@ classdef cluster_dancers_loadings_twoexperiments < cluster_dancers_loadings
                   disp('Silhouette values for kmeans')
                   disp(array2table([cell2mat(arrayfun(@(x) x.Evakmeans.CriterionValues,obj,'UniformOutput',false)')' Clusternames'],...
                   'VariableNames',[matnames,{'Number_of_Clusters'}]));
+            else
+               for i=1:length(obj)
+                   predictiontable(obj(i))
+               end
             end
          end
     end

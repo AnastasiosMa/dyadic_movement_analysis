@@ -62,7 +62,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        Predictors
        PLSCompNum %number of PLS components
        DyadScores
-       PredictionMethod = 'MeanPCScores'%'MeanPCScores','ClusterProportions','MeanClusterScores'
+       PredictionMethod = 'ClusterProportions'%'MeanPCScores','ClusterProportions','MeanClusterScores',MaxPCScores
     end
     methods
         function obj = cluster_dancers_loadings(Dataset,ClusterNum,ClusterMethod,Linkmethod,Steps,Distance,ApplyPCA,PCNum)    
@@ -117,7 +117,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             if strcmpi(ApplyPCA,'Yes')
                obj = pcaondata(obj);
                if strcmpi(obj.GetDyadCompMean,'Yes')
-                  obj = dyad_PC_mean(obj);
+                  obj = dyad_component_mean(obj);
                   obj.Data = obj.DyadScores;
                   obj.DyadWin=length(obj.Data)/length(obj.AllDancersData.Res);
                end
@@ -159,16 +159,20 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                if strcmpi(obj.PredictionMethod,'ClusterProportions')
                    obj.Predictors = obj.DyadtoCluster;
                elseif strcmpi(obj.PredictionMethod,'MaxPCScores')
-                   obj = dyad_PC_mean(obj); 
-                   obj = dyad_max_PC(obj);
+                   %obj = dyad_component_mean(obj); 
+                   %obj = dyad_max_component(obj);
+                   obj = dyad_PC_mean(obj);
+                   obj.Predictors = max(obj.MeanPCScores,[],2);
                elseif strcmpi(obj.PredictionMethod,'MeanPCScores')
-                   obj = dyad_cluster_mean(obj);
+                   obj = dyad_PC_mean(obj);
+                   obj.Predictors = obj.MeanPCScores;
                elseif strcmpi(obj.PredictionMethod,'MeanClusterScores')
                    
                end
                %obj = ttest_cluster(obj);
                obj = regress_cluster(obj);
                obj = correlate_cluster(obj);
+               obj = predictiontable(obj);
                %obj = plotdyadtoclust(obj)
                %obj = scattercluster(obj)
                %obj = plotclusterratings(obj)
@@ -475,26 +479,26 @@ classdef cluster_dancers_loadings < twodancers_many_emily
         end
         function obj = regress_cluster(obj)
             Predictors = [ones(size(obj.Predictors,1),1) zscore(obj.Predictors)];
-            [obj.Regress.BInt,~,obj.Regress.RInt,~,obj.Regress.statsInt] = regress(zscore(obj.AllDancersData.MeanRatedInteraction),Predictors);
-            [obj.Regress.BSim,~,obj.Regress.RSim,~,obj.Regress.statsSim] = regress(zscore(obj.AllDancersData.MeanRatedSimilarity),Predictors);
+            [obj.Regress.Interaction.B,~,~,~,obj.Regress.Interaction.Stats] = regress(zscore(obj.AllDancersData.MeanRatedInteraction),Predictors);
+            [obj.Regress.Similarity.B,~,~,~,obj.Regress.Similarity.Stats] = regress(zscore(obj.AllDancersData.MeanRatedSimilarity),Predictors);
         end
         function obj = correlate_cluster(obj)
-           [obj.CorrCluster.Int.RHO,obj.CorrCluster.Int.PVAL] = corr(obj.Predictors,obj.AllDancersData.MeanRatedInteraction);
-           [obj.CorrCluster.Sim.RHO,obj.CorrCluster.Sim.PVAL] = corr(obj.Predictors,obj.AllDancersData.MeanRatedSimilarity);
+           [obj.CorrCluster.Interaction.RHO,obj.CorrCluster.Interaction.PVAL] = corr(obj.Predictors,obj.AllDancersData.MeanRatedInteraction);
+           [obj.CorrCluster.Similarity.RHO,obj.CorrCluster.Similarity.PVAL] = corr(obj.Predictors,obj.AllDancersData.MeanRatedSimilarity);
         end
-        function obj = dyad_cluster_mean(obj) %get cluster medoid window for each dyad
+        function obj = dyad_PC_mean(obj) %get cluster mean window for each dyad
+            obj.MeanPCScores = [];
             for i=1:obj.DyadNum %get mean scores across PC's
-                MeanPCScores(i,:) = mean(abs(obj.PCScores([i-1]*obj.DyadWin+1:i*obj.DyadWin,:)));             
+                obj.MeanPCScores(i,:) = mean(abs(obj.PCScores([i-1]*obj.DyadWin+1:i*obj.DyadWin,:)));             
             end
-            obj.Predictors = MeanPCScores; 
         end
-        function obj = dyad_PC_mean(obj); %get the mean of each dyad for each PCScore and PLScomponent
+        function obj = dyad_component_mean(obj); %get the mean of each dyad for each PCScore and PLScomponent
             obj.DyadScores = zeros(obj.DyadNum*obj.PLSCompNum,size(obj.Data,2));
             for k=1:size(obj.DyadScores,1)
                 obj.DyadScores(k,:) = mean([abs(obj.PCScores([k-1]*2+1,:));abs(obj.PCScores([k]*2,:))]);
             end
         end
-        function obj = dyad_max_PC(obj)
+        function obj = dyad_max_component(obj)
             [Max,idx] = max(obj.DyadScores,[],2); %get max component for each Dyad score
             [Frequency,Edges] = histcounts(idx,[1:obj.PCNum+1]-0.5); %frequency of each component
             obj.Predictors = reshape(Max,obj.PLSCompNum,obj.DyadNum)';
@@ -512,6 +516,38 @@ classdef cluster_dancers_loadings < twodancers_many_emily
         function obj = silhvalues(obj)
             silhouette(obj.Data,obj.ClusterSol)
             title('Silhouette values')
+        end
+        function obj = predictiontable(obj)
+           disp(['Multiple regression for ' obj.PredictionMethod]);
+           StatNames={'RSquare','F','Pval','Ratings'}; 
+           %Table shows the regression model statistics for each perceptual measure
+           disp(array2table([num2cell(cell2mat(arrayfun(@(x) x.Stats(1:3),struct2array(obj.Regress),'UniformOutput', ...
+           false)')) fieldnames(obj.Regress)],'VariableNames',StatNames(:)')) 
+           
+           disp(['Beta Coefficients for all models'])
+           if strcmpi(obj.PredictionMethod,'MeanPCScores')
+              tablelabels = obj.PCLabels; fieldlabel = {'PCs'}; 
+           elseif strcmpi(obj.PredictionMethod,'MaxPCScores')
+                  tablelabels = {'MaxPCScores'}; fieldlabel = {'PCs'}; 
+           elseif strcmpi(obj.PredictionMethod,'ClusterProportions')
+                  tablelabels = obj.ClusterLabels; fieldlabel = {'Clusters'}; 
+           end
+           disp(array2table([num2cell(cell2mat(arrayfun(@(x) x.B(2:end)',struct2array(obj.Regress),...
+           'UniformOutput',false)'))' tablelabels'],'VariableNames',[fieldnames(obj.Regress)' fieldlabel]))
+  
+           disp(['Correlation table for ' obj.PredictionMethod]);
+           results = [num2cell(cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.CorrCluster),...
+          'UniformOutput',false)'))' tablelabels'];
+          
+          starcell=twodancers_many_emily.makestars(cell2mat(arrayfun(@(x) x.PVAL', struct2array(obj.CorrCluster), ...
+                    'UniformOutput', false))); %create cell array of pstars
+                starcell{numel(results)} = []; %add empty elements to bring it to the same size as restable
+                results_stars = results;
+                for i=1:numel(results)
+                    results_stars{i}=[num2str(results{i}) starcell{i}]; %makes matrix with significance stars
+                end
+          disp(array2table(results_stars,'VariableNames',[fieldnames(obj.Regress)' fieldlabel]));
+
         end
     end
 end
