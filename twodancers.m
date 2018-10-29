@@ -791,11 +791,8 @@ classdef twodancers < dancers
             [per1, ac, eac, lags, wtime] = mcwindow(@mcperiod, data2, win, hop);
             a = -abs(per - per1); 
             a = nanmean(a); % mean across windows
-            obj.Corr.timescales = -nanmean(a); % mean across
-                                               % markers, take negative
-                                               % of result so it is
-                                               % not a period
-                                               % unlocking measure
+            obj.Corr.timescales = nanmean(a); % mean across
+                                              % markers
         end
         function obj = torso_orientation(obj)
         % to be used with position data
