@@ -802,6 +802,10 @@ classdef twodancers < dancers
         %From this various measures such as the mean of absolute values etc. can be
         %calculated. Additionally, variable r contains the distance of heads as a 
         %function of time.
+            if strcmpi(obj.FrontalViewHipMarkers, 'Yes');
+                error('Make sure to set obj.FrontalViewHipMarkers to "No"')
+            end
+
             markerind1 = contains(string(obj.Dancer1.res.markers3d),"shoulder");
             markerind2 = contains(string(obj.Dancer1.res.markers3d),"Torso");
 
