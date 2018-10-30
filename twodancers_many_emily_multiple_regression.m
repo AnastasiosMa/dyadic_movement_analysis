@@ -45,11 +45,21 @@ classdef twodancers_many_emily_multiple_regression
                     res{j}(:,k) = arrayfun(@(x) x.res.Corr.means,obj.res(k).data(j).Res)';
                 end
 
+                    X = [ones(size(res{j},1),1) zscore(res{j})];
+
+                    disp(['Experiment ' num2str(j)]);
+                    predictorcorrs = corr(X(:,2:end));
+                    tcorr = array2table(predictorcorrs,'VariableNames',predictornames);
+                    tcorr.Properties.RowNames = predictornames';
+                    disp(tcorr);
+
                     res{j}(:,excludevars) = [];                
                 for l = 1:numel(percnames) % for each perceptual measure
                     X = [ones(size(res{j},1),1) zscore(res{j})];
                     y = zscore(obj.res(k).data(j).(percnames{l}));
+
                     [b{j}{l},bint{j}{l},r{j}{l},rint{j}{l},stats{j}(:,l)] = regress(y,X);
+
                 end
                reg_r(:,j) = sqrt(stats{j}(1,:)); % each output column is an experiment
                reg_r2(:,j) = stats{j}(1,:);
@@ -59,6 +69,7 @@ classdef twodancers_many_emily_multiple_regression
             betas = cell2mat(cellfun(@(x) cell2mat(x),b,'UniformOutput',false));
             betas(1,:) = []; % remove betas for column of ones
             varnames = {'exp1_Int','exp1_Sim','exp2_Int','exp2_Sim'};
+            
             predictornames(excludevars) = [];
             betanames = strcat(predictornames,'_beta');
             rownames = {'r';'R2';'F';'p'};
@@ -69,7 +80,6 @@ classdef twodancers_many_emily_multiple_regression
             %data = [data,mean(data,2)];
 
             t = array2table(data,'VariableNames',varnames);
-
             t.Properties.RowNames = rownames;
             disp(t);
         end
