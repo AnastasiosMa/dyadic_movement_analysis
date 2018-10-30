@@ -20,7 +20,7 @@ classdef dancers
         Cropped        
         M2jpar
         LocalCoordinateSystem
-        FrontalViewHipMarkers = 'Yes';
+        FrontalViewHipMarkers = 'No';
         IsomorphismOrder
         Type %pos vel or acc
         AdaptiveSigma 
