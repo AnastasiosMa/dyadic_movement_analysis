@@ -10,7 +10,6 @@ classdef dancers
         Delays = linspace(1,10,10)% (8.3 ms to 83 ms)%%linspace(2,10,5)%linspace(12,60,9); %12,240,20; % Time delay embedding delays to use,
                                     % in samples (not in seconds)
         SampleRate = 120;
-        JointBodyMarker = 1:12; % all markers
         MocapStruct
         NumPrinComp
         %KDE
@@ -31,6 +30,7 @@ classdef dancers
         MocapStructPCs
     end
     properties (Dependent)
+        JointBodyMarker
         FrontalViewHipMarkers
         nMarkers
     end
@@ -116,6 +116,10 @@ classdef dancers
                     end
                 end
             end
+        end
+        function val = get.JointBodyMarker(obj)
+            global JointBodyMarker20181030
+            val = JointBodyMarker20181030;
         end
         function val = get.FrontalViewHipMarkers(obj)
             global FrontalViewHipMarkers20181030

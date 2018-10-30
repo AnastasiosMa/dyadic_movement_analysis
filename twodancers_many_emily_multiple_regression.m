@@ -16,6 +16,8 @@ classdef twodancers_many_emily_multiple_regression
             Iso1Method20181029 = 'SymmetricPLS';
             global FrontalViewHipMarkers20181030
             FrontalViewHipMarkers20181030 = 'No';
+            global JointBodyMarker20181030
+            JointBodyMarker20181030 = 1:12; % all markers
             obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % PERIOD LOCKING 
             Iso1Method20181029 = 'PeriodLocking';
@@ -62,6 +64,7 @@ classdef twodancers_many_emily_multiple_regression
             rownames = {'r';'R2';'F';'p'};
             rownames = [rownames; betanames'];
             data = [reg_r(:)';reg_r2(:)';reg_F(:)';reg_p(:)';betas];
+
             %varnames = [varnames, 'mean'];
             %data = [data,mean(data,2)];
 
