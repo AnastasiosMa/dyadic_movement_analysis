@@ -20,7 +20,6 @@ classdef dancers
         Cropped        
         M2jpar
         LocalCoordinateSystem
-        FrontalViewHipMarkers = 'No';
         IsomorphismOrder
         Type %pos vel or acc
         AdaptiveSigma 
@@ -32,6 +31,7 @@ classdef dancers
         MocapStructPCs
     end
     properties (Dependent)
+        FrontalViewHipMarkers
         nMarkers
     end
     properties %(Abstract) % MAKE ABSTRACT TO TRY DIFFERENT SIGMAS Abstract properties are set from subclass
@@ -116,6 +116,10 @@ classdef dancers
                     end
                 end
             end
+        end
+        function val = get.FrontalViewHipMarkers(obj)
+            global FrontalViewHipMarkers20181030
+            val = FrontalViewHipMarkers20181030;
         end
         function val = get.nMarkers(obj)
             val = size(obj.MocapStruct.data,2)/3;

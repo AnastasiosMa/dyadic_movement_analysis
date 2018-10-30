@@ -14,12 +14,16 @@ classdef twodancers_many_emily_multiple_regression
             kinemfeat = 'vel';
             global Iso1Method20181029
             Iso1Method20181029 = 'SymmetricPLS';
+            global FrontalViewHipMarkers20181030
+            FrontalViewHipMarkers20181030 = 'No';
             obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % PERIOD LOCKING 
             Iso1Method20181029 = 'PeriodLocking';
+            FrontalViewHipMarkers20181030 = 'Yes';
             obj.res(2).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % TORSO ORIENTATION 
             Iso1Method20181029 = 'TorsoOrientation';
+            FrontalViewHipMarkers20181030 = 'No';
             kinemfeat = 'pos';
             obj.res(3).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % HAND MOVEMENT correlates with period locking
@@ -58,7 +62,6 @@ classdef twodancers_many_emily_multiple_regression
             rownames = {'r';'R2';'F';'p'};
             rownames = [rownames; betanames'];
             data = [reg_r(:)';reg_r2(:)';reg_F(:)';reg_p(:)';betas];
-            keyboard
             %varnames = [varnames, 'mean'];
             %data = [data,mean(data,2)];
 
