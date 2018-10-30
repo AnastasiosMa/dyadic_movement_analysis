@@ -58,9 +58,9 @@ classdef twodancers_many_emily_multiple_regression
             rownames = {'r';'R2';'F';'p'};
             rownames = [rownames; betanames'];
             data = [reg_r(:)';reg_r2(:)';reg_F(:)';reg_p(:)';betas];
-
-            varnames = [varnames, 'mean'];
-            data = [data,mean(data,2)];
+            keyboard
+            %varnames = [varnames, 'mean'];
+            %data = [data,mean(data,2)];
 
             t = array2table(data,'VariableNames',varnames);
 
