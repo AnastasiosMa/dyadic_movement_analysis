@@ -1,7 +1,6 @@
 classdef cluster_dancers_loadings_twoexperiments < cluster_dancers_loadings
 
     properties
-
     end
 
     methods
@@ -14,6 +13,7 @@ classdef cluster_dancers_loadings_twoexperiments < cluster_dancers_loadings
                 disp(['Experiment ' num2str(k) '...']);
                 obj(k) = obj@cluster_dancers_loadings(data{k},ClusterNum,ClusterMethod,Linkmethod,Steps,Distance,ApplyPCA,PCNum);
             end
+            if strcmpi(obj(1).PlotClustering,'Yes')
             if sum(strcmpi(obj(1).ClusterMethod,{'linkage','kmeans'}))               
                if strcmpi(obj(1).ApplyPCA,'Yes')
                   figure
@@ -73,17 +73,24 @@ classdef cluster_dancers_loadings_twoexperiments < cluster_dancers_loadings
                    scatter3d(obj(i));
                    title(['Scatterplot for first 3 PCs ' matnames{i}(1:8)])
                end
+               for i=1:length(obj)
+                   subplot(1,2,i) 
+                   plot_cluster_perceptual_means(obj(i))
+                   title(['Mean Perceptual ratings for each cluster ' matnames{i}(1:8)])
+               end
                figure
                for i=1:length(obj)
                    subplot(1,2,i) 
                    silhvalues(obj(i));
                    title(['Silhouette values ' matnames{i}(1:8)])
                end
-               if ~isempty(obj(1).Eva)
+            end
+            end
+            if ~isempty(obj(1).Eva)
                   disp('Cluster Evaluation Criterion Values')
                   disp(array2table(arrayfun(@(x) x.Eva.CriterionValues,obj),'VariableNames',matnames));
-               end
-            elseif strcmpi(obj(1).ClusterMethod,'eval')
+            end
+            if strcmpi(obj(1).ClusterMethod,'eval')
                   Clusternames = 1:ClusterNum;
                   disp('Silhouette values for linkage')
                   disp(array2table([cell2mat(arrayfun(@(x) x.Evalinkage.CriterionValues,obj,'UniformOutput',false)')' Clusternames'],...
@@ -93,7 +100,8 @@ classdef cluster_dancers_loadings_twoexperiments < cluster_dancers_loadings
                   'VariableNames',[matnames,{'Number_of_Clusters'}]));
             else
                for i=1:length(obj)
-                   predictiontable(obj(i))
+                   disp(['Prediction for ' matnames{i}])
+                   predictiontable(obj(i));
                end
             end
          end

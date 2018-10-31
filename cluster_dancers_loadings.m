@@ -62,7 +62,10 @@ classdef cluster_dancers_loadings < twodancers_many_emily
        Predictors
        PLSCompNum %number of PLS components
        DyadScores
-       PredictionMethod = 'ClusterProportions'%'MeanPCScores','ClusterProportions','MeanClusterScores',MaxPCScores
+       PredictionMethod = 'MeanPCScores'%'MeanPCScores','ClusterProportions','MeanClusterScores',MaxPCScores
+       PlotClustering = 'Yes'; %Plot all clustering graphs
+       PolarityChange = 'No';
+
     end
     methods
         function obj = cluster_dancers_loadings(Dataset,ClusterNum,ClusterMethod,Linkmethod,Steps,Distance,ApplyPCA,PCNum)    
@@ -82,6 +85,9 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             %obj = cluster_dancers_loadings(2,'linkage','average','1step',@cosdist,'No',3)
           if nargin>0
             obj.AllDancersData = twodancers_many_emily(Dataset.STIMULI,Dataset.meanRatedInteraction,Dataset.meanRatedSimilarity,Dataset.m2jpar,5,5,20,1,'global','noTDE','vel');           
+            if ~strcmpi(obj.AllDancersData.Res(1).res.Iso1Method,'SymmetricPLS')
+                error('Select SymmetricPLS')
+            end
             obj.ClusterNum = ClusterNum;
             obj.ClusterMethod = ClusterMethod;
             obj.Linkmethod = Linkmethod;
@@ -92,6 +98,9 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             obj.DyadNum = length(obj.AllDancersData.Res);
             obj.DancersNum = obj.DyadNum*2;
             temp = cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.AllDancersData.Res,'UniformOutput',false)'); %store loadings
+            if strcmpi(obj.PolarityChange,'Yes')
+               temp = cluster_dancers_loadings.changepolarity(temp); 
+            end
             if strcmpi(obj.AllDancersData.Res(1).res.GetPLSCluster, 'YesMeanComp') %get mean across PLScomponents
                temp = [reshape(temp',size(temp',1)/obj.PLSCompNum,obj.DancersNum*obj.PLSCompNum)]'; %each mean PLS component 
                %is entered as an observation, temp is an m x n, where m = PLScomp number * number of dyads, n = number of dimensions
@@ -169,10 +178,10 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                elseif strcmpi(obj.PredictionMethod,'MeanClusterScores')
                    
                end
-               %obj = ttest_cluster(obj);
+               obj = ttest_cluster(obj);
                obj = regress_cluster(obj);
                obj = correlate_cluster(obj);
-               obj = predictiontable(obj);
+               %obj = predictiontable(obj);
                %obj = plotdyadtoclust(obj)
                %obj = scattercluster(obj)
                %obj = plotclusterratings(obj)
@@ -210,7 +219,7 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             obj.Data=abs(obj.PCScores);
         end
         function obj = plotpcaloadings(obj)
-            bar(abs(obj.PCLoads(:,1:3)))
+            bar(obj.PCLoads(:,1:3))
             set(gca,'XTick',1:length(obj.PCLoads),'XTickLabel',obj.OriginalLabels)
             xtickangle(90)
             legend(obj.PCLabels,'location','NorthWest')
@@ -483,8 +492,8 @@ classdef cluster_dancers_loadings < twodancers_many_emily
             [obj.Regress.Similarity.B,~,~,~,obj.Regress.Similarity.Stats] = regress(zscore(obj.AllDancersData.MeanRatedSimilarity),Predictors);
         end
         function obj = correlate_cluster(obj)
-           [obj.CorrCluster.Interaction.RHO,obj.CorrCluster.Interaction.PVAL] = corr(obj.Predictors,obj.AllDancersData.MeanRatedInteraction);
-           [obj.CorrCluster.Similarity.RHO,obj.CorrCluster.Similarity.PVAL] = corr(obj.Predictors,obj.AllDancersData.MeanRatedSimilarity);
+           [obj.CorrCluster.Interaction.RHO,obj.CorrCluster.Interaction.PVAL] = corr(obj.Predictors,obj.AllDancersData.MeanRatedInteraction,'type','Pearson');
+           [obj.CorrCluster.Similarity.RHO,obj.CorrCluster.Similarity.PVAL] = corr(obj.Predictors,obj.AllDancersData.MeanRatedSimilarity,'type','Pearson');
         end
         function obj = dyad_PC_mean(obj) %get cluster mean window for each dyad
             obj.MeanPCScores = [];
@@ -547,7 +556,38 @@ classdef cluster_dancers_loadings < twodancers_many_emily
                     results_stars{i}=[num2str(results{i}) starcell{i}]; %makes matrix with significance stars
                 end
           disp(array2table(results_stars,'VariableNames',[fieldnames(obj.Regress)' fieldlabel]));
-
+        end
+    end
+    methods (Static)
+        function out = changepolarity(temp)
+           tempX=temp(1:2:end,:);
+           tempY=temp(2:2:end,:);
+           change=1;
+           onechange=1;
+           smallchange = 1;
+           for k=1:size(tempX,1)
+               corr_matrixallX(k,:) = corr(tempX(k,:)',tempX');
+               corr_matrixallY(k,:) = corr(tempY(k,:)',tempY');
+               idxX(k,:) = (corr_matrixallX(k,:)<-0.8); %indexes of polarity changes
+               idxY(k,:) = (corr_matrixallY(k,:)<-0.8);
+               for i=1:size(idxX,2)
+                   if sum(idxX(k,i)) && sum(idxY(k,i)) 
+                      tempX(i,:) = -1*tempX(i,:);
+                      tempY(i,:) = -1*tempY(i,:);
+                      change=change+1;
+                      changeidx(change) = i;
+                   elseif corr_matrixallX(k,i)<-0.7 && corr_matrixallY(k,i)<-0.7
+                          smallchangeidx(smallchange) = i;
+                          smallchange = smallchange+1;
+                   elseif sum(idxX(k,i)) || sum(idxY(k,i))
+                          onechangeidx(onechange) = i;  
+                          onechange = onechange+1;
+                   end
+               end
+           end 
+           temp = [tempX tempY]; 
+           temp = reshape(temp',size(tempX,2),size(tempX,1)*2);
+           out = temp';
         end
     end
 end

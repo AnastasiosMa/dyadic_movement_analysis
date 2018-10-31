@@ -10,7 +10,6 @@ classdef dancers
         Delays = linspace(1,10,10)% (8.3 ms to 83 ms)%%linspace(2,10,5)%linspace(12,60,9); %12,240,20; % Time delay embedding delays to use,
                                     % in samples (not in seconds)
         SampleRate = 120;
-        JointBodyMarker = 1:12; % all markers
         MocapStruct
         NumPrinComp
         %KDE
@@ -20,7 +19,6 @@ classdef dancers
         Cropped        
         M2jpar
         LocalCoordinateSystem
-        FrontalViewHipMarkers = 'Yes';
         IsomorphismOrder
         Type %pos vel or acc
         AdaptiveSigma 
@@ -32,6 +30,8 @@ classdef dancers
         MocapStructPCs
     end
     properties (Dependent)
+        JointBodyMarker
+        FrontalViewHipMarkers
         nMarkers
     end
     properties %(Abstract) % MAKE ABSTRACT TO TRY DIFFERENT SIGMAS Abstract properties are set from subclass
@@ -116,6 +116,14 @@ classdef dancers
                     end
                 end
             end
+        end
+        function val = get.JointBodyMarker(obj)
+            global JointBodyMarker20181030
+            val = JointBodyMarker20181030;
+        end
+        function val = get.FrontalViewHipMarkers(obj)
+            global FrontalViewHipMarkers20181030
+            val = FrontalViewHipMarkers20181030;
         end
         function val = get.nMarkers(obj)
             val = size(obj.MocapStruct.data,2)/3;

@@ -20,7 +20,11 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
+<<<<<<< HEAD
         Iso1Method = 'TorsoOrientation'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
+=======
+        %Iso1Method = 'SymmetricPLS'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
+>>>>>>> 4009878208d879ea92e80fa9ff72ba0a9edd6510
         %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
@@ -70,6 +74,9 @@ classdef twodancers < dancers
         JointRec
         JointRecurrenceThres = 50; % percentile
     end
+    properties (Dependent)
+        Iso1Method
+    end
     methods
         function obj = twodancers(mocapstruct1,mocapstruct2,m2jpar, ...
                                   NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
@@ -97,6 +104,10 @@ classdef twodancers < dancers
                 
             end
 
+        end
+        function val = get.Iso1Method(obj)
+            global Iso1Method20181029
+            val = Iso1Method20181029;
         end
         %FIRST ORDER ISOMORPHISM
         function obj = getdynamicpls(obj)
