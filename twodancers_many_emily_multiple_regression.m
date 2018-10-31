@@ -83,5 +83,48 @@ classdef twodancers_many_emily_multiple_regression
             t.Properties.RowNames = rownames;
             disp(t);
         end
+
+        function obj = compute_partial_correlation(obj)
+
+            percnames = {'MeanRatedInteraction', ...
+                         'MeanRatedSimilarity'};
+            predictornames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement'};
+
+            for j = 1:numel(obj.res(1).data) % each experiment
+                for k = 1:numel(obj.res) % each approach
+                    res{j}(:,k) = arrayfun(@(x) x.res.Corr.means,obj.res(k).data(j).Res)';
+                end
+
+                for l = 1:numel(percnames) % for each perceptual measure
+                    X = res{j};
+                    y = obj.res(k).data(j).(percnames{l});
+
+                    for m = 1:size(X,2)
+                        x = X(:,m);
+                        z = X;
+                        z(:,m) = [];
+                        [rho{j}(m,l),pval{j}(m,l)] = partialcorr(x,y,z);
+                        % each output column is a perceptual
+                        % measure, each row is a predictor variable
+                    end
+                end
+            end
+            varnames = {'exp1_Int','exp1_Sim','exp2_Int','exp2_Sim'};
+            a = cell2mat(rho);
+            b = cell2mat(pval);
+            % interleave two same sized matrices by row
+            data = reshape([a(:) b(:)]',2*size(a,1), []);
+
+            rhonames = strcat(predictornames,'_rho');
+            pvalnames = strcat(predictornames,'_pval');
+            rownames = [rhonames; pvalnames];
+
+            %varnames = [varnames, 'mean'];
+            %data = [data,mean(data,2)];
+
+            t = array2table(data,'VariableNames',varnames);
+            t.Properties.RowNames = rownames;
+            disp(t);
+        end
     end
 end
