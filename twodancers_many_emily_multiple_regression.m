@@ -99,7 +99,7 @@ classdef twodancers_many_emily_multiple_regression
                     X = res{j};
                     y = obj.res(k).data(j).(percnames{l});
 
-                    for m = 1:size(X,2)
+                    for m = 1:size(X,2) % for each predictor variable
                         x = X(:,m);
                         z = X;
                         z(:,m) = [];
