@@ -177,7 +177,7 @@ classdef twodancers < dancers
                         [~,~,XSinv,YSinv] = plsregress(aw2,aw1,obj.PLScomp); %inverted
                         obj.Corr.timescalesdef(j,k) = corr(XSdef,YSdef); 
                         obj.Corr.timescalesinv(j,k) = corr(XSinv,YSinv);
-                    elseif strcmpi(obj.Iso1Method,'SymmetricPLS') || strcmpi(obj.Iso1Method,'PLSEigenvalues')
+                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues','PdistLoadings'}))
                         if isempty(obj.PLScomp) % if number of PLS components
                                                 % is not specified
                             [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,size(aw1,2)); ...
@@ -195,17 +195,6 @@ classdef twodancers < dancers
                         end
 
                         if strcmpi(obj.GetPLSCluster,'Yes')
-                           if ~isempty(obj.PLSloadings) %check for polarity changes
-                              polX=diag(corr(obj.PLSloadings([end-obj.PLScomp*2+1:end-obj.PLScomp],:)',XL));
-                              polY=diag(corr(obj.PLSloadings([end-obj.PLScomp+1:end],:)',YL));
-                           
-                              for p=1:length(polX)
-                                  if abs(polX(p))>0.7 && abs(polY(p))>0.7
-                                     XL(:,p) = XL(:,p)*sign(polX(p));
-                                     YL(:,p) = YL(:,p)*sign(polY(p));
-                                  end
-                              end
-                           end
                             obj.PLSloadings = [obj.PLSloadings;XL';YL'];
                         elseif strcmpi(obj.GetPLSCluster,'YesDyad')
                            obj.PLSloadings = [obj.PLSloadings; [((XL)+(YL))/2]'];
@@ -214,10 +203,13 @@ classdef twodancers < dancers
                         elseif strcmpi(obj.GetPLSCluster,'YesMeanComp') %get the mean loadings across PLS components
                            obj.PLSloadings = [obj.PLSloadings;XL(:)';YL(:)']; 
                         end
-                        if strcmpi(obj.GetPdistLoadings,'Yes')
-                           obj.PdistLoadings(g,j) = pdist([XL';YL']); 
-                        end
-                        if strcmpi(obj.Iso1Method,'PLSEigenvalues')
+                        if strcmpi(obj.Iso1Method,'PdistLoadings')
+                           %[MeanLoadings,idx] = sort([abs(XL)+abs(YL)]/2,1,'descend'); %choose only first 
+                           %few markers with highest loadings
+                           %obj.Corr.timescales(g,j) = -pdist([XL(idx(1:40))';YL(idx(1:40))']); 
+                           obj.Corr.timescales(g,j) = -pdist([XL';YL']); 
+                           %obj.Corr.timescales(g,j) = dot(XL',YL'); %try with dot product 
+                        elseif strcmpi(obj.Iso1Method,'PLSEigenvalues')
                            disp('Computing Eigenvalues...') 
                            obj.Corr.timescales(g,j) = sum(Eigenvalues(1:obj.EigenNum)); 
                         else

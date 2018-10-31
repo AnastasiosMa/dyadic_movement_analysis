@@ -35,7 +35,7 @@ classdef twodancers_emily < twodancers
                     if sum(strcmpi(obj.Iso1Method,{'DynamicPLS','DynamicPLSMI','DynamicPLSWavelet',...
                        'DynamicPLSCrossWaveletPairing'}))
                        obj = getdynamicpls(obj); 
-                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','AsymmetricPLS','PLSEigenvalues'}))
+                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','PdistLoadings'}))
                        if isempty(obj.TimeShift)
                           obj = windowed_pls(obj);
                        else
