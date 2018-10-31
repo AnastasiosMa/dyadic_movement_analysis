@@ -84,12 +84,12 @@ classdef twodancers_many_emily_multiple_regression
             disp(t);
         end
 
-        function obj = compute_partial_correlation(obj)
+        function obj = compute_partial_correlation(obj,excludevars)
 
             percnames = {'MeanRatedInteraction', ...
                          'MeanRatedSimilarity'};
             predictornames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement'};
-
+            predictornames(excludevars) = [];
             for j = 1:numel(obj.res(1).data) % each experiment
                 for k = 1:numel(obj.res) % each approach
                     res{j}(:,k) = arrayfun(@(x) x.res.Corr.means,obj.res(k).data(j).Res)';
@@ -97,6 +97,7 @@ classdef twodancers_many_emily_multiple_regression
 
                 for l = 1:numel(percnames) % for each perceptual measure
                     X = res{j};
+                    X(:,excludevars) = [];
                     y = obj.res(k).data(j).(percnames{l});
 
                     for m = 1:size(X,2) % for each predictor variable
