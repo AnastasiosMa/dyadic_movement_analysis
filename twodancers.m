@@ -20,7 +20,7 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        %Iso1Method = 'SymmetricPLS'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
+        SelectIso1Method = 'SymmetricPLS'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
         %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
@@ -103,7 +103,15 @@ classdef twodancers < dancers
         end
         function val = get.Iso1Method(obj)
             global Iso1Method20181029
-            val = Iso1Method20181029;
+            if isempty(Iso1Method20181029)
+                val = obj.SelectIso1Method;
+            elseif isempty(Iso1Method20181029) && isempty(obj.SelectIso1Method)
+                error('Iso1Method has not been set')
+            elseif ~isempty(Iso1Method20181029) && ~isempty(obj.SelectIso1Method)
+                error('Iso1Method has been set elsewhere')
+            else
+                val = Iso1Method20181029;
+            end
         end
         %FIRST ORDER ISOMORPHISM
         function obj = getdynamicpls(obj)
