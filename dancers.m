@@ -25,6 +25,7 @@ classdef dancers
         AdaptiveSigmaPercentile = 0.15
         TimeEmbeddedDelays
         markers3d
+        SelectJointBodyMarker = 1:12;
     end
     properties %(Hidden)
         MocapStructPCs
@@ -119,7 +120,16 @@ classdef dancers
         end
         function val = get.JointBodyMarker(obj)
             global JointBodyMarker20181030
-            val = JointBodyMarker20181030;
+            if isempty(JointBodyMarker20181030)
+                val = obj.SelectJointBodyMarker;
+            elseif isempty(JointBodyMarker20181030) && isempty(obj.SelectJointBodyMarker)
+                error('JointBodyMarker has not been set')
+            elseif ~isempty(JointBodyMarker20181030) && ~isempty(obj.SelectJointBodyMarker)
+                error('JointBodyMarker has been set elsewhere')
+            else
+                val = JointBodyMarker20181030;
+            end
+
         end
         function val = get.FrontalViewHipMarkers(obj)
             global FrontalViewHipMarkers20181030
