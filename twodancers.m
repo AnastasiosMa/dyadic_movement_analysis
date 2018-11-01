@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        %SingleTimeScale = 900 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
+        SelectSingleTimeScale = 900 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -114,9 +114,17 @@ classdef twodancers < dancers
                 val = Iso1Method20181029;
             end
         end
-        function out = get.SingleTimeScale(obj)
+        function val = get.SingleTimeScale(obj)
             global Timescale20180111
-            out = Timescale20180111;
+            if isempty(Timescale20180111)
+                val = obj.SelectSingleTimeScale;
+            elseif isempty(Timescale20180111) && isempty(obj.SelectSingleTimeScale)
+                error('SingleTimeScale has not been set')
+            elseif ~isempty(Timescale20180111) && ~isempty(obj.SelectSingleTimeScale)
+                error('SingleTimeScale has been set elsewhere')
+            else
+                val = Timescale20180111;
+            end
         end
         %FIRST ORDER ISOMORPHISM
         function obj = getdynamicpls(obj)
