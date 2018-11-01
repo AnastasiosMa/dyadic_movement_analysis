@@ -41,7 +41,7 @@ classdef twodancers_emily < twodancers
                        else
                           obj = windowed_pls_time_shifts(obj);
                        end
-                    elseif strcmpi(obj.Iso1Method,'Win_PCA_CCA') 
+                    elseif sum(strcmpi(obj.Iso1Method,{'Win_PCA_CCA','PdistLoadingsPCA'})) 
                          obj = windowed_pca_cca(obj);
                     elseif strcmpi(obj.Iso1Method,'PCA_Win_CCA') 
                          obj = windowed_cca_over_pca(obj);
