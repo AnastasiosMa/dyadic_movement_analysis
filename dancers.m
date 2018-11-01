@@ -286,6 +286,7 @@ classdef dancers
                                             %markers/joints. Default is all
             obj.MocapStruct.data = obj.MocapStruct.data(:, ...
                                                         regular3Dmarker);
+            %            disp(['Using these marker(s): ' num2str(obj.JointBodyMarker) '...'])
 
         end
         function obj = getvelocity(obj)

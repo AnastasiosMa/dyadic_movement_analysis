@@ -1,7 +1,9 @@
 classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
 
     properties
-
+        meanCorr
+        meanCorrInteraction
+        meanCorrSimilarity
     end
 
     methods
@@ -15,7 +17,7 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
                 obj(k) = obj@twodancers_many_emily(data{k}.STIMULI,data{k}.meanRatedInteraction,data{k}.meanRatedSimilarity,data{k}.m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             end
             obj = corrtable(obj);
-            display_best_timescale(obj);
+            obj = display_best_timescale(obj);
         end
         function obj = corrtable(obj)
             for k = 1:numel(obj)
@@ -28,10 +30,12 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
             if size(obj(1).CorrTableData,2) == 3
                 concatdata = cell2mat([obj(1).CorrTableData obj(2).CorrTableData]);
                 concatdata(:,[3 6]) = [];
-                [M I] = max(mean(concatdata,2));
+                obj(1).meanCorrInteraction = max(mean(concatdata(:,[1 3]),2)); 
+                obj(1).meanCorrSimilarity = max(mean(concatdata(:,[2 4]),2));
+                [obj(1).meanCorr I] = max(mean(concatdata,2));
                 best_timescale = obj(1).CorrTableData{I,3};
                 str = ['Timescale of ' num2str(best_timescale) ...
-                      ' s yields best results (mean correlation: ' num2str(M) ')'];
+                      ' s yields best results (mean correlation: ' num2str(obj(1).meanCorr) ')'];
                 disp(str);
             end
         end
