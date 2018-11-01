@@ -2,6 +2,7 @@ classdef twodancers_many_emily_multiple_regression
 
     properties
         res
+        predictorNames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement','PdistLoadings'};
     end
 
     methods
@@ -46,8 +47,6 @@ classdef twodancers_many_emily_multiple_regression
             end
             percnames = {'MeanRatedInteraction', ...
                          'MeanRatedSimilarity'};
-            predictornames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement','PdistLoadings'};
-
             for j = 1:numel(obj.res(1).data) % each experiment
                 for k = 1:numel(obj.res) % each approach 
                     res{j}(:,k) = arrayfun(@(x) x.res.Corr.means,obj.res(k).data(j).Res)';
@@ -57,6 +56,7 @@ classdef twodancers_many_emily_multiple_regression
 
                     disp(['Experiment ' num2str(j)]);
                     predictorcorrs = corr(X(:,2:end));
+                    predictornames = obj.predictorNames;
                     tcorr = array2table(predictorcorrs,'VariableNames',predictornames);
                     tcorr.Properties.RowNames = predictornames';
                     disp(tcorr);
@@ -98,7 +98,7 @@ classdef twodancers_many_emily_multiple_regression
             end
             percnames = {'MeanRatedInteraction', ...
                          'MeanRatedSimilarity'};
-            predictornames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement'};
+            predictornames = obj.predictorNames;
             predictornames(excludevars) = [];
             for j = 1:numel(obj.res(1).data) % each experiment
                 for k = 1:numel(obj.res) % each approach
