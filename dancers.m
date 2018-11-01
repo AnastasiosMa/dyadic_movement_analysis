@@ -308,7 +308,6 @@ classdef dancers
                 else
                     obj.MocapStruct = mctrim(obj.MocapStruct,obj.AnWindow(1)*obj.SampleRate,obj.AnWindow(2)*obj.SampleRate-1,'frame');
                 end
-                keyboard
             else 
                 disp('Attempting to crop window outside of range time limits')
                 disp('Adjusting cropping window to the start of Mocap data t1=0, t2=15')
