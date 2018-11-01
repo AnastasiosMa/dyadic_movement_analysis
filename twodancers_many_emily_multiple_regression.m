@@ -41,6 +41,9 @@ classdef twodancers_many_emily_multiple_regression
         %obj = compute_regression(obj,excludevars);
         function obj = compute_regression(obj,excludevars)
         % e.g. excludevars = [2 4];
+            if nargin == 1
+                excludevars = [];
+            end
             percnames = {'MeanRatedInteraction', ...
                          'MeanRatedSimilarity'};
             predictornames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement','PdistLoadings'};
@@ -90,7 +93,9 @@ classdef twodancers_many_emily_multiple_regression
         end
 
         function obj = compute_partial_correlation(obj,excludevars)
-
+            if nargin == 1
+                excludevars = [];
+            end
             percnames = {'MeanRatedInteraction', ...
                          'MeanRatedSimilarity'};
             predictornames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement'};
