@@ -118,8 +118,8 @@ classdef twodancers_many_emily_twoexperiments_forwselect_body_markers
                 MEANCORR20181101
 
 
-            global JointBodyMarker20181019 
-            JointBodyMarker20181019 = xbin;
+            global JointBodyMarker20181030 
+            JointBodyMarker20181030 = xbin;
             res = twodancers_many_emily_twoexperiments(DATASET1_24DYADS20181019,DATASET2_38DYADS20181019,NPC20181019,T120181019,T220181019,ISOMORPHISMORDER20181019,COORDINATESYSTEM20181019,TDE20181019,KINEMFEAT20181019);
             f = res(1).(MEANCORR20181101);
             %f = res(1).meanCorr;
