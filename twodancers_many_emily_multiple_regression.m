@@ -19,6 +19,8 @@ classdef twodancers_many_emily_multiple_regression
             FrontalViewHipMarkers20181030 = 'No';
             global JointBodyMarker20181030
             JointBodyMarker20181030 = 1:12; % all markers
+            global Timescale20180111
+            Timescale20180111 = 900;
             obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % PERIOD LOCKING 
             Iso1Method20181029 = 'PeriodLocking';
@@ -34,8 +36,9 @@ classdef twodancers_many_emily_multiple_regression
             kinemfeat = 'acc';
             obj.res(4).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % LOADINGS SIMILARITY
+            Timescale20180111 = 180;
             kinemfeat = 'vel';  
-            Iso1Method20181029 = 'PdistLoadings';
+            Iso1Method20181029 = 'PdistLoadingsPCA';
             FrontalViewHipMarkers20181030 = 'Yes';
             obj.res(5).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
 

@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SingleTimeScale = 900 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
+        %SingleTimeScale = 900 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -21,7 +21,7 @@ classdef twodancers < dancers
         Corr
         %First order isomorphism properties
         SelectIso1Method = 'SymmetricPLS'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
-        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement'(method used for first order isomorphism)        
+        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadingsPCA'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
@@ -72,6 +72,7 @@ classdef twodancers < dancers
     end
     properties (Dependent)
         Iso1Method
+        SingleTimeScale
     end
     methods
         function obj = twodancers(mocapstruct1,mocapstruct2,m2jpar, ...
@@ -112,6 +113,10 @@ classdef twodancers < dancers
             else
                 val = Iso1Method20181029;
             end
+        end
+        function out = get.SingleTimeScale(obj)
+            global Timescale20180111
+            out = Timescale20180111;
         end
         %FIRST ORDER ISOMORPHISM
         function obj = getdynamicpls(obj)
@@ -364,9 +369,15 @@ classdef twodancers < dancers
                     PCA1_reduced = PCA1.score(:,1:obj.Dancer1.res.NumPrinComp);
                     PCA2_reduced = PCA2.score(:,1:obj.Dancer1.res.NumPrinComp);
                     % compute CCA
+                    if strcmpi(obj.Iso1Method,'PdistLoadingsPCA')
+                       PCA1coeff_reduced = PCA1.coeff(:,1:obj.Dancer1.res.NumPrinComp);
+                       PCA2coeff_reduced = PCA2.coeff(:,1:obj.Dancer1.res.NumPrinComp); 
+                       obj.Corr.timescales(g,k) = -sum(sum(pdist2(abs(PCA1coeff_reduced),abs(PCA2coeff_reduced)))); 
+                    elseif strcmpi(obj.Iso1Method,'Win_PCA_CCA')
                     [A,B,r,U,V,stats] = canoncorr(PCA1_reduced,PCA2_reduced);                   
                     
                     obj.Corr.timescales(g,k) = r(1); %the r values stored in Corr.timescales matrix
+                    end
                 end
                 g = g + 1; %g=the different time length window used, k the number of windows for each window length
             end
