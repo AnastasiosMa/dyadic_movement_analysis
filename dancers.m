@@ -26,6 +26,7 @@ classdef dancers
         TimeEmbeddedDelays
         markers3d
         SelectJointBodyMarker = 1:12;
+        SelectFrontalViewHipMarkers = 'No';
     end
     properties %(Hidden)
         MocapStructPCs
@@ -133,7 +134,15 @@ classdef dancers
         end
         function val = get.FrontalViewHipMarkers(obj)
             global FrontalViewHipMarkers20181030
-            val = FrontalViewHipMarkers20181030;
+            if isempty(FrontalViewHipMarkers20181030)
+                val = obj.SelectFrontalViewHipMarkers;
+            elseif isempty(FrontalViewHipMarkers20181030) && isempty(obj.SelectFrontalViewHipMarkers)
+                error('FrontalViewHipMarkers has not been set')
+            elseif ~isempty(FrontalViewHipMarkers20181030) && ~isempty(obj.SelectFrontalViewHipMarkers)
+                error('FrontalViewHipMarkers has been set elsewhere')
+            else
+                val = FrontalViewHipMarkers20181030;
+            end
         end
         function val = get.nMarkers(obj)
             val = size(obj.MocapStruct.data,2)/3;
