@@ -35,8 +35,10 @@ classdef twodancers_many_emily_twoexperiments_forwselect_body_markers
             disp('Running forward selection for SIMILARITY...')
             %[obj.optFvals obj.optSolutions] = twodancers_many_emily_twoexperiments_forwselect_body_markers.forwfeatsel(@twodancers_many_emily_twoexperiments_forwselect_body_markers.toyfval,NVARS);
             [obj.optFvals obj.optSolutions] = twodancers_many_emily_twoexperiments_forwselect_body_markers.forwfeatsel(@twodancers_many_emily_twoexperiments_forwselect_body_markers.objectivefcn_bodymarkers,NVARS);
+            % CLEAR ALL GLOBAL VARIABLES
+            clearvars -global
             plot_opt_solutions(obj);
-
+            
         end
         function plot_opt_solutions(obj)
             fvals = cell2mat(obj.optFvals);

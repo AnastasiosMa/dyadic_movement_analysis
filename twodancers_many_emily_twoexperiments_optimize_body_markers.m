@@ -29,7 +29,8 @@ KINEMFEAT20181019 = kinemfeat;
 
             [x, fval,exitflag,output,population, scores]= ga(@ ...
                                                              twodancers_many_emily_twoexperiments_optimize_body_markers.objectivefcn_bodymarkers,NVARS,[],[],[],[],LB,UB,[],INTCON);
-
+            % CLEAR ALL GLOBAL VARIABLES
+            clearvars -global
     end
 
     end
