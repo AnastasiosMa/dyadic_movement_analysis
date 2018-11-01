@@ -2,6 +2,7 @@ classdef twodancers_many_emily_multiple_regression
 
     properties
         res
+        predictorNames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement','PdistLoadings'};
     end
 
     methods
@@ -44,10 +45,11 @@ classdef twodancers_many_emily_multiple_regression
         %obj = compute_regression(obj,excludevars);
         function obj = compute_regression(obj,excludevars)
         % e.g. excludevars = [2 4];
+            if nargin == 1
+                excludevars = [];
+            end
             percnames = {'MeanRatedInteraction', ...
                          'MeanRatedSimilarity'};
-            predictornames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement','PdistLoadingsPCA'};
-
             for j = 1:numel(obj.res(1).data) % each experiment
                 for k = 1:numel(obj.res) % each approach 
                     res{j}(:,k) = arrayfun(@(x) x.res.Corr.means,obj.res(k).data(j).Res)';
@@ -57,6 +59,7 @@ classdef twodancers_many_emily_multiple_regression
 
                     disp(['Experiment ' num2str(j)]);
                     predictorcorrs = corr(X(:,2:end));
+                    predictornames = obj.predictorNames;
                     tcorr = array2table(predictorcorrs,'VariableNames',predictornames);
                     tcorr.Properties.RowNames = predictornames';
                     disp(tcorr);
@@ -93,10 +96,12 @@ classdef twodancers_many_emily_multiple_regression
         end
 
         function obj = compute_partial_correlation(obj,excludevars)
-
+            if nargin == 1
+                excludevars = [];
+            end
             percnames = {'MeanRatedInteraction', ...
                          'MeanRatedSimilarity'};
-            predictornames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement','PdistLoadingsPCA'};
+            predictornames = obj.predictorNames;
             predictornames(excludevars) = [];
             for j = 1:numel(obj.res(1).data) % each experiment
                 for k = 1:numel(obj.res) % each approach
