@@ -38,6 +38,9 @@ classdef twodancers_many_emily_multiple_regression
             Iso1Method20181029 = 'PdistLoadings';
             FrontalViewHipMarkers20181030 = 'Yes';
             obj.res(5).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
+
+            % CLEAR ALL GLOBAL VARIABLES
+            clearvars -global
         end
         %obj = compute_regression(obj,excludevars);
         function obj = compute_regression(obj,excludevars)
