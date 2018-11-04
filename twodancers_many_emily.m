@@ -5,7 +5,6 @@ classdef twodancers_many_emily < twodancers_emily
         MeanRatedSimilarity
         CorrTable
         CorrTableData
-        CorrLoadings
     end
     methods
         function obj = twodancers_many_emily(mocap_array,meanRatedInteraction,meanRatedSimilarity,m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
@@ -32,10 +31,10 @@ classdef twodancers_many_emily < twodancers_emily
             if nargin > 0
                 obj.MeanRatedInteraction = meanRatedInteraction;
                 obj.MeanRatedSimilarity = meanRatedSimilarity;
-                obj = correlate_with_perceptual_measures(obj);
-                if strcmpi(obj.Res(1).res.GetPdistLoadings,'Yes')
-                   obj = correlate_pdist_loadings(obj);
+                if strcmpi(obj.Res(1).res.Iso1Method,'PCAonPLSLoadings')
+                   obj = PC_loadings_similarity(obj);
                 end
+                obj = correlate_with_perceptual_measures(obj);
                 %obj = plot_estimated_interaction_distribution(obj);
             end
             %corrtable(obj);
@@ -299,14 +298,6 @@ classdef twodancers_many_emily < twodancers_emily
             xlabel('Dyads')
             ylabel('I(x;y)')
             hold off
-        end
-        function obj = correlate_pdist_loadings(obj);
-                 for k = 1:size(obj.Res(1).res.PdistLoadings,1) % for each timescale
-                     meancorrs = arrayfun(@(x) x.res.Corr.means(k),obj.Res)';
-                     meanpdist = arrayfun(@(x) x.res.PdistLoadings(k,:),obj.Res)';
-                     [obj.CorrLoadings.Int.RHO(k),obj.CorrLoadings.Int.PVAL(k)] = corr(meanpdist,obj.MeanRatedInteraction);
-                     [obj.CorrLoadings.Simi.RHO(k),obj.CorrLoadings.Simi.PVAL(k)] = corr(meanpdist,obj.MeanRatedSimilarity);
-                 end      
         end
     end
     methods (Static)

@@ -2,7 +2,7 @@ classdef twodancers_many_emily_multiple_regression
 
     properties
         res
-        predictorNames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement','PdistLoadings'};
+        predictorNames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement','PCAonPLSLoadings'};
     end
 
     methods
@@ -36,12 +36,12 @@ classdef twodancers_many_emily_multiple_regression
             kinemfeat = 'acc';
             obj.res(4).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % LOADINGS SIMILARITY
-            Timescale20180111 = 180;
+            Timescale20180111 = 750;
             kinemfeat = 'vel';  
-            Iso1Method20181029 = 'PdistLoadingsPCA';
             FrontalViewHipMarkers20181030 = 'Yes';
+            Iso1Method20181029 = 'PCAonPLSLoadings';
+            Timescale20180111 = 900;
             obj.res(5).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
-
             % CLEAR ALL GLOBAL VARIABLES
             clearvars -global
         end

@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SelectSingleTimeScale = 900 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
+        SelectSingleTimeScale %= 900 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -20,15 +20,14 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        SelectIso1Method = 'SymmetricPLS'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
+        SelectIso1Method %= 'PCAonPLSLoadings'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
         %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadingsPCA'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
-        PLScomp = 1; %number of components to be extracted
+        PLScomp = 2; %number of components to be extracted
         EigenNum = 5;
         GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
-        GetPdistLoadings = 'No';
         SelectPLScomp %= 3; %Choose which of the PLS components to include in the analysis
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
@@ -59,7 +58,6 @@ classdef twodancers < dancers
         BeatPhaseLength
         PairCount %For PLS pairwise wavelet analysis. Stores frequency 
         %of each pair having max values
-        PdistLoadings
         %Second order Isomorphism properties
         Iso2Method = 'corrSSMs'; % corrSSMs, corrSSMsPLS or
                                     % corrConcatenatedSSMs (method
@@ -198,7 +196,7 @@ classdef twodancers < dancers
                         [~,~,XSinv,YSinv] = plsregress(aw2,aw1,obj.PLScomp); %inverted
                         obj.Corr.timescalesdef(j,k) = corr(XSdef,YSdef); 
                         obj.Corr.timescalesinv(j,k) = corr(XSinv,YSinv);
-                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues','PdistLoadings'}))
+                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues','PdistLoadings','PCAonPLSLoadings'}))
                         if isempty(obj.PLScomp) % if number of PLS components
                                                 % is not specified
                             [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,size(aw1,2)); ...
@@ -215,8 +213,8 @@ classdef twodancers < dancers
                             [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
                         end
 
-                        if strcmpi(obj.GetPLSCluster,'Yes')
-                            obj.PLSloadings = [obj.PLSloadings;XL';YL'];
+                        if strcmpi(obj.GetPLSCluster,'Yes')|| strcmpi(obj.Iso1Method,'PCAonPLSLoadings')
+                            obj.PLSloadings = [obj.PLSloadings;XL(:)';YL(:)'];
                         elseif strcmpi(obj.GetPLSCluster,'YesDyad')
                            obj.PLSloadings = [obj.PLSloadings; [((XL)+(YL))/2]'];
                            %obj.PLSloadings = [obj.PLSloadings; [(abs(XL)+abs(YL))/2]'];
@@ -228,13 +226,14 @@ classdef twodancers < dancers
                            %[MeanLoadings,idx] = sort([abs(XL)+abs(YL)]/2,1,'descend'); %choose only first 
                            %few markers with highest loadings
                            %obj.Corr.timescales(g,j) = -pdist([XL(idx(1:40))';YL(idx(1:40))']); 
-                           obj.Corr.timescales(g,j) = -pdist([XL';YL']); 
+                           obj.Corr.timescales(g,j) = -pdist([XL(:)';YL(:)']); 
                            %obj.Corr.timescales(g,j) = dot(XL',YL'); %try with dot product 
                         elseif strcmpi(obj.Iso1Method,'PLSEigenvalues')
                            disp('Computing Eigenvalues...') 
                            obj.Corr.timescales(g,j) = sum(Eigenvalues(1:obj.EigenNum)); 
-                        else
+                        elseif strcmpi(obj.Iso1Method,'SymmetricPLS')
                            obj.Corr.timescales(g,j) = mean(diag(corr(XS(:,[obj.SelectPLScomp]),YS(:,[obj.SelectPLScomp]))));
+                        else
                         end%Average XS YS correlation of each PLS component
                     end
                     j = j + 1; % a counter 
@@ -243,7 +242,6 @@ classdef twodancers < dancers
                 if strcmpi(obj.GetPLSCluster,'YesMeanComp') %get mean components for each dancer
                    obj.PLSloadings = [mean(obj.PLSloadings(1:2:end,:),1); mean(obj.PLSloadings(2:2:end,:),1)]; 
                 end
-                obj.PdistLoadings = mean(obj.PdistLoadings,2);
             end
             if strcmpi(obj.Iso1Method,'AsymmetricPLS') 
                 obj.Corr.timescales=[obj.Corr.timescalesdef+obj.Corr.timescalesinv]./2; %mean corr.timescales
@@ -860,9 +858,7 @@ classdef twodancers < dancers
             [az3,r3]=cart2pol(mean(markers2(:,[1 4]),2)-markers2(:,7),mean(markers2(:,[2 5]),2)-markers2(:,8));
             [az4,r]=cart2pol(mean(markers1(:,[1 4 7]),2)-mean(markers2(:,[1 4 7]),2),mean(markers1(:,[2 5 8]),2)-mean(markers2(:,[2 5 8]),2));
 
-            %o1 = abs(sum(exp(i*[az1,az2]),2))/2;
             o1=az1-az2;
-            %o2 = abs(sum(exp(i*[az3,az4]),2))/2;
             o2=az3-az4;
             abso1 = abs(o1);
             abso2 = abs(o2);
@@ -871,6 +867,31 @@ classdef twodancers < dancers
             coso2 = cos(abso2);
             MeanDist = nanmean(absr);
             obj.Corr.timescales = nanmean(coso1+coso2);
+        end
+        function obj = PC_loadings_similarity(obj)
+            temp = cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.Res,'UniformOutput',false)'); %store loadings 
+            %temp = twodancers.changepolarity(temp);
+            DyadNum = length(obj.Res);
+            DyadWin = size(temp,1)/DyadNum; %Number of Windows per Dyad
+            [PCLoads,PCScores,~,~,PCExplainedVar]=pca(temp,'Algorithm','svd','Centered','on');
+            for i=1:length(PCExplainedVar)
+                SummedVar(i)=abs(sum(PCExplainedVar(1:i))-90); 
+            end
+            PCNum = find(SummedVar==min(SummedVar));%find number of pc's for given variance threshold
+            PCLoads = PCLoads(:,1:PCNum);
+            %PCScores = abs(PCScores(:,1:PCNum)); %Select a 
+            PCScores = abs(PCScores);
+            PCLabels = cellfun(@(x) ['PC' num2str(x)], sprintfc('%g',1:PCNum), 'UniformOutput', false);            
+            data1 = PCScores(1:2:end,:); 
+            data2 = PCScores(2:2:end,:); 
+            data1 = permute(reshape(data1',size(data1,2),DyadWin/2,DyadNum),[2,1,3]);
+            data2 = permute(reshape(data2',size(data2,2),DyadWin/2,DyadNum),[2,1,3]);
+            for k=1:DyadNum
+                for i=1:DyadWin/2
+                    pdist_PC(k,i) = pdist2(data1(i,:,k),data2(i,:,k),'euclidean');
+                end
+                obj.Res(k).res.Corr.means = - mean(pdist_PC(k,:)); 
+            end
         end
     end
     methods (Static)
@@ -902,5 +923,36 @@ classdef twodancers < dancers
             end
             y = mean(Eigenvalues)';
         end
+        function out = changepolarity(temp)
+           tempX=temp(1:2:end,:);
+           tempY=temp(2:2:end,:);
+           change=1;
+           onechange=1;
+           smallchange = 1;
+           for k=1:size(tempX,1)
+               corr_matrixallX(k,:) = corr(tempX(k,:)',tempX');
+               corr_matrixallY(k,:) = corr(tempY(k,:)',tempY');
+               idxX(k,:) = (corr_matrixallX(k,:)<-0.8); %indexes of polarity changes
+               idxY(k,:) = (corr_matrixallY(k,:)<-0.8);
+               for i=1:size(idxX,2)
+                   if sum(idxX(k,i)) && sum(idxY(k,i)) 
+                      tempX(i,:) = -1*tempX(i,:);
+                      tempY(i,:) = -1*tempY(i,:);
+                      change=change+1;
+                      changeidx(change) = i;
+                   elseif corr_matrixallX(k,i)<-0.7 && corr_matrixallY(k,i)<-0.7
+                          smallchangeidx(smallchange) = i;
+                          smallchange = smallchange+1;
+                   elseif sum(idxX(k,i)) || sum(idxY(k,i))
+                          onechangeidx(onechange) = i;  
+                          onechange = onechange+1;
+                   end
+               end
+           end 
+           temp = [tempX tempY]; 
+           temp = reshape(temp',size(tempX,2),size(tempX,1)*2);
+           out = temp';
+        end
+        
     end
 end
