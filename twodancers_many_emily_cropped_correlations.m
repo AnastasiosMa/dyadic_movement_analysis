@@ -8,12 +8,12 @@ classdef twodancers_many_emily_cropped_correlations
     end
 
     methods
-        function obj = twodancers_many_emily_cropped_correlations(Dataset1_24Dyads,Dataset2_38Dyads, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
+        function obj = twodancers_many_emily_cropped_correlations(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
         % Limited version, should only be used with a single
         % time scale of 1 second (obj.SingleTimeScale = 120) and
         % with integer beginning and ending times
         % Syntax e.g.:
-        % a = twodancers_many_emily_cropped_correlations('Dataset1_24Dyads.mat','Dataset2_38Dyads',5,5,20,1,'global','noTDE','vel');
+        % a = twodancers_many_emily_cropped_correlations('Dataset1_24Dyads.mat','Dataset2_37Dyads',5,5,20,1,'global','noTDE','vel');
             if ~isinf(t1) & floor(t1) == t1 && ~isinf(t2) & floor(t2) == t2
                 % if t1 and t2 are integers
             else
@@ -24,7 +24,7 @@ classdef twodancers_many_emily_cropped_correlations
             ncombs = size(obj.combs,1);
             for k = 1:ncombs
                 disp([obj.combs(k,1) obj.combs(k,2)])         
-                res = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads, NPC,obj.combs(k,1),obj.combs(k,2),isomorphismorder,coordinatesystem,TDE,kinemfeat);
+                res = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads, NPC,obj.combs(k,1),obj.combs(k,2),isomorphismorder,coordinatesystem,TDE,kinemfeat);
                 obj.Corr{k} = arrayfun(@(x) x.Corr,res);
             end
             obj = get_correlations_for_each_cropping(obj);

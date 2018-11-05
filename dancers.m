@@ -359,7 +359,11 @@ classdef dancers
             obj.MocapStruct = d2;
         end
         function obj = getssm(obj,sigma)
-            X = obj.MocapStructPCs.data;
+            if size(obj.MocapStructPCs.data,2) == 0
+                X = obj.MocapStruct.data;
+            else
+                X = obj.MocapStructPCs.data;
+            end
             if strcmpi(obj.SSM_Type,'Correntropy')
                 % Laplacian RBFK SSM
                 obj.SSM = dancers.getcorrentropy(X,sigma,obj.CorrentropyType);
