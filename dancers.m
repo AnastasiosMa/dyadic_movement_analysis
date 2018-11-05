@@ -99,6 +99,7 @@ classdef dancers
                     obj = getpca(obj);
                     obj = normalize_eigenvalues(obj);
                     obj = makeMocapStructPCs(obj);
+                    elseif isempty(obj.NumPrinComp)
                     else
                         warning(['Not computing PCA because the ' ...
                                  'number of required principal ' ...
