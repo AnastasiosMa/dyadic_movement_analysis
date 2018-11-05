@@ -31,7 +31,7 @@ classdef twodancers_many_emily < twodancers_emily
             if nargin > 0
                 obj.MeanRatedInteraction = meanRatedInteraction;
                 obj.MeanRatedSimilarity = meanRatedSimilarity;
-                if strcmpi(obj.Res(1).res.Iso1Method,'PCAonPLSLoadings')
+                if strcmpi(obj.Res(1).res.Iso1Method,'PdistPCScores')
                    obj = PC_loadings_similarity(obj);
                 end
                 obj = correlate_with_perceptual_measures(obj);

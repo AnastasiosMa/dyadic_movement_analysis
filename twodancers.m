@@ -209,7 +209,7 @@ classdef twodancers < dancers
                         [~,~,XSinv,YSinv] = plsregress(aw2,aw1,obj.PLScomp); %inverted
                         obj.Corr.timescalesdef(j,k) = corr(XSdef,YSdef); 
                         obj.Corr.timescalesinv(j,k) = corr(XSinv,YSinv);
-                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues','PdistLoadings','PCAonPLSLoadings'}))
+                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues','PdistLoadings','PdistPCScores'}))
                         if isempty(obj.PLScomp) % if number of PLS components
                                                 % is not specified
                             [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,size(aw1,2)); ...
@@ -226,7 +226,7 @@ classdef twodancers < dancers
                             [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
                         end
 
-                        if strcmpi(obj.GetPLSCluster,'Yes')|| strcmpi(obj.Iso1Method,'PCAonPLSLoadings')
+                        if strcmpi(obj.GetPLSCluster,'Yes')|| strcmpi(obj.Iso1Method,'PdistPCScores')
                             obj.PLSloadings = [obj.PLSloadings;XL(:)';YL(:)'];
                         elseif strcmpi(obj.GetPLSCluster,'YesDyad')
                            obj.PLSloadings = [obj.PLSloadings; [((XL)+(YL))/2]'];

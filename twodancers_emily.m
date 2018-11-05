@@ -35,7 +35,7 @@ classdef twodancers_emily < twodancers
                     if sum(strcmpi(obj.Iso1Method,{'DynamicPLS','DynamicPLSMI','DynamicPLSWavelet',...
                        'DynamicPLSCrossWaveletPairing'}))
                        obj = getdynamicpls(obj); 
-                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','PdistLoadings','PCAonPLSLoadings'}))
+                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','PdistLoadings','PdistPCScores'}))
                        if isempty(obj.TimeShift)
                           obj = windowed_pls(obj);
                        else
@@ -58,8 +58,6 @@ classdef twodancers_emily < twodancers
                         obj = period_locking(obj);
                     elseif strcmpi(obj.Iso1Method,'TorsoOrientation')
                         obj = torso_orientation(obj);
-                    elseif strcmpi(obj.Iso1Method,'PCAonPLSLoadings')
-                        %obj = PC_loadings_similarity(obj);
                     else
                         error('Select a method')
                     end
@@ -75,7 +73,7 @@ classdef twodancers_emily < twodancers
                     %obj = joint_recurrence_analysis(obj);
                 end
                 if sum(strcmpi(obj.Iso1Method,{'DynamicPLS','DynamicPLSMI','DynamicPLSWavelet',...
-                   'DynamicPLSCrossWaveletPairing','PCAonPLSLoadings'})) && isomorphismorder == 1
+                   'DynamicPLSCrossWaveletPairing','PdistPCScores'})) && isomorphismorder == 1
                 else    
                 obj = mean_max_corr_for_each_timescale(obj);    
                 end
