@@ -25,10 +25,10 @@ classdef twodancers < dancers
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
-        PLScomp = 2; %number of components to be extracted
         EigenNum = 5;
+        ChoosePLScomp %= 3; %Choose which of the PLS components to include in the analysis
+        SelectPLScomp
         GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
-        SelectPLScomp %= 3; %Choose which of the PLS components to include in the analysis
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
         PLSstdNum = 20; %Number of different std's to test
@@ -71,6 +71,7 @@ classdef twodancers < dancers
     properties (Dependent)
         Iso1Method
         SingleTimeScale
+        PLScomp
     end
     methods
         function obj = twodancers(mocapstruct1,mocapstruct2,m2jpar, ...
@@ -92,8 +93,8 @@ classdef twodancers < dancers
                 else
                    error('Undefined stimuli name')
                 end
-                if isempty(obj.SelectPLScomp)
-                   obj.SelectPLScomp = 1:obj.PLScomp;
+                if isempty(obj.ChoosePLScomp)
+                   obj.ChoosePLScomp = 1:obj.PLScomp;
                 end
             else
                 
@@ -122,6 +123,18 @@ classdef twodancers < dancers
                 error('SingleTimeScale has been set elsewhere')
             else
                 val = Timescale20180111;
+            end
+        end
+        function val = get.PLScomp(obj)
+            global PLScomp20181105
+            if isempty(PLScomp20181105)
+                val = obj.SelectPLScomp;
+            elseif isempty(PLScomp20181105) && isempty(obj.SelectPLScomp)
+                error('Iso1Method has not been set')
+            elseif ~isempty(PLScomp20181105) && ~isempty(obj.SelectPLScomp)
+                error('Iso1Method has been set elsewhere')
+            else
+                val = PLScomp20181105;
             end
         end
         %FIRST ORDER ISOMORPHISM
@@ -232,7 +245,7 @@ classdef twodancers < dancers
                            disp('Computing Eigenvalues...') 
                            obj.Corr.timescales(g,j) = sum(Eigenvalues(1:obj.EigenNum)); 
                         elseif strcmpi(obj.Iso1Method,'SymmetricPLS')
-                           obj.Corr.timescales(g,j) = mean(diag(corr(XS(:,[obj.SelectPLScomp]),YS(:,[obj.SelectPLScomp]))));
+                           obj.Corr.timescales(g,j) = mean(diag(corr(XS(:,[obj.ChoosePLScomp]),YS(:,[obj.ChoosePLScomp]))));
                         else
                         end%Average XS YS correlation of each PLS component
                     end

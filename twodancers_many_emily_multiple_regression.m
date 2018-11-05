@@ -21,6 +21,8 @@ classdef twodancers_many_emily_multiple_regression
             JointBodyMarker20181030 = 1:12; % all markers
             global Timescale20180111
             Timescale20180111 = 900;
+            global PLScomp20181105
+            PLScomp20181105 = 1;
             obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % PERIOD LOCKING 
             Iso1Method20181029 = 'PeriodLocking';
@@ -41,6 +43,7 @@ classdef twodancers_many_emily_multiple_regression
             FrontalViewHipMarkers20181030 = 'Yes';
             Iso1Method20181029 = 'PCAonPLSLoadings';
             Timescale20180111 = 900;
+            PLScomp20181105 = 2;
             obj.res(5).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_38Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % CLEAR ALL GLOBAL VARIABLES
             clearvars -global
