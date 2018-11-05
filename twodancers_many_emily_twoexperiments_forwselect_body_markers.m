@@ -8,15 +8,15 @@ classdef twodancers_many_emily_twoexperiments_forwselect_body_markers
     end
 
     methods
-        function obj = twodancers_many_emily_twoexperiments_forwselect_body_markers(Dataset1_24Dyads,Dataset2_38Dyads, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
+        function obj = twodancers_many_emily_twoexperiments_forwselect_body_markers(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
         % Syntax e.g.:
-        % a = twodancers_many_emily_twoexperiments_forwselect_body_markers('Dataset1_24Dyads.mat','Dataset2_38Dyads',5,5,20,1,'global','noTDE','vel');
+        % a = twodancers_many_emily_twoexperiments_forwselect_body_markers('Dataset1_24Dyads.mat','Dataset2_37Dyads',5,5,20,1,'global','noTDE','vel');
             global DATASET1_24DYADS20181019 DATASET2_38DYADS20181019 NPC20181019 ...
                 T120181019 T220181019 ISOMORPHISMORDER20181019 COORDINATESYSTEM20181019 ...
                 TDE20181019 KINEMFEAT20181019 MEANCORR20181101
 
             DATASET1_24DYADS20181019 = Dataset1_24Dyads;
-            DATASET2_38DYADS20181019 = Dataset2_38Dyads;
+            DATASET2_38DYADS20181019 = Dataset2_37Dyads;
             NPC20181019 = NPC;
             T120181019 = t1;
             T220181019 = t2;
