@@ -15,7 +15,7 @@ classdef twodancers_many_emily_multiple_regression
             global Iso1Method20181029
             Iso1Method20181029 = 'SymmetricPLS';
             global FrontalViewHipMarkers20181030
-            FrontalViewHipMarkers20181030 = 'No';
+            FrontalViewHipMarkers20181030 = 'Yes';
             global JointBodyMarker20181030
             JointBodyMarker20181030 = 1:12; % all markers
             global Timescale20180111
@@ -41,7 +41,7 @@ classdef twodancers_many_emily_multiple_regression
             kinemfeat = 'vel';  
             FrontalViewHipMarkers20181030 = 'Yes';
             Iso1Method20181029 = 'PdistPCScores';
-            Timescale20180111 = 900;
+            Timescale20180111 = 1080;
             PLScomp20181105 = 2;
             obj.res(5).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % CLEAR ALL GLOBAL VARIABLES

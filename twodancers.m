@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SelectSingleTimeScale %= 900 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
+        SelectSingleTimeScale %= 1080 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -20,14 +20,14 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        SelectIso1Method %= 'PCAonPLSLoadings'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
+        SelectIso1Method %= 'PdistLoadings'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
         %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadingsPCA'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
         EigenNum = 5;
         ChoosePLScomp %= 3; %Choose which of the PLS components to include in the analysis
-        SelectPLScomp
+        SelectPLScomp %= 2;
         GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
@@ -180,7 +180,7 @@ classdef twodancers < dancers
         function obj = windowed_pls(obj)
             if strcmpi(obj.Iso1Method,'AsymmetricPLS') 
                 disp('Computing Asymmetric PLS...')
-            elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues'})) 
+            elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues','PdistPCScores'})) 
                 disp('Computing Symmetric PLS...')
             end
             data1 = obj.Dancer1.res.MocapStruct.data;
@@ -235,13 +235,7 @@ classdef twodancers < dancers
                         elseif strcmpi(obj.GetPLSCluster,'YesMeanComp') %get the mean loadings across PLS components
                            obj.PLSloadings = [obj.PLSloadings;XL(:)';YL(:)']; 
                         end
-                        if strcmpi(obj.Iso1Method,'PdistLoadings')
-                           %[MeanLoadings,idx] = sort([abs(XL)+abs(YL)]/2,1,'descend'); %choose only first 
-                           %few markers with highest loadings
-                           %obj.Corr.timescales(g,j) = -pdist([XL(idx(1:40))';YL(idx(1:40))']); 
-                           obj.Corr.timescales(g,j) = -pdist([XL(:)';YL(:)']); 
-                           %obj.Corr.timescales(g,j) = dot(XL',YL'); %try with dot product 
-                        elseif strcmpi(obj.Iso1Method,'PLSEigenvalues')
+                        if strcmpi(obj.Iso1Method,'PLSEigenvalues')
                            disp('Computing Eigenvalues...') 
                            obj.Corr.timescales(g,j) = sum(Eigenvalues(1:obj.EigenNum)); 
                         elseif strcmpi(obj.Iso1Method,'SymmetricPLS')
@@ -250,6 +244,9 @@ classdef twodancers < dancers
                         end%Average XS YS correlation of each PLS component
                     end
                     j = j + 1; % a counter 
+                end
+                if strcmpi(obj.Iso1Method,'PdistLoadings')
+                   [obj,obj.Corr.timescales(g,:)] = PLS_loadings_similarity(obj);
                 end
                 g = g + 1; %g=the different time length window used, k the number of windows for each window length
                 if strcmpi(obj.GetPLSCluster,'YesMeanComp') %get mean components for each dancer
@@ -881,11 +878,17 @@ classdef twodancers < dancers
             MeanDist = nanmean(absr);
             obj.Corr.timescales = nanmean(coso1+coso2);
         end
-        function obj = PC_loadings_similarity(obj)
+        function obj = PC_scores_similarity(obj)
             temp = cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.Res,'UniformOutput',false)'); %store loadings 
             %temp = twodancers.changepolarity(temp);
             DyadNum = length(obj.Res);
             DyadWin = size(temp,1)/DyadNum; %Number of Windows per Dyad
+            rawdata1 = temp(1:2:end,:); %Dancer1
+            rawdata2 = temp(2:2:end,:); %Dancer2
+            rawdata1 = permute(reshape(rawdata1',size(rawdata1,2),DyadWin/2,DyadNum),[2,1,3]);
+            rawdata2 = permute(reshape(rawdata2',size(rawdata2,2),DyadWin/2,DyadNum),[2,1,3]);
+            %rawdata1 = mean(squeeze(mean(abs(rawdata1),1)),1); %Mean loadings across Windows
+            %rawdata2 = mean(squeeze(mean(abs(rawdata2),1)),1);
             [PCLoads,PCScores,~,~,PCExplainedVar]=pca(temp,'Algorithm','svd','Centered','on');
             for i=1:length(PCExplainedVar)
                 SummedVar(i)=abs(sum(PCExplainedVar(1:i))-90); 
@@ -901,9 +904,26 @@ classdef twodancers < dancers
             data2 = permute(reshape(data2',size(data2,2),DyadWin/2,DyadNum),[2,1,3]);
             for k=1:DyadNum
                 for i=1:DyadWin/2
-                    pdist_PC(k,i) = pdist2(data1(i,:,k),data2(i,:,k),'euclidean');
+                    %pdist_PC(k,i) = pdist2(data1(i,:,k),data2(i,:,k),'cosine');
+                    %pdist_PC(k,i) = pdist2(data1(i,:,k),data2(i,:,k),'euclidean')/...
+                        %mean(mean([abs(rawdata1(i,:,k));abs(rawdata2(i,:,k))]));
+                     pdist_PC(k,i) = pdist2(data1(i,:,k),data2(i,:,k),'euclidean')/...
+                        norm(mean([abs(rawdata1(i,:,k));abs(rawdata2(i,:,k))]));
+                
                 end
                 obj.Res(k).res.Corr.means = - mean(pdist_PC(k,:)); 
+            end
+        end
+        function [obj,pdist_loadings] = PLS_loadings_similarity(obj)
+            temp = obj.PLSloadings;
+            data1 = temp(1:2:end,:); %Dancer1
+            data2 = temp(2:2:end,:); %Dancer2
+            data1 = data1-mean(data1); %mean center data
+            data2 = data2-mean(data2);
+            %data1 = data1/norm(data1);
+            %data2 = data2/norm(data2);
+            for i=1:size(data1,1)
+                pdist_loadings(i) = -pdist2(data1(i,:),data2(i,:),'euclidean')/[norm(data1)+norm(data2)];
             end
         end
     end
