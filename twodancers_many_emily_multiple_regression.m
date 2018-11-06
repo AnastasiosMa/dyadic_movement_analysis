@@ -2,7 +2,7 @@ classdef twodancers_many_emily_multiple_regression
 
     properties
         res
-        predictorNames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','HandMovement','PdistPCScores'};
+        predictorNames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','PdistPCScores'};
     end
     methods
         function obj = twodancers_many_emily_multiple_regression(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,TDE)
@@ -32,10 +32,6 @@ classdef twodancers_many_emily_multiple_regression
             FrontalViewHipMarkers20181030 = 'No';
             kinemfeat = 'pos';
             obj.res(3).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
-            % HAND MOVEMENT correlates with period locking
-            Iso1Method20181029 = 'HandMovement';
-            kinemfeat = 'acc';
-            obj.res(4).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % LOADINGS SIMILARITY
             Timescale20180111 = 900;
             kinemfeat = 'vel';  
@@ -43,7 +39,7 @@ classdef twodancers_many_emily_multiple_regression
             Iso1Method20181029 = 'PdistPCScores';
             Timescale20180111 = 1080;
             PLScomp20181105 = 2;
-            obj.res(5).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
+            obj.res(4).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % CLEAR ALL GLOBAL VARIABLES
             clearvars -global
         end
