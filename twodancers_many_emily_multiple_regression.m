@@ -95,8 +95,8 @@ classdef twodancers_many_emily_multiple_regression
             t.Properties.RowNames = rownames;
             disp(t);
         end
-
         function obj = compute_partial_correlation(obj,excludevars)
+        % correlation between IV and DV, controlling for other IV's
             if nargin == 1
                 excludevars = [];
             end

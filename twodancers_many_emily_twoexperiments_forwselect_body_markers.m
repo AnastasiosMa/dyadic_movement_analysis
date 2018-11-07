@@ -27,11 +27,11 @@ classdef twodancers_many_emily_twoexperiments_forwselect_body_markers
 
             NVARS = 12;
 
-            MEANCORR20181101 = 'meanCorrSimilarity';
+            MEANCORR20181101 = 'meanCorrInteraction';
             disp('Running forward selection for INTERACTION...')
             [obj.optFvals obj.optSolutions] = twodancers_many_emily_twoexperiments_forwselect_body_markers.forwfeatsel(@twodancers_many_emily_twoexperiments_forwselect_body_markers.objectivefcn_bodymarkers,NVARS);
             plot_opt_solutions(obj);
-            MEANCORR20181101 = 'meanCorrInteraction';
+            MEANCORR20181101 = 'meanCorrSimilarity';
             disp('Running forward selection for SIMILARITY...')
             %[obj.optFvals obj.optSolutions] = twodancers_many_emily_twoexperiments_forwselect_body_markers.forwfeatsel(@twodancers_many_emily_twoexperiments_forwselect_body_markers.toyfval,NVARS);
             [obj.optFvals obj.optSolutions] = twodancers_many_emily_twoexperiments_forwselect_body_markers.forwfeatsel(@twodancers_many_emily_twoexperiments_forwselect_body_markers.objectivefcn_bodymarkers,NVARS);
