@@ -2,7 +2,7 @@ classdef twodancers_many_emily_multiple_regression
 
     properties
         res
-        predictorNames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','PdistPCScores'};
+        predictorNames = {'SymmetricPLS','TorsoOrientation','PdistPCScores'};
     end
     methods
         function obj = twodancers_many_emily_multiple_regression(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,TDE)
