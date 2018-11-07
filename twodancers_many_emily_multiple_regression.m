@@ -16,8 +16,6 @@ classdef twodancers_many_emily_multiple_regression
             Iso1Method20181029 = 'SymmetricPLS';
             global FrontalViewHipMarkers20181030
             FrontalViewHipMarkers20181030 = 'Yes';
-            global JointBodyMarker20181030
-            JointBodyMarker20181030 = 1:12; % all markers
             global Timescale20180111
             Timescale20180111 = 900;
             global PLScomp20181105
