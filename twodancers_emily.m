@@ -58,6 +58,8 @@ classdef twodancers_emily < twodancers
                         obj = period_locking(obj);
                     elseif strcmpi(obj.Iso1Method,'TorsoOrientation')
                         obj = torso_orientation(obj);
+                    elseif strcmpi(obj.Iso1Method,'KernelPLS')
+                        obj = windowed_kernelpls(obj);
                     else
                         error('Select a method')
                     end
