@@ -2,7 +2,7 @@ classdef twodancers_many_emily_multiple_regression
 
     properties
         res
-        predictorNames = {'SymmetricPLS','TorsoOrientation','PdistPCScores'};
+        predictorNames = {'PLSC','TorsoOrientation','LatentStructSimilarity'};
         InterTbl
         SimiTbl
         InterPVALTbl
