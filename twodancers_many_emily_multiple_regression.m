@@ -128,12 +128,33 @@ classdef twodancers_many_emily_multiple_regression
             InterRHO.Properties.VariableNames = strrep(InterRHO.Properties.VariableNames,'_Int','');
             SimiRHO.Properties.VariableNames = strrep(SimiRHO.Properties.VariableNames,'_Sim','');
             figure
-            subplot(1,2,1)
-            heatmap(InterRHO.Properties.VariableNames,InterRHO.Row,InterRHO.Variables);
-            title('Partial correlations with Interaction');
-            subplot(1,2,2),heatmap(SimiRHO.Properties.VariableNames,SimiRHO.Row,SimiRHO.Variables);
-            title('Partial correlations with Similarity');
-
+            subplot(2,1,1)
+            colors = extras.distinguishable_colors(numel(obj.experimentNames));
+            b = bar(InterRHO.Variables);
+            for k = 1:size(InterRHO.Variables,2)
+                b(k).FaceColor = colors(k,:);
+            end
+            legend(obj.experimentNames);
+            xticklabels(InterRHO.Row');
+            xlabel('Correlation')
+            ylabel('Interaction estimate')
+            title('Interaction');
+            ylim([0 1]);
+            subplot(2,1,2);
+            b = bar(SimiRHO.Variables);
+            for k = 1:size(InterRHO.Variables,2)
+                b(k).FaceColor = colors(k,:);
+            end
+            legend(obj.experimentNames);
+            xticklabels(SimiRHO.Row');
+            xlabel('Correlation')
+            ylabel('Interaction estimate')
+            title('Similarity');
+            ylim([0 1]);
+            if ~verLessThan('matlab', '9.5') 
+                sgtitle(['Partial correlations between interaction ' ...
+                         'estimates and perceptual measures'])
+            end
 
             [PVAL_corrected.Inter.h, PVAL_corrected.Inter.crit_p, PVAL_corrected.Inter.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(InterPVAL.Variables);
             [PVAL_corrected.Simi.h, PVAL_corrected.Simi.crit_p, PVAL_corrected.Simi.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(SimiPVAL.Variables);
