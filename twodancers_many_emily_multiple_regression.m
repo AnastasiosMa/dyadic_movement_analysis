@@ -99,6 +99,7 @@ classdef twodancers_many_emily_multiple_regression
             obj.RegrTable = array2table(data,'VariableNames',varnames);
             obj.RegrTable.Properties.RowNames = rownames;
             disp(obj.RegrTable);
+        end
         function obj = plot_correlation_between_vars(obj)
             obj = compute_regression(obj);
             figure
