@@ -26,9 +26,9 @@ classdef twodancers_many_emily_multiple_regression
             global FrontalViewHipMarkers20181030
             FrontalViewHipMarkers20181030 = 'Yes';
             global Timescale20180111
-            Timescale20180111 = 900;
+            Timescale20180111 = 120*10;
             global PLScomp20181105
-            PLScomp20181105 = 1;
+            PLScomp20181105 = 2;
             obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % TORSO ORIENTATION 
             Iso1Method20181029 = 'TorsoOrientation';
@@ -36,11 +36,10 @@ classdef twodancers_many_emily_multiple_regression
             kinemfeat = 'pos';
             obj.res(2).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % LOADINGS SIMILARITY
-            Timescale20180111 = 900;
+            Timescale20180111 = 120*10;
             kinemfeat = 'vel';  
             FrontalViewHipMarkers20181030 = 'Yes';
             Iso1Method20181029 = 'PdistPCScores';
-            Timescale20180111 = 1080;
             PLScomp20181105 = 2;
             obj.res(3).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % CLEAR ALL GLOBAL VARIABLES
