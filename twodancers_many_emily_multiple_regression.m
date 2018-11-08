@@ -93,6 +93,17 @@ classdef twodancers_many_emily_multiple_regression
             t = array2table(data,'VariableNames',varnames);
             t.Properties.RowNames = rownames;
             disp(t);
+        function obj = plot_correlation_between_vars(obj)
+            obj = compute_regression(obj);
+            figure
+            for j = 1:numel(obj.CorrBetwVars.rho)
+            subplot(1,2,j)
+            heatmap(obj.CorrBetwVars.rho{j}.Properties.VariableNames,obj.CorrBetwVars.rho{j}.Row,obj.CorrBetwVars.rho{j}.Variables);
+            title(['Experiment ' num2str(j)]);
+            disp(['Experiment ' num2str(j)]);
+            disp(twodancers_many_emily.makestars(obj.CorrBetwVars.pval{j}));
+            end
+        end
         end
         function obj = compute_partial_correlation(obj,excludevars)
         % correlation between IV and DV, controlling for other IV's
