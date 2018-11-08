@@ -10,6 +10,8 @@ classdef twodancers_many_emily_multiple_regression
         PVAL_corrected
         parCorTable
         RegrTable
+        regr
+        CorrBetwVars
     end
     methods
         function obj = twodancers_many_emily_multiple_regression(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,TDE)
