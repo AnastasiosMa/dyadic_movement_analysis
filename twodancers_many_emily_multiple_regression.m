@@ -102,7 +102,9 @@ classdef twodancers_many_emily_multiple_regression
             disp(obj.RegrTable);
         end
         function obj = plot_correlation_between_vars(obj)
-            obj = compute_regression(obj);
+            obj = compute_regression(obj); % actual regression is
+                                           % not needed, it just
+                                           % creates these tables
             figure
             for j = 1:numel(obj.CorrBetwVars.rho)
             subplot(1,2,j)
