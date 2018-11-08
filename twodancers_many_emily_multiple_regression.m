@@ -55,29 +55,31 @@ classdef twodancers_many_emily_multiple_regression
                     res{j}(:,k) = arrayfun(@(x) x.res.Corr.means,obj.res(k).data(j).Res)';
                 end
 
-                    X = [ones(size(res{j},1),1) zscore(res{j})];
+                X = [ones(size(res{j},1),1) zscore(res{j})];
 
-                    disp(['Experiment ' num2str(j)]);
-                    predictorcorrs = corr(X(:,2:end));
-                    predictornames = obj.predictorNames;
-                    tcorr = array2table(predictorcorrs,'VariableNames',predictornames);
-                    tcorr.Properties.RowNames = predictornames';
-                    disp(tcorr);
+                disp(['Experiment ' num2str(j)]);
+                [predictorcorrs predictorcorrspvals] = corr(X(:,2:end));
+                predictornames = obj.predictorNames;
+                obj.CorrBetwVars.rho{j} = array2table(predictorcorrs,'VariableNames',predictornames);
+                obj.CorrBetwVars.pval{j} = predictorcorrspvals;
+                obj.CorrBetwVars.rho{j}.Properties.RowNames = predictornames';
+                disp(obj.CorrBetwVars.rho{j});
 
-                    res{j}(:,excludevars) = [];                
+                res{j}(:,excludevars) = [];                
                 for l = 1:numel(percnames) % for each perceptual measure
                     X = [ones(size(res{j},1),1) zscore(res{j})];
                     y = zscore(obj.res(k).data(j).(percnames{l}));
 
-                    [b{j}{l},bint{j}{l},r{j}{l},rint{j}{l},stats{j}(:,l)] = regress(y,X);
-
+                    [obj.regr.b{j}{l},obj.regr.bint{j}{l},obj.regr.r{j}{l},obj.regr.rint{j}{l},obj.regr.stats{j}(:,l)] = regress(y,X);
+                    obj.regr.y{j}{l} = y;
+                    obj.regr.X{j}{l} = X;
                 end
-               reg_r(:,j) = sqrt(stats{j}(1,:)); % each output column is an experiment
-               reg_r2(:,j) = stats{j}(1,:);
-               reg_F(:,j) = stats{j}(2,:);
-               reg_p(:,j) = stats{j}(3,:);
+                reg_r(:,j) = sqrt(obj.regr.stats{j}(1,:)); % each output column is an experiment
+                reg_r2(:,j) = obj.regr.stats{j}(1,:);
+                reg_F(:,j) = obj.regr.stats{j}(2,:);
+                reg_p(:,j) = obj.regr.stats{j}(3,:);
             end
-            betas = cell2mat(cellfun(@(x) cell2mat(x),b,'UniformOutput',false));
+            betas = cell2mat(cellfun(@(x) cell2mat(x),obj.regr.b,'UniformOutput',false));
             betas(1,:) = []; % remove betas for column of ones
             varnames = {'exp1_Int','exp1_Sim','exp2_Int','exp2_Sim'};
             
@@ -179,6 +181,14 @@ classdef twodancers_many_emily_multiple_regression
             t = array2table(data,'VariableNames',varnames);
             t.Properties.RowNames = rownames;
             disp(t);
+
+            % display p-values for similarity whose mean is e.g. < .05
+            % pval_sim_t = t(2:2:end,2:2:end);
+
+            % if mean(mean(pval_sim_t{:,:},2)) < .05
+            % disp([pval_sim_t,array2table(mean(pval_sim_t{:,:},2),'VariableNames',{'Mean'})]);
+            % end
+        end
         function obj = get_benjamini_stars_correlation(obj)
             for j = 1:numel(obj.res) % each feature
                 for k = 1:numel(obj.res(1).data) % each experiment
