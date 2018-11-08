@@ -81,7 +81,7 @@ classdef twodancers_many_emily_multiple_regression
             end
             betas = cell2mat(cellfun(@(x) cell2mat(x),obj.regr.b,'UniformOutput',false));
             betas(1,:) = []; % remove betas for column of ones
-            varnames = {'exp1_Int','exp1_Sim','exp2_Int','exp2_Sim'};
+            varnames = {'Exp1_Int','Exp1_Sim','Exp2_Int','Exp2_Sim'};
             
             predictornames(excludevars) = [];
             betanames = strcat(predictornames,'_beta');
@@ -165,7 +165,7 @@ classdef twodancers_many_emily_multiple_regression
                     end
                 end
             end
-            varnames = {'exp1_Int','exp1_Sim','exp2_Int','exp2_Sim'};
+            varnames = {'Exp1_Int','Exp1_Sim','Exp2_Int','Exp2_Sim'};
             a = cell2mat(rho);
             b = cell2mat(pval);
             % interleave two same sized matrices by row
