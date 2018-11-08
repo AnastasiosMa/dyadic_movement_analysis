@@ -5,6 +5,8 @@ classdef twodancers_many_emily_multiple_regression
         predictorNames = {'SymmetricPLS','TorsoOrientation','PdistPCScores'};
         InterTbl
         SimiTbl
+        InterPVALTbl
+        SimiPVALTbl
         PVAL_corrected
     end
     methods
@@ -137,6 +139,24 @@ classdef twodancers_many_emily_multiple_regression
             t = array2table(data,'VariableNames',varnames);
             t.Properties.RowNames = rownames;
             disp(t);
+        function obj = get_benjamini_stars_correlation(obj)
+            for j = 1:numel(obj.res) % each feature
+                for k = 1:numel(obj.res(1).data) % each experiment
+                    Inter(j,k)= cell2mat(obj.res(j).data(k).CorrTablePVAL{:,1});
+                    Simi(j,k)= cell2mat(obj.res(j).data(k).CorrTablePVAL{:,2});
+                end
+            end
+            obj.InterPVALTbl = array2table(Inter,'RowNames',obj.predictorNames,'VariableNames',{'Exp1','Exp2'});
+            obj.SimiPVALTbl = array2table(Simi,'RowNames',obj.predictorNames,'VariableNames',{'Exp1','Exp2'});
+
+            [obj.PVAL_corrected.Inter.h, obj.PVAL_corrected.Inter.crit_p, obj.PVAL_corrected.Inter.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(obj.InterPVALTbl.Variables);
+            [obj.PVAL_corrected.Simi.h, obj.PVAL_corrected.Simi.crit_p, obj.PVAL_corrected.Simi.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(obj.SimiPVALTbl.Variables);
+            disp('Interaction corrected p-values (Benjamini-Hochberg)')
+            disp(twodancers_many_emily.makestars(obj.PVAL_corrected.Inter.adj_p))
+            disp('Similarity corrected p-values (Benjamini-Hochberg)')
+            disp(twodancers_many_emily.makestars(obj.PVAL_corrected.Simi.adj_p))
+            %twodancers_many_emily.makestars
+        end
         function obj = plot_correlation_heatmaps(obj)
             for j = 1:numel(obj.res) % each feature
                 for k = 1:numel(obj.res(1).data) % each experiment
