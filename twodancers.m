@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SelectSingleTimeScale %= 1080 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
+        SelectSingleTimeScale %= 1200 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -20,7 +20,7 @@ classdef twodancers < dancers
         Dancer2
         Corr
         %First order isomorphism properties
-        SelectIso1Method = 'SymmetricPLS' %'PdistLoadings','SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation','KernelPLS'
+        SelectIso1Method %= 'PdistPCScores'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation'
         %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadingsPCA'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
@@ -28,7 +28,7 @@ classdef twodancers < dancers
         EigenNum = 5;
         ChoosePLScomp %= 3; %Choose which of the PLS components to include in the analysis
         SelectPLScomp %= 2;
-        GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
+        GetPLSCluster ='YesDyad'% YesDyad computes the mean of both dancers loadings for each window
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
         PLSstdNum = 20; %Number of different std's to test
@@ -936,11 +936,11 @@ classdef twodancers < dancers
                     %pdist_PC(k,i) = pdist2(data1(i,:,k),data2(i,:,k),'cosine');
                     %pdist_PC(k,i) = pdist2(data1(i,:,k),data2(i,:,k),'euclidean')/...
                         %mean(mean([abs(rawdata1(i,:,k));abs(rawdata2(i,:,k))]));
-                     pdist_PC(k,i) = pdist2(data1(i,:,k),data2(i,:,k),'euclidean')/...
-                        norm(mean([abs(rawdata1(i,:,k));abs(rawdata2(i,:,k))]));
-                
+                     pdist_PC(k,i) = -pdist2(data1(i,:,k),data2(i,:,k),'euclidean')/...
+                        norm(mean([abs(rawdata1(i,:,k));abs(rawdata2(i,:,k))]));  
                 end
-                obj.Res(k).res.Corr.means = - mean(pdist_PC(k,:)); 
+                %obj.Res(k).res.Corr.means = mean(pdist_PC(k,:));
+                obj.Res(k).res.Corr.means = max(pdist_PC(k,:));
             end
         end
         function [obj,pdist_loadings] = PLS_loadings_similarity(obj)
