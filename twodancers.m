@@ -257,6 +257,35 @@ classdef twodancers < dancers
                 obj.Corr.timescales=[obj.Corr.timescalesdef+obj.Corr.timescalesinv]./2; %mean corr.timescales
             end
         end
+        function obj = windowed_kernelpls(obj)
+            disp('Computing Kernel PLS...')
+            data1 = obj.Dancer1.res.MocapStruct.data;
+            data2 = obj.Dancer2.res.MocapStruct.data;
+            %nobs = size(data1,1);
+            g = 1;
+            if isempty(obj.SingleTimeScale)
+                if isempty(obj.MaxWindowLength) %checks if there is a maximum window length
+                    wparam = round(linspace(size(data1,1),obj.MinWindowLength,obj.NumWindows),0);
+                else
+                    wparam = round(linspace(obj.MaxWindowLength,obj.MinWindowLength,obj.NumWindows),0);
+                end
+            else
+                wparam = obj.SingleTimeScale;
+            end
+            obj.WindowLengths = wparam;
+            for w = wparam
+                j = 1;
+                for k = 1:obj.WindowSteps:(size(data1,1)-(w-1))
+                    % analysis window
+                    aw1 = data1(k:(k+w-1),:);
+                    aw2 = data2(k:(k+w-1),:);
+                    [XL,YL,XS,YS,EV]=kernelpls(aw1,aw2,obj.PLScomp);
+                    obj.Corr.timescales(g,j) = max(diag(corr(XS(:,[obj.ChoosePLScomp]),YS(:,[obj.ChoosePLScomp]))));
+                    j = j + 1; % a counter
+                end
+                g = g + 1; %g=the different time length window used, k the number of windows for each window length
+            end
+        end
         function obj = windowed_pls_time_shifts(obj)
             if strcmpi(obj.Iso1Method,'AsymmetricPLS') 
                 disp('computing Asymmetric PLS...')

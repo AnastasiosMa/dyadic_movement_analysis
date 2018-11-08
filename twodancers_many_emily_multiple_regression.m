@@ -2,7 +2,7 @@ classdef twodancers_many_emily_multiple_regression
 
     properties
         res
-        predictorNames = {'SymmetricPLS','PeriodLocking','TorsoOrientation','PdistPCScores'};
+        predictorNames = {'SymmetricPLS','TorsoOrientation','PdistPCScores'};
     end
     methods
         function obj = twodancers_many_emily_multiple_regression(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,TDE)
@@ -16,22 +16,16 @@ classdef twodancers_many_emily_multiple_regression
             Iso1Method20181029 = 'SymmetricPLS';
             global FrontalViewHipMarkers20181030
             FrontalViewHipMarkers20181030 = 'Yes';
-            global JointBodyMarker20181030
-            JointBodyMarker20181030 = 1:12; % all markers
             global Timescale20180111
             Timescale20180111 = 900;
             global PLScomp20181105
             PLScomp20181105 = 1;
             obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
-            % PERIOD LOCKING 
-            Iso1Method20181029 = 'PeriodLocking';
-            FrontalViewHipMarkers20181030 = 'Yes';
-            obj.res(2).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % TORSO ORIENTATION 
             Iso1Method20181029 = 'TorsoOrientation';
             FrontalViewHipMarkers20181030 = 'No';
             kinemfeat = 'pos';
-            obj.res(3).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
+            obj.res(2).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % LOADINGS SIMILARITY
             Timescale20180111 = 900;
             kinemfeat = 'vel';  
@@ -39,7 +33,7 @@ classdef twodancers_many_emily_multiple_regression
             Iso1Method20181029 = 'PdistPCScores';
             Timescale20180111 = 1080;
             PLScomp20181105 = 2;
-            obj.res(4).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
+            obj.res(3).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % CLEAR ALL GLOBAL VARIABLES
             clearvars -global
         end
@@ -95,8 +89,8 @@ classdef twodancers_many_emily_multiple_regression
             t.Properties.RowNames = rownames;
             disp(t);
         end
-
         function obj = compute_partial_correlation(obj,excludevars)
+        % correlation between IV and DV, controlling for other IV's
             if nargin == 1
                 excludevars = [];
             end
