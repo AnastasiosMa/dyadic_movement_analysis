@@ -3,6 +3,9 @@ classdef twodancers_many_emily_multiple_regression
     properties
         res
         predictorNames = {'SymmetricPLS','TorsoOrientation','PdistPCScores'};
+        InterTbl
+        SimiTbl
+        PVAL_corrected
     end
     methods
         function obj = twodancers_many_emily_multiple_regression(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,TDE)
@@ -134,6 +137,29 @@ classdef twodancers_many_emily_multiple_regression
             t = array2table(data,'VariableNames',varnames);
             t.Properties.RowNames = rownames;
             disp(t);
+        function obj = plot_correlation_heatmaps(obj)
+            for j = 1:numel(obj.res) % each feature
+                for k = 1:numel(obj.res(1).data) % each experiment
+                    [Inter(j,k) Simi(j,k)]= deal(obj.res(j).data(k).CorrTableData{:,[1 2]});
+                end
+            end
+            obj.InterTbl = array2table(Inter,'RowNames',obj.predictorNames,'VariableNames',{'Exp1','Exp2'});
+            obj.SimiTbl = array2table(Simi,'RowNames',obj.predictorNames,'VariableNames',{'Exp1','Exp2'});
+            figure
+            subplot(1,2,1)
+            heatmap(obj.InterTbl.Properties.VariableNames,obj.InterTbl.Row,Inter);
+            title('Correlations with Interaction');
+            subplot(1,2,2),heatmap(obj.SimiTbl.Properties.VariableNames,obj.SimiTbl.Row,Simi);
+            title('Correlations with Similarity');
+
+            disp('Interaction corrected p-values (Benjamini-Hochberg)')
+            disp(twodancers_many_emily.makestars(obj.PVAL_corrected.Inter.adj_p))
+            disp('Similarity corrected p-values (Benjamini-Hochberg)')
+            disp(twodancers_many_emily.makestars(obj.PVAL_corrected.Simi.adj_p))
+
+            get_benjamini_stars(obj);
+        end
+    end
     methods (Static)
         % fdr_bh() - Executes the Benjamini & Hochberg (1995) and the Benjamini &
         %            Yekutieli (2001) procedure for controlling the false discovery 
