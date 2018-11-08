@@ -8,6 +8,8 @@ classdef twodancers_many_emily_multiple_regression
         InterPVALTbl
         SimiPVALTbl
         PVAL_corrected
+        parCorTable
+        RegrTable
     end
     methods
         function obj = twodancers_many_emily_multiple_regression(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,TDE)
@@ -92,9 +94,9 @@ classdef twodancers_many_emily_multiple_regression
             %varnames = [varnames, 'mean'];
             %data = [data,mean(data,2)];
 
-            t = array2table(data,'VariableNames',varnames);
-            t.Properties.RowNames = rownames;
-            disp(t);
+            obj.RegrTable = array2table(data,'VariableNames',varnames);
+            obj.RegrTable.Properties.RowNames = rownames;
+            disp(obj.RegrTable);
         function obj = plot_correlation_between_vars(obj)
             obj = compute_regression(obj);
             figure
@@ -178,9 +180,9 @@ classdef twodancers_many_emily_multiple_regression
             %varnames = [varnames, 'mean'];
             %data = [data,mean(data,2)];
 
-            t = array2table(data,'VariableNames',varnames);
-            t.Properties.RowNames = rownames;
-            disp(t);
+            obj.parCorTable = array2table(data,'VariableNames',varnames);
+            obj.parCorTable.Properties.RowNames = rownames;
+            disp(obj.parCorTable);
 
             % display p-values for similarity whose mean is e.g. < .05
             % pval_sim_t = t(2:2:end,2:2:end);
