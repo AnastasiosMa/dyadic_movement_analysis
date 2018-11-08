@@ -2,7 +2,9 @@ classdef twodancers_many_emily_multiple_regression
 
     properties
         res
-        predictorNames = {'PLSC','TorsoOrientation','LatentStructSimilarity'};
+        predictorNames = {'Temporal Similarity',['Torso ' ...
+                            'Orientation'],'Spatial Similarity'};
+        experimentNames = {'Experiment 1';'Experiment 2'};
         InterTbl
         SimiTbl
         InterPVALTbl
