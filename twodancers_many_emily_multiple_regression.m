@@ -245,18 +245,35 @@ classdef twodancers_many_emily_multiple_regression
             obj.InterTbl = array2table(Inter,'RowNames',obj.predictorNames,'VariableNames',{'Exp1','Exp2'});
             obj.SimiTbl = array2table(Simi,'RowNames',obj.predictorNames,'VariableNames',{'Exp1','Exp2'});
             figure
-            subplot(1,2,1)
-            heatmap(obj.InterTbl.Properties.VariableNames,obj.InterTbl.Row,Inter);
-            title('Correlations with Interaction');
-            subplot(1,2,2),heatmap(obj.SimiTbl.Properties.VariableNames,obj.SimiTbl.Row,Simi);
-            title('Correlations with Similarity');
+            subplot(2,1,1)
+            colors = extras.distinguishable_colors(numel(obj.experimentNames));
+            b = bar(Inter);
+            for k = 1:size(Inter,2)
+                b(k).FaceColor = colors(k,:);
+            end
+            legend(obj.experimentNames);
+            xticklabels(obj.InterTbl.Row');
+            xlabel('Interaction estimate');
+            ylabel('Correlation');
+            title('Interaction');
+            ylim([0 1]);
+            subplot(2,1,2);
+            b = bar(Simi);
+            for k = 1:size(Simi,2)
+                b(k).FaceColor = colors(k,:);
+            end
+            legend(obj.experimentNames);
+            xticklabels(obj.SimiTbl.Row');
+            xlabel('Interaction estimate');
+            ylabel('Correlation');
+            title('Similarity');
+            ylim([0 1]);
+            if ~verLessThan('matlab', '9.5') 
+                sgtitle(['Correlations between interaction ' ...
+                         'estimates and perceptual measures']);
+            end
 
-            disp('Interaction corrected p-values (Benjamini-Hochberg)')
-            disp(twodancers_many_emily.makestars(obj.PVAL_corrected.Inter.adj_p))
-            disp('Similarity corrected p-values (Benjamini-Hochberg)')
-            disp(twodancers_many_emily.makestars(obj.PVAL_corrected.Simi.adj_p))
-
-            get_benjamini_stars(obj);
+            obj = get_benjamini_stars_correlation(obj);
         end
     end
     methods (Static)
