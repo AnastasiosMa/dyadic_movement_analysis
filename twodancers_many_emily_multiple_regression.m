@@ -104,6 +104,35 @@ classdef twodancers_many_emily_multiple_regression
             disp(twodancers_many_emily.makestars(obj.CorrBetwVars.pval{j}));
             end
         end
+        function obj = plot_partial_correlation_heatmaps(obj,excludevars)
+            if nargin == 1
+                excludevars = [];
+            end
+            obj = compute_partial_correlation(obj,excludevars);
+            InterRHO = obj.parCorTable(1:2:end,1:2:end);
+            InterPVAL = obj.parCorTable(2:2:end,1:2:end);
+            SimiRHO = obj.parCorTable(1:2:end,2:2:end);
+            SimiPVAL = obj.parCorTable(2:2:end,2:2:end);
+            SimiRHO.Row = strrep(SimiRHO.Row,'_rho','');
+            InterRHO.Row = strrep(InterRHO.Row,'_rho','');
+            InterRHO.Properties.VariableNames = strrep(InterRHO.Properties.VariableNames,'_Int','');
+            SimiRHO.Properties.VariableNames = strrep(SimiRHO.Properties.VariableNames,'_Sim','');
+            figure
+            subplot(1,2,1)
+            heatmap(InterRHO.Properties.VariableNames,InterRHO.Row,InterRHO.Variables);
+            title('Partial correlations with Interaction');
+            subplot(1,2,2),heatmap(SimiRHO.Properties.VariableNames,SimiRHO.Row,SimiRHO.Variables);
+            title('Partial correlations with Similarity');
+
+
+            [PVAL_corrected.Inter.h, PVAL_corrected.Inter.crit_p, PVAL_corrected.Inter.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(InterPVAL.Variables);
+            [PVAL_corrected.Simi.h, PVAL_corrected.Simi.crit_p, PVAL_corrected.Simi.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(SimiPVAL.Variables);
+
+            disp('Interaction corrected p-values (Benjamini-Hochberg)')
+            disp(twodancers_many_emily.makestars(PVAL_corrected.Inter.adj_p))
+            disp('Similarity corrected p-values (Benjamini-Hochberg)')
+            disp(twodancers_many_emily.makestars(PVAL_corrected.Simi.adj_p))
+
         end
         function obj = compute_partial_correlation(obj,excludevars)
         % correlation between IV and DV, controlling for other IV's
