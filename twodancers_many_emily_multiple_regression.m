@@ -49,6 +49,7 @@ classdef twodancers_many_emily_multiple_regression
         end
         %obj = compute_regression(obj,excludevars);
         function obj = create_all_plots(obj,excludevars)
+        % make sure to call class constructor first
             if nargin == 1
                 excludevars = [];
             end
