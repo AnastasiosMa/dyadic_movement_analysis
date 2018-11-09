@@ -280,6 +280,17 @@ classdef twodancers_many_emily_multiple_regression
         function Z = pval2zscore(p)
             Z = norminv(1-p); % Transform p-values to Z-scores
         end
+        function [Z P] = pool_p_vals(pmat)
+        % INPUT: 
+        % PMAT: A matrix of p-values, where each column represents an experiment
+        % OUTPUTS: 
+        % Z: column vector of pooled p-values as Z-scores
+        % P: column vector of pooled p-values
+            n = size(pmat,2);
+            Z = twodancers_many_emily_multiple_regression.pval2zscore(pmat);
+            Z = sum(Z,2)/sqrt(n); % Stouffer's Z-score method
+            P = 1-normcdf(Z);
+        end
         % fdr_bh() - Executes the Benjamini & Hochberg (1995) and the Benjamini &
         %            Yekutieli (2001) procedure for controlling the false discovery 
         %            rate (FDR) of a family of hypothesis tests. FDR is the expected
