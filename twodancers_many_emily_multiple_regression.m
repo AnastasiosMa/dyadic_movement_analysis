@@ -136,8 +136,8 @@ classdef twodancers_many_emily_multiple_regression
             end
             legend(obj.experimentNames);
             xticklabels(InterRHO.Row');
-            xlabel('Correlation')
-            ylabel('Interaction estimate')
+            ylabel('Correlation')
+            xlabel('Interaction estimate')
             title('Interaction');
             ylim([0 1]);
             subplot(2,1,2);
@@ -147,8 +147,8 @@ classdef twodancers_many_emily_multiple_regression
             end
             legend(obj.experimentNames);
             xticklabels(SimiRHO.Row');
-            xlabel('Correlation')
-            ylabel('Interaction estimate')
+            ylabel('Correlation')
+            xlabel('Interaction estimate')
             title('Similarity');
             ylim([0 1]);
             if ~verLessThan('matlab', '9.5') 
