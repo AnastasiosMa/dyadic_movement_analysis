@@ -65,7 +65,8 @@ classdef twodancers_many_emily_multiple_regression
                 disp(['Experiment ' num2str(j)]);
                 [predictorcorrs predictorcorrspvals] = corr(X(:,2:end));
                 predictornames = obj.predictorNames;
-                obj.CorrBetwVars.rho{j} = array2table(predictorcorrs,'VariableNames',predictornames);
+                predictornames_underscore = strrep(predictornames,' ','_');
+                obj.CorrBetwVars.rho{j} = array2table(predictorcorrs,'VariableNames',predictornames_underscore);
                 obj.CorrBetwVars.pval{j} = predictorcorrspvals;
                 obj.CorrBetwVars.rho{j}.Properties.RowNames = predictornames';
                 disp(obj.CorrBetwVars.rho{j});
