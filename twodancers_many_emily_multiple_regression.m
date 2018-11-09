@@ -156,14 +156,39 @@ classdef twodancers_many_emily_multiple_regression
                          'estimates and perceptual measures'])
             end
 
-            [PVAL_corrected.Inter.h, PVAL_corrected.Inter.crit_p, PVAL_corrected.Inter.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(InterPVAL.Variables);
-            [PVAL_corrected.Simi.h, PVAL_corrected.Simi.crit_p, PVAL_corrected.Simi.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(SimiPVAL.Variables);
 
-            disp('Interaction corrected p-values (Benjamini-Hochberg)')
-            disp(twodancers_many_emily.makestars(PVAL_corrected.Inter.adj_p))
-            disp('Similarity corrected p-values (Benjamini-Hochberg)')
-            disp(twodancers_many_emily.makestars(PVAL_corrected.Simi.adj_p))
 
+            %[PVAL_corrected.Inter.h, PVAL_corrected.Inter.crit_p, PVAL_corrected.Inter.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(InterPVAL.Variables);
+            %[PVAL_corrected.Simi.h, PVAL_corrected.Simi.crit_p, PVAL_corrected.Simi.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(SimiPVAL.Variables);
+            disp('Interaction p-values (Benjamini-Hochberg)')
+            disp(twodancers_many_emily.makestars(InterPVAL.Variables))
+            disp('Similarity p-values (Benjamini-Hochberg)')
+            disp(twodancers_many_emily.makestars(SimiPVAL.Variables))
+
+            pooled_Z.Interaction = twodancers_many_emily_multiple_regression.pool_p_vals(InterPVAL.Variables);
+            pooled_Z.Similarity = twodancers_many_emily_multiple_regression.pool_p_vals(SimiPVAL.Variables);
+            figure
+            names = {'Interaction';'Similarity'};
+            for j = 1:numel(fieldnames(pooled_Z))
+                subplot(2,1,j)
+                colors = extras.distinguishable_colors(numel(obj.experimentNames));
+                b = bar(pooled_Z.(names{j}));
+                for k = 1:size(pooled_Z.(names{j}),2)
+                    b(k).FaceColor = colors(k,:);
+                end
+                xticklabels(obj.predictorNames');
+                xlabel('Interaction estimate');
+                ylabel('Z-score');
+                title(names{j});
+                %                ylim([0 1]);
+                yline(twodancers_many_emily_multiple_regression.pval2zscore(.001),'--','p = .001');
+                yline(twodancers_many_emily_multiple_regression.pval2zscore(.01),'--','p = .01');
+                yline(twodancers_many_emily_multiple_regression.pval2zscore(.05),'--','p = .05');
+            end
+            if ~verLessThan('matlab', '9.5') 
+                sgtitle(['Pooled p-values from partial correlation between interaction ' ...
+                         'estimates and perceptual measures'])
+            end
         end
         function obj = compute_partial_correlation(obj,excludevars)
         % correlation between IV and DV, controlling for other IV's
