@@ -48,6 +48,14 @@ classdef twodancers_many_emily_multiple_regression
             clearvars -global
         end
         %obj = compute_regression(obj,excludevars);
+        function obj = create_all_plots(obj,excludevars)
+            if nargin == 1
+                excludevars = [];
+            end
+            obj = plot_correlation_between_vars(obj);
+            obj = plot_correlation_and_pooled_pvals_bars(obj);
+            obj = plot_partial_correlation_and_pooled_pvals_bars(obj,excludevars);
+        end
         function obj = compute_regression(obj,excludevars)
         % e.g. excludevars = [2 4];
             if nargin == 1
