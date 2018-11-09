@@ -26,7 +26,7 @@ classdef dancers
         TimeEmbeddedDelays
         markers3d
         SelectJointBodyMarker = 1:12;
-        SelectFrontalViewHipMarkers = 'No';
+        SelectFrontalViewHipMarkers %= 'No';
     end
     properties %(Hidden)
         MocapStructPCs
