@@ -2,8 +2,8 @@ classdef twodancers_many_emily_multiple_regression
 
     properties
         res
-        predictorNames = {'Temporal Similarity',['Torso ' ...
-                            'Orientation'],'Spatial Similarity'};
+        predictorNames = {'Temporal Coupling',['Torso ' ...
+                            'Orientation'],'Spatial Coupling'};
         experimentNames = {'Experiment 1';'Experiment 2'};
         InterTbl
         SimiTbl
