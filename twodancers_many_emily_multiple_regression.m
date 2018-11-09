@@ -114,7 +114,7 @@ classdef twodancers_many_emily_multiple_regression
             disp(twodancers_many_emily.makestars(obj.CorrBetwVars.pval{j}));
             end
         end
-        function obj = plot_partial_correlation_heatmaps(obj,excludevars)
+        function obj = plot_partial_correlation_and_pooled_pvals_bars(obj,excludevars)
             if nargin == 1
                 excludevars = [];
             end
@@ -236,7 +236,7 @@ classdef twodancers_many_emily_multiple_regression
             disp(twodancers_many_emily.makestars(obj.PVAL_corrected.Simi.adj_p))
             %twodancers_many_emily.makestars
         end
-        function obj = plot_correlation_heatmaps(obj)
+        function obj = plot_correlation_and_pooled_pvals_bars(obj)
             for j = 1:numel(obj.res) % each feature
                 for k = 1:numel(obj.res(1).data) % each experiment
                     [Inter(j,k) Simi(j,k)]= deal(obj.res(j).data(k).CorrTableData{:,[1 2]});
