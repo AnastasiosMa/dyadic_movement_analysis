@@ -277,6 +277,9 @@ classdef twodancers_many_emily_multiple_regression
         end
     end
     methods (Static)
+        function Z = pval2zscore(p)
+            Z = norminv(1-p); % Transform p-values to Z-scores
+        end
         % fdr_bh() - Executes the Benjamini & Hochberg (1995) and the Benjamini &
         %            Yekutieli (2001) procedure for controlling the false discovery 
         %            rate (FDR) of a family of hypothesis tests. FDR is the expected
