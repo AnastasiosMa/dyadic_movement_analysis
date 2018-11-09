@@ -112,6 +112,7 @@ classdef twodancers_many_emily_multiple_regression
 
             obj.RegrTable = array2table(data,'VariableNames',varnames);
             obj.RegrTable.Properties.RowNames = rownames;
+            disp('MULTIPLE LINEAR REGRESSION')
             disp(obj.RegrTable);
         end
         function obj = plot_correlation_between_vars(obj)
@@ -282,6 +283,8 @@ classdef twodancers_many_emily_multiple_regression
             end
             obj.InterTbl = array2table(Inter,'RowNames',obj.predictorNames,'VariableNames',{'Exp1','Exp2'});
             obj.SimiTbl = array2table(Simi,'RowNames',obj.predictorNames,'VariableNames',{'Exp1','Exp2'});
+            disp(obj.InterTbl)
+            disp(obj.SimiTbl)
             figure
             subplot(2,1,1)
             colors = extras.distinguishable_colors(numel(obj.experimentNames));
