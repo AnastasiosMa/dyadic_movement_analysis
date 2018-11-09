@@ -52,8 +52,11 @@ classdef twodancers_many_emily_multiple_regression
             if nargin == 1
                 excludevars = [];
             end
+            disp('CORRELATION BETWEEN INTERACTION ESTIMATES')
             obj = plot_correlation_between_vars(obj);
+            disp('CORRELATION WITH PERCEPTUAL MEASURES')
             obj = plot_correlation_and_pooled_pvals_bars(obj);
+            disp('PARTIAL CORRELATION WITH PERCEPTUAL MEASURES')
             obj = plot_partial_correlation_and_pooled_pvals_bars(obj,excludevars);
         end
         function obj = compute_regression(obj,excludevars)
