@@ -298,7 +298,36 @@ classdef twodancers_many_emily_multiple_regression
                          'estimates and perceptual measures']);
             end
 
-            obj = get_benjamini_stars_correlation(obj);
+            for j = 1:numel(obj.res) % each feature
+                for k = 1:numel(obj.res(1).data) % each experiment
+                    Inter(j,k)= cell2mat(obj.res(j).data(k).CorrTablePVAL{:,1});
+                    Simi(j,k)= cell2mat(obj.res(j).data(k).CorrTablePVAL{:,2});
+                end
+            end
+            pooled_Z.Interaction = twodancers_many_emily_multiple_regression.pool_p_vals(Inter);
+            pooled_Z.Similarity = twodancers_many_emily_multiple_regression.pool_p_vals(Simi);
+            figure
+            names = {'Interaction';'Similarity'};
+            for j = 1:numel(fieldnames(pooled_Z))
+                subplot(2,1,j)
+                colors = extras.distinguishable_colors(numel(obj.experimentNames));
+                b = bar(pooled_Z.(names{j}));
+                for k = 1:size(pooled_Z.(names{j}),2)
+                    b(k).FaceColor = colors(k,:);
+                end
+                xticklabels(obj.predictorNames');
+                xlabel('Interaction estimate');
+                ylabel('Z-score');
+                title(names{j});
+                %                ylim([0 1]);
+                yline(twodancers_many_emily_multiple_regression.pval2zscore(.001),'--','p = .001');
+                yline(twodancers_many_emily_multiple_regression.pval2zscore(.01),'--','p = .01');
+                yline(twodancers_many_emily_multiple_regression.pval2zscore(.05),'--','p = .05');
+            end
+            if ~verLessThan('matlab', '9.5') 
+                sgtitle(['Pooled p-values from correlation between interaction ' ...
+                         'estimates and perceptual measures'])
+            end
         end
     end
     methods (Static)
