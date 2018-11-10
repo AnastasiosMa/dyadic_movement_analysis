@@ -14,6 +14,8 @@ classdef twodancers_many_emily_multiple_regression
         RegrTable
         regr
         CorrBetwVars
+        DescriptiveStats
+        DescriptiveStatsNames
     end
     methods
         function obj = twodancers_many_emily_multiple_regression(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,TDE)
@@ -59,6 +61,8 @@ classdef twodancers_many_emily_multiple_regression
             obj = plot_correlation_and_pooled_pvals_bars(obj);
             disp('PARTIAL CORRELATION WITH PERCEPTUAL MEASURES')
             obj = plot_partial_correlation_and_pooled_pvals_bars(obj,excludevars);
+            disp('DISTRIBUTION STATISTICS FOR INTERACTION ESTIMATES')
+            obj = predictors_distribution(obj);
         end
         function obj = compute_regression(obj,excludevars)
         % e.g. excludevars = [2 4];
@@ -344,6 +348,35 @@ classdef twodancers_many_emily_multiple_regression
                 sgtitle(['Pooled p-values from correlation between interaction ' ...
                          'estimates and perceptual measures'])
             end
+        end
+        function obj = predictors_distribution(obj)
+           for j = 1:numel(obj.res(1).data) % each experiment
+           for k = 1:numel(obj.res) % each approach 
+               res{j}(:,k) = zscore(arrayfun(@(x) x.res.Corr.means,obj.res(k).data(j).Res)');
+           end
+           end
+           obj.DescriptiveStatsNames = {'Median','Kurtosis','Skewness'};
+           for j = 1:numel(obj.res(1).data)
+                   obj.DescriptiveStats{j}(:,1) = median(res{j});
+                   obj.DescriptiveStats{j}(:,2) = kurtosis(res{j});
+                   obj.DescriptiveStats{j}(:,3) = skewness(res{j});
+                   %plot boxplots
+               disp(['Experiment' num2str(j)])
+               t = array2table(obj.DescriptiveStats{j});
+               t.Properties.RowNames = obj.DescriptiveStatsNames';
+               disp(t)
+           end
+           figure;
+           for j = 1:numel(obj.res(1).data) % each experiment
+               subplot(2,1,j)
+               boxplot(res{j})
+               set(gca,'XTick',1:3,'XTickLabels',obj.predictorNames)
+               title(['Experiment' num2str(j)])
+               ylabel('Zscores')
+           end
+        end
+        function obj = plot_stats(obj)
+            
         end
     end
     methods (Static)
