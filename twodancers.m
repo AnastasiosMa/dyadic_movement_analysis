@@ -847,8 +847,13 @@ classdef twodancers < dancers
             data2_.data = data2.data(:,[15,19]);
             data1 = data1_;
             data2 = data2_;
-            mt1 = mean(data1.data); % mean across time
-            mt2 = mean(data2.data);
+            if strcmpi(obj.AveragingMethod, 'Mean')
+                mt1 = mean(data1.data); % mean across time
+                mt2 = mean(data2.data);
+            elseif strcmpi(obj.AveragingMethod, 'Max')
+                mt1 = max(data1.data); % max across time
+                mt2 = max(data2.data);
+            end
             mh1 = mean(mt1); % mean across hands
             mh2 = mean(mt2);
             obj.Corr.timescales = mh1+mh2;
@@ -881,7 +886,11 @@ classdef twodancers < dancers
                                                               % autocorrelation
             [per1, ac, eac, lags, wtime] = mcwindow(@mcperiod, data2, win, hop);
             a = -abs(per - per1); 
-            a = nanmean(a); % mean across windows
+            if strcmpi(obj.AveragingMethod, 'Mean')
+                a = nanmean(a); % mean across windows
+            elseif strcmpi(obj.AveragingMethod, 'Max')
+                a = max(a); % mean across windows
+            end
             obj.Corr.timescales = nanmean(a); % mean across
                                               % markers
         end
