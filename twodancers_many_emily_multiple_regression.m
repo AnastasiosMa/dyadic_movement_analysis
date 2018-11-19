@@ -20,7 +20,7 @@ classdef twodancers_many_emily_multiple_regression
     methods
         function obj = twodancers_many_emily_multiple_regression(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,TDE)
         % Syntax e.g.:
-        % a = twodancers_many_emily_multiple_regression('Dataset1_24Dyads.mat','Dataset2_37Dyads',[],0,20,1,'noTDE');
+        % a = twodancers_many_emily_multiple_regression('Dataset1_24Dyads.mat','Dataset2_37Dyads',5,5,20,1,'noTDE');
             coordinatesystem = 'global';
 
             % SYMMETRIC PLS
@@ -40,11 +40,9 @@ classdef twodancers_many_emily_multiple_regression
             kinemfeat = 'pos';
             obj.res(2).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % LOADINGS SIMILARITY
-            Timescale20180111 = 120*10;
             kinemfeat = 'vel';  
             FrontalViewHipMarkers20181030 = 'Yes';
             Iso1Method20181029 = 'PdistPCScores';
-            PLScomp20181105 = 2;
             obj.res(3).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % CLEAR ALL GLOBAL VARIABLES
             clearvars -global
@@ -55,14 +53,14 @@ classdef twodancers_many_emily_multiple_regression
             if nargin == 1
                 excludevars = [];
             end
+            disp('DISTRIBUTION STATISTICS FOR INTERACTION ESTIMATES')
+            obj = predictors_distribution(obj);
             disp('CORRELATION BETWEEN INTERACTION ESTIMATES')
             obj = plot_correlation_between_vars(obj);
             disp('CORRELATION WITH PERCEPTUAL MEASURES')
             obj = plot_correlation_and_pooled_pvals_bars(obj);
             disp('PARTIAL CORRELATION WITH PERCEPTUAL MEASURES')
             obj = plot_partial_correlation_and_pooled_pvals_bars(obj,excludevars);
-            disp('DISTRIBUTION STATISTICS FOR INTERACTION ESTIMATES')
-            obj = predictors_distribution(obj);
         end
         function obj = compute_regression(obj,excludevars)
         % e.g. excludevars = [2 4];
@@ -73,7 +71,7 @@ classdef twodancers_many_emily_multiple_regression
                          'MeanRatedSimilarity'};
             for j = 1:numel(obj.res(1).data) % each experiment
                 for k = 1:numel(obj.res) % each approach 
-                    res{j}(:,k) = arrayfun(@(x) x.res.Corr.average,obj.res(k).data(j).Res)';
+                    res{j}(:,k) = arrayfun(@(x) x.res.Corr.Estimates,obj.res(k).data(j).Res)';
                 end
 
                 X = [ones(size(res{j},1),1) zscore(res{j})];
@@ -219,7 +217,7 @@ classdef twodancers_many_emily_multiple_regression
             predictornames(excludevars) = [];
             for j = 1:numel(obj.res(1).data) % each experiment
                 for k = 1:numel(obj.res) % each approach
-                    res{j}(:,k) = arrayfun(@(x) x.res.Corr.average,obj.res(k).data(j).Res)';
+                    res{j}(:,k) = arrayfun(@(x) x.res.Corr.Estimates,obj.res(k).data(j).Res)';
                 end
 
                 for l = 1:numel(percnames) % for each perceptual measure
@@ -352,17 +350,18 @@ classdef twodancers_many_emily_multiple_regression
         function obj = predictors_distribution(obj)
            for j = 1:numel(obj.res(1).data) % each experiment
            for k = 1:numel(obj.res) % each approach 
-               res{j}(:,k) = zscore(arrayfun(@(x) x.res.Corr.average,obj.res(k).data(j).Res)');
+               res{j}(:,k) = zscore(arrayfun(@(x) x.res.Corr.Estimates,obj.res(k).data(j).Res)');
            end
            end
            obj.DescriptiveStatsNames = {'Median','Kurtosis','Skewness'};
+           predictornames_underscore = strrep(obj.predictorNames,' ','_');
            for j = 1:numel(obj.res(1).data)
-                   obj.DescriptiveStats{j}(:,1) = median(res{j});
-                   obj.DescriptiveStats{j}(:,2) = kurtosis(res{j});
-                   obj.DescriptiveStats{j}(:,3) = skewness(res{j});
+                   obj.DescriptiveStats{j}(1,:) = median(res{j});
+                   obj.DescriptiveStats{j}(2,:) = kurtosis(res{j});
+                   obj.DescriptiveStats{j}(3,:) = skewness(res{j});
                    %plot boxplots
                disp(['Experiment' num2str(j)])
-               t = array2table(obj.DescriptiveStats{j});
+               t = array2table(obj.DescriptiveStats{j},'VariableNames',predictornames_underscore);
                t.Properties.RowNames = obj.DescriptiveStatsNames';
                disp(t)
            end
@@ -374,9 +373,6 @@ classdef twodancers_many_emily_multiple_regression
                title(['Experiment' num2str(j)])
                ylabel('Zscores')
            end
-        end
-        function obj = plot_stats(obj)
-            
         end
     end
     methods (Static)

@@ -18,19 +18,20 @@ classdef twodancers < dancers
                         % sliding window, set to 1
         Dancer1
         Dancer2
+        MirrorMocapData = 'No';
         Corr
+        EstimateMethod = 'Max'%'Mean','Max','Std' %Slects method to compute the 
+        %Dyad's interaction estimate across windows
         %First order isomorphism properties
-        SelectIso1Method %= 'PdistPCScores'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation','KernelPLS'
-        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadingsPCA'(method used for first order isomorphism)        
+        SelectIso1Method %= 'PdistPCScores'%'PdistPCScores'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation','KernelPLS'
+        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadings','PdistLoadingsPCA','PdistPCScores'(method used for first order isomorphism)        
         %PLS properties
-        AveragingMethod = 'Max'; % 'Max' or 'Mean'. Method for averaging results
-                                % across windows in windowed analyses
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
         EigenNum = 5;
         ChoosePLScomp %= 3; %Choose which of the PLS components to include in the analysis
         SelectPLScomp %= 2;
-        GetPLSCluster ='YesDyad'% YesDyad computes the mean of both dancers loadings for each window
+        GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
         PLSstdNum = 20; %Number of different std's to test
@@ -98,10 +99,8 @@ classdef twodancers < dancers
                 if isempty(obj.ChoosePLScomp)
                    obj.ChoosePLScomp = 1:obj.PLScomp;
                 end
-            else
-                
+            else  
             end
-
         end
         function val = get.Iso1Method(obj)
             global Iso1Method20181029
@@ -163,10 +162,10 @@ classdef twodancers < dancers
                        else
                           [MI] = mutinfo(XS,YS,'size',obj.BinSize); 
                        end
-                       if strcmpi(obj.AveragingMethod, 'Mean')
-                           obj.Corr.average(k,1) = mean(diag(MI)); %DynamicPLS+MutualInformation
-                       elseif strcmpi(obj.AveragingMethod, 'Max')
-                           obj.Corr.average(k,1) = max(diag(MI)); %DynamicPLS+MutualInformation
+                       if strcmpi(obj.EstimateMethod,'Mean') %DynamicPLS+MutualInformation
+                          obj.Corr.Estimates(k,1) = nanmean(diag(MI)); 
+                       elseif strcmpi(obj.EstimateMethod,'Max')
+                          obj.Corr.Estimates(k,1) = max(diag(MI));
                        end
                     elseif strcmpi(obj.Iso1Method,'DynamicPLSWavelet')
                        disp('Computing Wavelet Transform...')
@@ -176,13 +175,13 @@ classdef twodancers < dancers
                        disp('Computing Wavelet Transform...')
                        Fs = obj.Dancer1.res.SampleRate;
                        obj = get_paired_cwt(obj,XS,YS,Fs); 
-                       %obj.Corr.average(k,1,:) = obj.MaxBeatFreqEnergy; %DynamicPLS+Wavelet
+                       %obj.Corr.Estimates(k,1,:) = obj.MaxBeatFreqEnergy; %DynamicPLS+Wavelet
                     else
-                        if strcmpi(obj.AveragingMethod, 'Mean')
-                       obj.Corr.average(k,1) = mean(diag(corr(XS,YS))); %DynamicPLS+Correlation
-                        elseif strcmpi(obj.AveragingMethod, 'Max')
-                       obj.Corr.average(k,1) = max(diag(corr(XS,YS))); %DynamicPLS+Correlation
-                        end
+                       if strcmpi(obj.EstimateMethod,'Mean') %DynamicPLS+Correlation
+                          obj.Corr.Estimates(k,1) = nanmean(diag(corr(XS,YS))); 
+                       elseif strcmpi(obj.EstimateMethod,'Max')
+                          obj.Corr.Estimates(k,1) = max(diag(corr(XS,YS)));
+                       end                        
                     end
                 end
         end
@@ -739,12 +738,13 @@ classdef twodancers < dancers
         function obj = mean_max_corr_for_each_timescale(obj) 
             data = obj.Corr.timescales; 
             data(data==0) = NaN;
-                if strcmpi(obj.AveragingMethod, 'Mean')
-                    obj.Corr.average = nanmean(data,2); %find average across timescales
-                elseif strcmpi(obj.AveragingMethod, 'Max')
-                    obj.Corr.average = max(data,[],2);    %find max across timescales
-                end
-                obj.Corr.std = nanstd(data,0,2);    %find max across timescales
+            if strcmpi(obj.EstimateMethod,'Mean')
+               obj.Corr.Estimates = nanmean(data,2); %find average across timescales
+            elseif strcmpi(obj.EstimateMethod,'Max')
+               obj.Corr.Estimates = max(data,[],2); %find max across timescales
+            elseif strcmpi(obj.EstimateMethod,'Std')
+               obj.Corr.Estimates = nanstd(data,0,2); 
+            end
         end
         % PLOT RESULT
         function obj = plot_triangle(obj)
@@ -847,16 +847,14 @@ classdef twodancers < dancers
             data2_.data = data2.data(:,[15,19]);
             data1 = data1_;
             data2 = data2_;
-            if strcmpi(obj.AveragingMethod, 'Mean')
-                mt1 = mean(data1.data); % mean across time
-                mt2 = mean(data2.data);
-            elseif strcmpi(obj.AveragingMethod, 'Max')
-                mt1 = max(data1.data); % max across time
-                mt2 = max(data2.data);
+            j=1;
+            w=obj.SingleTimeScale;
+            for k = 1:obj.WindowSteps:(size(data1.data,1)-(w-1));
+                aw1 = mean(data1.data(k:(k+w-1)));% mean across time window
+                aw2 = mean(data2.data(k:(k+w-1)));
+                obj.Corr.timescales(j) = aw1+aw2; % mean across hands
+                j=j+1;
             end
-            mh1 = mean(mt1); % mean across hands
-            mh2 = mean(mt2);
-            obj.Corr.timescales = mh1+mh2;
             %% alternative approach (no mcnorm)
             % if obj.JointBodyMarker == 1:12
             %     data1 = obj.Dancer1.res.MocapStruct.data(:,[43:45 55:57]);
@@ -886,13 +884,13 @@ classdef twodancers < dancers
                                                               % autocorrelation
             [per1, ac, eac, lags, wtime] = mcwindow(@mcperiod, data2, win, hop);
             a = -abs(per - per1); 
-            if strcmpi(obj.AveragingMethod, 'Mean')
-                a = nanmean(a); % mean across windows
-            elseif strcmpi(obj.AveragingMethod, 'Max')
-                a = max(a); % mean across windows
-            end
-            obj.Corr.timescales = nanmean(a); % mean across
-                                              % markers
+            a = nanmean(a); % mean across windows
+            if strcmpi(obj.EstimateMethod,'Mean') %DynamicPLS+Correlation
+               obj.Corr.timescales = nanmean(a);
+            elseif strcmpi(obj.EstimateMethod,'Max')
+               obj.Corr.timescales = max(a);
+            end                        
+            obj.Corr.timescales = nanmean(a); %mean across markers 
         end
         function obj = torso_orientation(obj)
         % to be used with position data, make sure to turn FrontalViewHipMarkers to 'No'
@@ -927,10 +925,13 @@ classdef twodancers < dancers
             coso1 = cos(abso1);
             coso2 = cos(abso2);
             MeanDist = nanmean(absr);
-            if strcmpi(obj.AveragingMethod, 'Mean')
-                obj.Corr.timescales = nanmean(coso1+coso2);
-            elseif strcmpi(obj.AveragingMethod, 'Max')
-                obj.Corr.timescales = max(coso1+coso2);
+            TempSum = coso1+coso2;
+            j=1;
+            w=obj.SingleTimeScale;
+            for k = 1:obj.WindowSteps:(size(TempSum,1)-(w-1));
+                aw = TempSum(k:(k+w-1));
+                obj.Corr.timescales(j) = nanmean(aw);
+                j=j+1;
             end
         end
         function obj = PC_scores_similarity(obj)
@@ -962,13 +963,8 @@ classdef twodancers < dancers
                     %pdist_PC(k,i) = pdist2(data1(i,:,k),data2(i,:,k),'cosine');
                     %pdist_PC(k,i) = pdist2(data1(i,:,k),data2(i,:,k),'euclidean')/...
                         %mean(mean([abs(rawdata1(i,:,k));abs(rawdata2(i,:,k))]));
-                     pdist_PC(k,i) = -pdist2(data1(i,:,k),data2(i,:,k),'euclidean')/...
-                        norm(mean([abs(rawdata1(i,:,k));abs(rawdata2(i,:,k))]));  
-                end
-                if strcmpi(obj.AveragingMethod, 'Mean')
-                    obj.Res(k).res.Corr.average = mean(pdist_PC(k,:));
-                elseif strcmpi(obj.AveragingMethod, 'Max')
-                    obj.Res(k).res.Corr.average = max(pdist_PC(k,:));
+                     obj.Res(k).res.Corr.timescales(i) = 1-pdist2(data1(i,:,k),data2(i,:,k),'euclidean')/...
+                        norm(mean([abs(data1(i,:,k));abs(data2(i,:,k))]));  
                 end
             end
         end
@@ -978,11 +974,26 @@ classdef twodancers < dancers
             data2 = temp(2:2:end,:); %Dancer2
             data1 = data1-mean(data1); %mean center data
             data2 = data2-mean(data2);
+            normdata = norm([data1;data2]);
             %data1 = data1/norm(data1);
             %data2 = data2/norm(data2);
             for i=1:size(data1,1)
-                pdist_loadings(i) = -pdist2(data1(i,:),data2(i,:),'euclidean')/[norm(data1)+norm(data2)];
+                pdist_loadings(i) = -pdist2(data1(i,:),data2(i,:),'euclidean')/norm(([(data1(i,:));(data2(i,:))]));
+                %pdist_loadings(i) = corr(data1(i,:)',data2(i,:)');
             end
+        end
+        function obj = mirror_mocap_data(obj) %swaps the location of left and right markers of second dancer
+            %in the mocapstruc.data. To be used with Spatial Coupling to look at similarity of mirrored body parts 
+            markers = obj.Dancer1.res.markers3d;
+            mirrormarkers = markers;
+            mirrormarkers(contains(markers,'Left')) = ... 
+                strrep(markers(contains(markers,'Left')),'Left','Right');%find indexes with left-right markers and swap them
+            mirrormarkers(contains(markers,'Right')) = ...
+                strrep(markers(contains(markers,'Right')),'Right','Left');
+            for i=1:length(mirrormarkers)
+            mirrormarkersIdx(i) = find(strcmpi(string(obj.Dancer1.res.markers3d),string(mirrormarkers{i})));
+            end
+            obj.Dancer2.res.MocapStruct.data = obj.Dancer2.res.MocapStruct.data(:,mirrormarkersIdx);
         end
     end
     methods (Static)
@@ -1044,6 +1055,5 @@ classdef twodancers < dancers
            temp = reshape(temp',size(tempX,2),size(tempX,1)*2);
            out = temp';
         end
-        
     end
 end

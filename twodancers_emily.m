@@ -31,6 +31,9 @@ classdef twodancers_emily < twodancers
             obj@twodancers(mocapstruct1,mocapstruct2,m2jpar, ...
                            NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             if nargin > 0
+               if strcmpi(obj.MirrorMocapData,'Yes')
+                  obj = mirror_mocap_data(obj); 
+               end
                 if isomorphismorder == 1
                     if sum(strcmpi(obj.Iso1Method,{'DynamicPLS','DynamicPLSMI','DynamicPLSWavelet',...
                        'DynamicPLSCrossWaveletPairing'}))

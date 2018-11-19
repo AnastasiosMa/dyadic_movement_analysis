@@ -34,6 +34,9 @@ classdef twodancers_many_emily < twodancers_emily
                 obj.MeanRatedSimilarity = meanRatedSimilarity;
                 if strcmpi(obj.Res(1).res.Iso1Method,'PdistPCScores')
                    obj = PC_scores_similarity(obj);
+                   for k=1:numel(mocap_array)
+                       obj.Res(k).res = mean_max_corr_for_each_timescale(obj.Res(k).res);
+                   end
                 end
                 obj = correlate_with_perceptual_measures(obj);
                 %obj = plot_estimated_interaction_distribution(obj);
@@ -42,12 +45,12 @@ classdef twodancers_many_emily < twodancers_emily
             toc
         end
         function obj = correlate_with_perceptual_measures(obj)
-            for k = 1:size(obj.Res(1).res.Corr.average,1) % for each timescale
-                for j = 1:size(obj.Res(1).res.Corr.average,3) % for each timeshift
-                    avgcorrs(:,j) = arrayfun(@(x) x.res.Corr.average(k,:,j),obj.Res)'; %obj.Res->will repeat process for all participants
+            for k = 1:size(obj.Res(1).res.Corr.Estimates,1) % for each timescale
+                for j = 1:size(obj.Res(1).res.Corr.Estimates,3) % for each timeshift
+                    estimates(:,j) = arrayfun(@(x) x.res.Corr.Estimates(k,:,j),obj.Res)'; %obj.Res->will repeat process for all participants
                                                                                       %maxcorrs = arrayfun(@(x) x.res.Corr.max(k),obj.Res)';
-                    [obj.Corr.InterVsMeanCorr.RHO(k,j),obj.Corr.InterVsMeanCorr.PVAL(k,j)] = corr(avgcorrs(:,j),obj.MeanRatedInteraction(1:numel(avgcorrs(:,j))));
-                    [obj.Corr.SimiVsMeanCorr.RHO(k,j),obj.Corr.SimiVsMeanCorr.PVAL(k,j)] = corr(avgcorrs(:,j),obj.MeanRatedSimilarity(1:numel(avgcorrs(:,j))));
+                    [obj.Corr.InterVsMeanCorr.RHO(k,j),obj.Corr.InterVsMeanCorr.PVAL(k,j)] = corr(estimates(:,j),obj.MeanRatedInteraction(1:numel(estimates(:,j))));
+                    [obj.Corr.SimiVsMeanCorr.RHO(k,j),obj.Corr.SimiVsMeanCorr.PVAL(k,j)] = corr(estimates(:,j),obj.MeanRatedSimilarity(1:numel(estimates(:,j))));
                     %[obj.Corr.InterVsMaxCorr.RHO(k),obj.Corr.InterVsMaxCorr.PVAL(k)] = corr(maxcorrs,obj.MeanRatedInteraction(1:numel(maxcorrs)));
                     %[obj.Corr.SimiVsMaxCorr.RHO(k),obj.Corr.SimiVsMaxCorr.PVAL(k)] = corr(maxcorrs,obj.MeanRatedSimilarity(1:numel(maxcorrs)));
                 end
@@ -55,11 +58,11 @@ classdef twodancers_many_emily < twodancers_emily
         end
         function obj = corrtable(obj)
             if ~isempty(obj.TimeShift)
-            varnames_ = repmat(fieldnames(obj.Corr),1,size(obj.Res(1).res.Corr.average,3))';
+            varnames_ = repmat(fieldnames(obj.Corr),1,size(obj.Res(1).res.Corr.Estimates,3))';
             g = 1;
-            for ts = 1:size(obj.Res(1).res.Corr.average,3)*2
+            for ts = 1:size(obj.Res(1).res.Corr.Estimates,3)*2
                varnames{ts} = [varnames_{ts} '_ts_' strrep(strrep(num2str(obj.TimeShift(g)),'-','neg'),'.','pnt')];
-                if g == size(obj.Res(1).res.Corr.average,3)
+                if g == size(obj.Res(1).res.Corr.Estimates,3)
                     g = 1;
                 else
                 g = g + 1;
@@ -104,7 +107,9 @@ classdef twodancers_many_emily < twodancers_emily
                 end
                 starcell=twodancers_many_emily.makestars(cell2mat(arrayfun(@(x) x.PVAL', struct2array(obj.Corr), ...
                     'UniformOutput', false))); %create cell array of pstars
-                starcell{numel(results)} = []; %add empty elements to bring it to the same size as restable
+                if size(starcell,2)<size(results,2)
+                   starcell{numel(results)} = []; %add empty elements to bring it to the same size as restable
+                end
                 results_stars = results;
                 for i=1:numel(results)
                     results_stars{i}=[num2str(results{i}) starcell{i}]; %makes matrix with significance stars
@@ -123,9 +128,9 @@ classdef twodancers_many_emily < twodancers_emily
                 imagesc(obj.Corr.(names{k}).RHO');
                 colorbar();
                 title(names{k});
-                yticks(1:size(obj.Res(1).res.Corr.average,3));
+                yticks(1:size(obj.Res(1).res.Corr.Estimates,3));
                 yticklabels(obj.TimeShift);
-                xticks(1:size(obj.Res(1).res.Corr.average,1));
+                xticks(1:size(obj.Res(1).res.Corr.Estimates,1));
                 xticklabels(obj.Res(1).res.WindowLengths/obj.Res(1).res.SampleRate);
                 xlabel('Time scale (\tau)');
                 ylabel('Time shift (s)');
@@ -178,7 +183,7 @@ classdef twodancers_many_emily < twodancers_emily
             NumTimeScales = numel(obj.Res(1).res.WindowLengths);
             for j = 1:NumTimeScales
             TimeScalesUsed(j) = obj.Res(1).res.WindowLengths(j)/obj.SampleRate;
-            y = arrayfun(@(x) x.res.Corr.average(j),obj.Res)';
+            y = arrayfun(@(x) x.res.Corr.Estimates(j),obj.Res)';
             xSimi = obj.MeanRatedSimilarity;           
             xInt = obj.MeanRatedInteraction;           
             figure
@@ -213,7 +218,7 @@ classdef twodancers_many_emily < twodancers_emily
             end
         end
         function obj = plot_SSMs_from_highest_to_lowest_prediction(obj)
-            y = arrayfun(@(x) x.res.Corr.average,obj.Res)';
+            y = arrayfun(@(x) x.res.Corr.Estimates,obj.Res)';
             % xSimi = obj.MeanRatedSimilarity;           
             % xInt = obj.MeanRatedInteraction;           
             % [sSimi, iSimi] = sort(xSimi); % iSimi are song indices
@@ -229,7 +234,7 @@ classdef twodancers_many_emily < twodancers_emily
             end
         end
         function obj = plot_cross_recurrence_from_highest_to_lowest_prediction(obj)
-            y = arrayfun(@(x) x.res.Corr.average,obj.Res)';
+            y = arrayfun(@(x) x.res.Corr.Estimates,obj.Res)';
             % xSimi = obj.MeanRatedSimilarity;           
             % xInt = obj.MeanRatedInteraction;           
             % [sSimi, iSimi] = sort(xSimi); % iSimi are song indices
@@ -246,7 +251,7 @@ classdef twodancers_many_emily < twodancers_emily
         end
 
         function obj = plot_joint_recurrence_from_highest_to_lowest_prediction(obj)
-            y = arrayfun(@(x) x.res.Corr.average,obj.Res)';
+            y = arrayfun(@(x) x.res.Corr.Estimates,obj.Res)';
             [sy, iy] = sort(y); % iy are song indices based on prediction
             disp(sy);
             for k = numel(iy):-1:1
@@ -277,11 +282,11 @@ classdef twodancers_many_emily < twodancers_emily
                                                    %distribution of 
                                                    %estimated
                                                    %interaction 
-            for k = 1:numel(obj.Res(1).res.Corr.average) % for each timescale
-                avgcorrs(k,:) = arrayfun(@(x) x.res.Corr.average(k),obj.Res)';
+            for k = 1:numel(obj.Res(1).res.Corr.Estimates) % for each timescale
+                meancorrs(k,:) = arrayfun(@(x) x.res.Corr.Estimates(k),obj.Res)';
                 winlength=obj.Res(1).res.WindowLengths ./obj.Res(1).res.SampleRate;
                 figure
-                histogram(avgcorrs,'BinWidth',0.1)
+                histogram(meancorrs,'BinWidth',0.1)
                 title(['Distribution of estimated interaction for Timescale (' num2str(winlength(k)) ' seconds)'])
                 ylabel('Number of Dyads')
                 xlabel('Interaction Estimate')
@@ -302,7 +307,7 @@ classdef twodancers_many_emily < twodancers_emily
             hold off
         end
         function  obj = MIdistribution(obj)
-            temp = cell2mat(arrayfun(@(x) x.res.Corr.average,obj.Res,'UniformOutput',false)'); 
+            temp = cell2mat(arrayfun(@(x) x.res.Corr.Estimates,obj.Res,'UniformOutput',false)'); 
             StdMI = std(temp);
             figure
             plot(temp)
