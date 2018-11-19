@@ -178,7 +178,11 @@ classdef twodancers < dancers
                        obj = get_paired_cwt(obj,XS,YS,Fs); 
                        %obj.Corr.average(k,1,:) = obj.MaxBeatFreqEnergy; %DynamicPLS+Wavelet
                     else
+                        if strcmpi(obj.AveragingMethod, 'Mean')
                        obj.Corr.average(k,1) = mean(diag(corr(XS,YS))); %DynamicPLS+Correlation
+                        elseif strcmpi(obj.AveragingMethod, 'Max')
+                       obj.Corr.average(k,1) = max(diag(corr(XS,YS))); %DynamicPLS+Correlation
+                        end
                     end
                 end
         end
