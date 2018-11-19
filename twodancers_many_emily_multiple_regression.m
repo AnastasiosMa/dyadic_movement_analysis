@@ -20,7 +20,7 @@ classdef twodancers_many_emily_multiple_regression
     methods
         function obj = twodancers_many_emily_multiple_regression(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,TDE)
         % Syntax e.g.:
-        % a = twodancers_many_emily_multiple_regression('Dataset1_24Dyads.mat','Dataset2_37Dyads',5,5,20,1,'noTDE');
+        % a = twodancers_many_emily_multiple_regression('Dataset1_24Dyads.mat','Dataset2_37Dyads',[],0,20,1,'noTDE');
             coordinatesystem = 'global';
 
             % SYMMETRIC PLS
