@@ -19,10 +19,10 @@ classdef twodancers_many_emily_compare_two_methods
             obj = correlate_triangle_values(obj);
         end
         function obj = correlate_triangle_values(obj)
-            catTriangleMeans1 = cell2mat(arrayfun(@(x) x.res.Corr.means,obj.Method1.Res,'UniformOutput',false))';
-            catTriangleMeans2 = cell2mat(arrayfun(@(x) x.res.Corr.means,obj.Method2.Res,'UniformOutput',false))';
+            catTriangleMeans1 = cell2mat(arrayfun(@(x) x.res.Corr.average,obj.Method1.Res,'UniformOutput',false))';
+            catTriangleMeans2 = cell2mat(arrayfun(@(x) x.res.Corr.average,obj.Method2.Res,'UniformOutput',false))';
             for k = 1:size(catTriangleMeans1,2)
-                [obj.CorrTriangles.r(k) obj.CorrTriangles.p(k)] = corr(catTriangleMeans1(:,k),catTriangleMeans2(:,k));
+                [obj.CorrTriangles.r(k) obj.CorrTriangles.p(k)] = corr(catTriangl.average1(:,k),catTriangleMeans2(:,k));
             end
                 disp(array2table([obj.CorrTriangles.r' ...
                                   obj.CorrTriangles.p'],'VariableNames',{'r' 'p'}))

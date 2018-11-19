@@ -73,7 +73,7 @@ classdef twodancers_many_emily_multiple_regression
                          'MeanRatedSimilarity'};
             for j = 1:numel(obj.res(1).data) % each experiment
                 for k = 1:numel(obj.res) % each approach 
-                    res{j}(:,k) = arrayfun(@(x) x.res.Corr.means,obj.res(k).data(j).Res)';
+                    res{j}(:,k) = arrayfun(@(x) x.res.Corr.average,obj.res(k).data(j).Res)';
                 end
 
                 X = [ones(size(res{j},1),1) zscore(res{j})];
@@ -219,7 +219,7 @@ classdef twodancers_many_emily_multiple_regression
             predictornames(excludevars) = [];
             for j = 1:numel(obj.res(1).data) % each experiment
                 for k = 1:numel(obj.res) % each approach
-                    res{j}(:,k) = arrayfun(@(x) x.res.Corr.means,obj.res(k).data(j).Res)';
+                    res{j}(:,k) = arrayfun(@(x) x.res.Corr.average,obj.res(k).data(j).Res)';
                 end
 
                 for l = 1:numel(percnames) % for each perceptual measure
@@ -352,7 +352,7 @@ classdef twodancers_many_emily_multiple_regression
         function obj = predictors_distribution(obj)
            for j = 1:numel(obj.res(1).data) % each experiment
            for k = 1:numel(obj.res) % each approach 
-               res{j}(:,k) = zscore(arrayfun(@(x) x.res.Corr.means,obj.res(k).data(j).Res)');
+               res{j}(:,k) = zscore(arrayfun(@(x) x.res.Corr.average,obj.res(k).data(j).Res)');
            end
            end
            obj.DescriptiveStatsNames = {'Median','Kurtosis','Skewness'};

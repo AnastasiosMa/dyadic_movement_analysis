@@ -23,6 +23,8 @@ classdef twodancers < dancers
         SelectIso1Method %= 'PdistPCScores'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation','KernelPLS'
         %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadingsPCA'(method used for first order isomorphism)        
         %PLS properties
+        AveragingMethod = 'Max'; % 'Max' or 'Mean'. Method for averaging results
+                                % across windows in windowed analyses
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
         EigenNum = 5;
@@ -161,7 +163,11 @@ classdef twodancers < dancers
                        else
                           [MI] = mutinfo(XS,YS,'size',obj.BinSize); 
                        end
-                       obj.Corr.means(k,1) = mean(diag(MI)); %DynamicPLS+MutualInformation
+                       if strcmpi(obj.AveragingMethod, 'Mean')
+                           obj.Corr.average(k,1) = mean(diag(MI)); %DynamicPLS+MutualInformation
+                       elseif strcmpi(obj.AveragingMethod, 'Max')
+                           obj.Corr.average(k,1) = max(diag(MI)); %DynamicPLS+MutualInformation
+                       end
                     elseif strcmpi(obj.Iso1Method,'DynamicPLSWavelet')
                        disp('Computing Wavelet Transform...')
                        Fs = obj.Dancer1.res.SampleRate;
@@ -170,9 +176,9 @@ classdef twodancers < dancers
                        disp('Computing Wavelet Transform...')
                        Fs = obj.Dancer1.res.SampleRate;
                        obj = get_paired_cwt(obj,XS,YS,Fs); 
-                       %obj.Corr.means(k,1,:) = obj.MaxBeatFreqEnergy; %DynamicPLS+Wavelet
+                       %obj.Corr.average(k,1,:) = obj.MaxBeatFreqEnergy; %DynamicPLS+Wavelet
                     else
-                       obj.Corr.means(k,1) = mean(diag(corr(XS,YS))); %DynamicPLS+Correlation
+                       obj.Corr.average(k,1) = mean(diag(corr(XS,YS))); %DynamicPLS+Correlation
                     end
                 end
         end
@@ -729,9 +735,12 @@ classdef twodancers < dancers
         function obj = mean_max_corr_for_each_timescale(obj) 
             data = obj.Corr.timescales; 
             data(data==0) = NaN;
-            obj.Corr.means = nanmean(data,2); %find average across timescales
-            obj.Corr.max = max(data,[],2);    %find max across timescales
-            obj.Corr.std = nanstd(data,0,2);    %find max across timescales
+                if strcmpi(obj.AveragingMethod, 'Mean')
+                    obj.Corr.average = nanmean(data,2); %find average across timescales
+                elseif strcmpi(obj.AveragingMethod, 'Max')
+                    obj.Corr.average = max(data,[],2);    %find max across timescales
+                end
+                obj.Corr.std = nanstd(data,0,2);    %find max across timescales
         end
         % PLOT RESULT
         function obj = plot_triangle(obj)
@@ -905,7 +914,11 @@ classdef twodancers < dancers
             coso1 = cos(abso1);
             coso2 = cos(abso2);
             MeanDist = nanmean(absr);
-            obj.Corr.timescales = nanmean(coso1+coso2);
+            if strcmpi(obj.AveragingMethod, 'Mean')
+                obj.Corr.timescales = nanmean(coso1+coso2);
+            elseif strcmpi(obj.AveragingMethod, 'Max')
+                obj.Corr.timescales = max(coso1+coso2);
+            end
         end
         function obj = PC_scores_similarity(obj)
             temp = cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.Res,'UniformOutput',false)'); %store loadings 
@@ -939,8 +952,11 @@ classdef twodancers < dancers
                      pdist_PC(k,i) = -pdist2(data1(i,:,k),data2(i,:,k),'euclidean')/...
                         norm(mean([abs(rawdata1(i,:,k));abs(rawdata2(i,:,k))]));  
                 end
-                %obj.Res(k).res.Corr.means = mean(pdist_PC(k,:));
-                obj.Res(k).res.Corr.means = max(pdist_PC(k,:));
+                if strcmpi(obj.AveragingMethod, 'Mean')
+                    obj.Res(k).res.Corr.average = mean(pdist_PC(k,:));
+                elseif strcmpi(obj.AveragingMethod, 'Max')
+                    obj.Res(k).res.Corr.average = max(pdist_PC(k,:));
+                end
             end
         end
         function [obj,pdist_loadings] = PLS_loadings_similarity(obj)

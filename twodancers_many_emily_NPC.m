@@ -15,10 +15,10 @@ classdef twodancers_many_emily_NPC < twodancers_many_emily
         end
         function obj = boxplots_mean_correlation_across_windows_as_funct_of_PCs(obj)
             for k = 1:numel(obj.Result)
-                meancorrs(:,k) = arrayfun(@(x) x.res.Corr.means,obj.Result(k).res.Res)';
+                avgcorrs(:,k) = arrayfun(@(x) x.res.Corr.average,obj.Result(k).res.Res)';
             end
             figure
-            boxplot(meancorrs)
+            boxplot(avgcorrs)
             xlabel('Number of PCs')
             ylabel('Mean correlation across windows')
         end
