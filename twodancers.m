@@ -874,23 +874,23 @@ classdef twodancers < dancers
         end
         function obj = period_locking(obj)
         % gives best results with velocity
-            data1 = obj.Dancer1.res.MocapStruct;
-            data2 = obj.Dancer2.res.MocapStruct;
-            apd = [];
-            win = 4;
-            hop = .25;
-            [per, ac, eac, lags, wtime] = mcwindow(@mcperiod, data1, ...
+            j=1;
+            w=obj.SingleTimeScale;
+            for k = 1:obj.WindowSteps:(size(obj.Dancer1.res.MocapStruct.data,1)-(w-1));               
+                data1 = mctrim(obj.Dancer1.res.MocapStruct,k,k+w-1,'frame');% trim mocap data to window 
+                data2 = mctrim(obj.Dancer2.res.MocapStruct,k,k+w-1,'frame');
+                apd = [];
+                win = 4;
+                hop = .25;
+                [per, ac, eac, lags, wtime] = mcwindow(@mcperiod, data1, ...
                                                    win, hop); % windowed
                                                               % autocorrelation
-            [per1, ac, eac, lags, wtime] = mcwindow(@mcperiod, data2, win, hop);
-            a = -abs(per - per1); 
-            a = nanmean(a); % mean across windows
-            if strcmpi(obj.EstimateMethod,'Mean') %DynamicPLS+Correlation
-               obj.Corr.timescales = nanmean(a);
-            elseif strcmpi(obj.EstimateMethod,'Max')
-               obj.Corr.timescales = max(a);
-            end                        
-            obj.Corr.timescales = nanmean(a); %mean across markers 
+                [per1, ac, eac, lags, wtime] = mcwindow(@mcperiod, data2, win, hop);
+                a = -abs(per - per1); 
+                a = nanmean(a); % mean across windows
+                obj.Corr.timescales(j) = nanmean(a);
+                j=j+1;
+            end
         end
         function obj = torso_orientation(obj)
         % to be used with position data, make sure to turn FrontalViewHipMarkers to 'No'
