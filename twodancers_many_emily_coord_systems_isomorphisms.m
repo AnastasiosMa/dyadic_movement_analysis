@@ -33,10 +33,10 @@ classdef twodancers_many_emily_coord_systems_isomorphisms < twodancers_many_emil
             names_analysis = {'Global'
                              'Local'};
             for k = 1:2
-                catTriangleMeans1 = cell2mat(arrayfun(@(x) x.res.Corr.average,obj.(names{k}).Res,'UniformOutput',false))';
-                catTriangleMeans2 = cell2mat(arrayfun(@(x) x.res.Corr.average,obj.(names{k+2}).Res,'UniformOutput',false))';
-                for g = 1:size(catTriangleMeans1,2)
-                    [CorrTriangles.r(g) CorrTriangles.p(g)] = corr(catTriangl.average1(:,g),catTriangleMeans2(:,g));
+                catTriangleEst1 = cell2mat(arrayfun(@(x) x.res.Corr.Estimates,obj.(names{k}).Res,'UniformOutput',false))';
+                catTriangleEst2 = cell2mat(arrayfun(@(x) x.res.Corr.Estimates,obj.(names{k+2}).Res,'UniformOutput',false))';
+                for g = 1:size(catTriangleEst1,2)
+                    [CorrTriangles.r(g) CorrTriangles.p(g)] = corr(catTriangl.Estimates1(:,g),catTriangleEst2(:,g));
                 end
                 disp(names_analysis{k})
                 disp(array2table([CorrTriangles.r' ...
