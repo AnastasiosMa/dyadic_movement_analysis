@@ -16,6 +16,13 @@ classdef twodancers_many_emily_multiple_regression
         CorrBetwVars
         DescriptiveStats
         DescriptiveStatsNames
+        plotTitleType = 'figureName' % 'figureName' or 'subplotGrid'
+                                  % 'figureName': sets title as the figure name
+                                  % 'subplotGrid': sets title as subplot grid title
+                                  % If this property is empty, it does not set any title
+    end
+    properties (Hidden)
+        currentPLotTitle
     end
     methods
         function obj = twodancers_many_emily_multiple_regression(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,TDE)
@@ -121,7 +128,8 @@ classdef twodancers_many_emily_multiple_regression
             obj = compute_regression(obj); % actual regression is
                                            % not needed, it just
                                            % creates these tables
-            figure
+            obj.currentPLotTitle = 'Correlation between synchrony estimates';
+            figure(obj)
             for j = 1:numel(obj.CorrBetwVars.rho)
             subplot(1,2,j)
             heatmap(obj.CorrBetwVars.rho{j}.Row',obj.CorrBetwVars.rho{j}.Row,obj.CorrBetwVars.rho{j}.Variables);
@@ -129,9 +137,8 @@ classdef twodancers_many_emily_multiple_regression
             disp(['Experiment ' num2str(j)]);
             disp(twodancers_many_emily.makestars(obj.CorrBetwVars.pval{j}));
             end
-            if ~verLessThan('matlab', '9.5') 
-                sgtitle(['Correlation between synchrony ' ...
-                         'estimates'])
+            if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
+                sgtitle(obj.currentPLotTitle)
             end
         end
         function obj = plot_partial_correlation_and_pooled_pvals_bars(obj,excludevars)
@@ -147,7 +154,8 @@ classdef twodancers_many_emily_multiple_regression
             InterRHO.Row = strrep(InterRHO.Row,'_rho','');
             InterRHO.Properties.VariableNames = strrep(InterRHO.Properties.VariableNames,'_Int','');
             SimiRHO.Properties.VariableNames = strrep(SimiRHO.Properties.VariableNames,'_Sim','');
-            figure
+            obj.currentPLotTitle = 'Partial correlations between synchrony estimates and perceptual measures';
+            figure(obj)
             subplot(2,1,1)
             colors = extras.distinguishable_colors(numel(obj.experimentNames));
             b = bar(InterRHO.Variables);
@@ -171,13 +179,10 @@ classdef twodancers_many_emily_multiple_regression
             xlabel('Synchrony estimate')
             title('Similarity');
             ylim([0 1]);
-            if ~verLessThan('matlab', '9.5') 
-                sgtitle(['Partial correlations between synchrony ' ...
-                         'estimates and perceptual measures'])
+            if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
+                sgtitle(obj.currentPLotTitle)
             end
-
-
-
+               
             %[PVAL_corrected.Inter.h, PVAL_corrected.Inter.crit_p, PVAL_corrected.Inter.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(InterPVAL.Variables);
             %[PVAL_corrected.Simi.h, PVAL_corrected.Simi.crit_p, PVAL_corrected.Simi.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(SimiPVAL.Variables);
             disp('Interaction p-values (Benjamini-Hochberg)')
@@ -187,7 +192,9 @@ classdef twodancers_many_emily_multiple_regression
 
             pooled_Z.Interaction = twodancers_many_emily_multiple_regression.pool_p_vals(InterPVAL.Variables);
             pooled_Z.Similarity = twodancers_many_emily_multiple_regression.pool_p_vals(SimiPVAL.Variables);
-            figure
+                obj.currentPLotTitle = ['Pooled p-values from partial ' ...
+                                    'correlation between synchrony estimates and perceptual measures'];
+            figure(obj)
             names = {'Interaction';'Similarity'};
             for j = 1:numel(fieldnames(pooled_Z))
                 subplot(2,1,j)
@@ -205,10 +212,10 @@ classdef twodancers_many_emily_multiple_regression
                 yline(twodancers_many_emily_multiple_regression.pval2zscore(.01),'--','p = .01');
                 yline(twodancers_many_emily_multiple_regression.pval2zscore(.05),'--','p = .05');
             end
-            if ~verLessThan('matlab', '9.5') 
-                sgtitle(['Pooled p-values from partial correlation between synchrony ' ...
-                         'estimates and perceptual measures'])
+            if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
+                sgtitle(obj.currentPLotTitle)
             end
+
         end
         function obj = compute_partial_correlation(obj,excludevars)
         % correlation between IV and DV, controlling for other IV's
@@ -291,7 +298,8 @@ classdef twodancers_many_emily_multiple_regression
             obj.SimiTbl = array2table(Simi,'RowNames',obj.predictorNames,'VariableNames',{'Exp1','Exp2'});
             disp(obj.InterTbl)
             disp(obj.SimiTbl)
-            figure
+            obj.currentPLotTitle = 'Correlations between synchrony estimates and perceptual measures';
+            figure(obj)
             subplot(2,1,1)
             colors = extras.distinguishable_colors(numel(obj.experimentNames));
             b = bar(Inter);
@@ -315,11 +323,9 @@ classdef twodancers_many_emily_multiple_regression
             ylabel('Correlation');
             title('Similarity');
             ylim([0 1]);
-            if ~verLessThan('matlab', '9.5') 
-                sgtitle(['Correlations between synchrony ' ...
-                         'estimates and perceptual measures']);
+            if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
+                sgtitle(obj.currentPLotTitle)
             end
-
             for j = 1:numel(obj.res) % each feature
                 for k = 1:numel(obj.res(1).data) % each experiment
                     Inter(j,k)= cell2mat(obj.res(j).data(k).CorrTablePVAL{:,1});
@@ -328,7 +334,9 @@ classdef twodancers_many_emily_multiple_regression
             end
             pooled_Z.Interaction = twodancers_many_emily_multiple_regression.pool_p_vals(Inter);
             pooled_Z.Similarity = twodancers_many_emily_multiple_regression.pool_p_vals(Simi);
-            figure
+                obj.currentPLotTitle = ['Pooled p-values from correlation between synchrony estimates ' ...
+                 'and perceptual measures'];
+            figure(obj)
             names = {'Interaction';'Similarity'};
             for j = 1:numel(fieldnames(pooled_Z))
                 subplot(2,1,j)
@@ -346,9 +354,8 @@ classdef twodancers_many_emily_multiple_regression
                 yline(twodancers_many_emily_multiple_regression.pval2zscore(.01),'--','p = .01');
                 yline(twodancers_many_emily_multiple_regression.pval2zscore(.05),'--','p = .05');
             end
-            if ~verLessThan('matlab', '9.5') 
-                sgtitle(['Pooled p-values from correlation between synchrony ' ...
-                         'estimates and perceptual measures'])
+            if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
+                sgtitle(obj.currentPLotTitle)
             end
         end
         function obj = predictors_distribution(obj)
@@ -369,7 +376,8 @@ classdef twodancers_many_emily_multiple_regression
                t.Properties.RowNames = obj.DescriptiveStatsNames';
                disp(t)
            end
-           figure
+           obj.currentPLotTitle = 'Distribution statistics for synchrony estimates';
+           figure(obj)
            for j = 1:numel(obj.res(1).data) % each experiment
                subplot(2,1,j)
                boxplot(res{j})
@@ -377,8 +385,15 @@ classdef twodancers_many_emily_multiple_regression
                title(['Experiment' num2str(j)])
                ylabel('Zscores')
            end
-            if ~verLessThan('matlab', '9.5') 
-                sgtitle(['Distribution statistics for synchrony estimates'])
+            if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
+                sgtitle(obj.currentPLotTitle)
+            end
+        end
+        function figure(obj)
+            if strcmpi(obj.plotTitleType,'figureName')
+                figure('name',obj.currentPLotTitle)
+            else
+                figure
             end
         end
     end
