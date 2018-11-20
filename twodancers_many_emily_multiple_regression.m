@@ -53,9 +53,9 @@ classdef twodancers_many_emily_multiple_regression
             if nargin == 1
                 excludevars = [];
             end
-            disp('DISTRIBUTION STATISTICS FOR INTERACTION ESTIMATES')
+            disp('DISTRIBUTION STATISTICS FOR SYNCHRONY ESTIMATES')
             obj = predictors_distribution(obj);
-            disp('CORRELATION BETWEEN INTERACTION ESTIMATES')
+            disp('CORRELATION BETWEEN SYNCHRONY ESTIMATES')
             obj = plot_correlation_between_vars(obj);
             disp('CORRELATION WITH PERCEPTUAL MEASURES')
             obj = plot_correlation_and_pooled_pvals_bars(obj);
@@ -153,7 +153,7 @@ classdef twodancers_many_emily_multiple_regression
             legend(obj.experimentNames);
             xticklabels(InterRHO.Row');
             ylabel('Correlation')
-            xlabel('Interaction estimate')
+            xlabel('Synchrony estimate')
             title('Interaction');
             ylim([0 1]);
             subplot(2,1,2);
@@ -164,11 +164,11 @@ classdef twodancers_many_emily_multiple_regression
             legend(obj.experimentNames);
             xticklabels(SimiRHO.Row');
             ylabel('Correlation')
-            xlabel('Interaction estimate')
+            xlabel('Synchrony estimate')
             title('Similarity');
             ylim([0 1]);
             if ~verLessThan('matlab', '9.5') 
-                sgtitle(['Partial correlations between interaction ' ...
+                sgtitle(['Partial correlations between synchrony ' ...
                          'estimates and perceptual measures'])
             end
 
@@ -193,7 +193,7 @@ classdef twodancers_many_emily_multiple_regression
                     b(k).FaceColor = colors(k,:);
                 end
                 xticklabels(obj.predictorNames');
-                xlabel('Interaction estimate');
+                xlabel('Synchrony estimate');
                 ylabel('Z-score');
                 title(names{j});
                 %                ylim([0 1]);
@@ -202,7 +202,7 @@ classdef twodancers_many_emily_multiple_regression
                 yline(twodancers_many_emily_multiple_regression.pval2zscore(.05),'--','p = .05');
             end
             if ~verLessThan('matlab', '9.5') 
-                sgtitle(['Pooled p-values from partial correlation between interaction ' ...
+                sgtitle(['Pooled p-values from partial correlation between synchrony ' ...
                          'estimates and perceptual measures'])
             end
         end
@@ -296,7 +296,7 @@ classdef twodancers_many_emily_multiple_regression
             end
             legend(obj.experimentNames);
             xticklabels(obj.InterTbl.Row');
-            xlabel('Interaction estimate');
+            xlabel('Synchrony estimate');
             ylabel('Correlation');
             title('Interaction');
             ylim([0 1]);
@@ -307,12 +307,12 @@ classdef twodancers_many_emily_multiple_regression
             end
             legend(obj.experimentNames);
             xticklabels(obj.SimiTbl.Row');
-            xlabel('Interaction estimate');
+            xlabel('Synchrony estimate');
             ylabel('Correlation');
             title('Similarity');
             ylim([0 1]);
             if ~verLessThan('matlab', '9.5') 
-                sgtitle(['Correlations between interaction ' ...
+                sgtitle(['Correlations between synchrony ' ...
                          'estimates and perceptual measures']);
             end
 
@@ -334,7 +334,7 @@ classdef twodancers_many_emily_multiple_regression
                     b(k).FaceColor = colors(k,:);
                 end
                 xticklabels(obj.predictorNames');
-                xlabel('Interaction estimate');
+                xlabel('Synchrony estimate');
                 ylabel('Z-score');
                 title(names{j});
                 %                ylim([0 1]);
@@ -343,7 +343,7 @@ classdef twodancers_many_emily_multiple_regression
                 yline(twodancers_many_emily_multiple_regression.pval2zscore(.05),'--','p = .05');
             end
             if ~verLessThan('matlab', '9.5') 
-                sgtitle(['Pooled p-values from correlation between interaction ' ...
+                sgtitle(['Pooled p-values from correlation between synchrony ' ...
                          'estimates and perceptual measures'])
             end
         end
