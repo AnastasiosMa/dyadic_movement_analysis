@@ -124,10 +124,14 @@ classdef twodancers_many_emily_multiple_regression
             figure
             for j = 1:numel(obj.CorrBetwVars.rho)
             subplot(1,2,j)
-            heatmap(obj.CorrBetwVars.rho{j}.Properties.VariableNames,obj.CorrBetwVars.rho{j}.Row,obj.CorrBetwVars.rho{j}.Variables);
+            heatmap(obj.CorrBetwVars.rho{j}.Row',obj.CorrBetwVars.rho{j}.Row,obj.CorrBetwVars.rho{j}.Variables);
             title(['Experiment ' num2str(j)]);
             disp(['Experiment ' num2str(j)]);
             disp(twodancers_many_emily.makestars(obj.CorrBetwVars.pval{j}));
+            end
+            if ~verLessThan('matlab', '9.5') 
+                sgtitle(['Correlation between synchrony ' ...
+                         'estimates'])
             end
         end
         function obj = plot_partial_correlation_and_pooled_pvals_bars(obj,excludevars)
