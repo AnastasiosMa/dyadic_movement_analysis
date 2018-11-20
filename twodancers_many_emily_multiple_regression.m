@@ -369,7 +369,7 @@ classdef twodancers_many_emily_multiple_regression
                t.Properties.RowNames = obj.DescriptiveStatsNames';
                disp(t)
            end
-           figure;
+           figure
            for j = 1:numel(obj.res(1).data) % each experiment
                subplot(2,1,j)
                boxplot(res{j})
@@ -377,6 +377,9 @@ classdef twodancers_many_emily_multiple_regression
                title(['Experiment' num2str(j)])
                ylabel('Zscores')
            end
+            if ~verLessThan('matlab', '9.5') 
+                sgtitle(['Distribution statistics for synchrony estimates'])
+            end
         end
     end
     methods (Static)
