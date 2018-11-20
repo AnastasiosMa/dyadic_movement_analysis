@@ -14,7 +14,7 @@ classdef twodancers < dancers
         TimeShift %= -2:.5:2; % leave empty for no time shifting, otherwise
                           % add a vector of shifts (in seconds) 
         Timeshifts_corr                  
-        WindowSteps = 20; % get a window every N steps. To get a regular
+        WindowSteps = 1; % get a window every N steps. To get a regular
                         % sliding window, set to 1
         Dancer1
         Dancer2
@@ -939,8 +939,8 @@ classdef twodancers < dancers
             %temp = twodancers.changepolarity(temp);
             DyadNum = length(obj.Res);
             DyadWin = size(temp,1)/DyadNum; %Number of Windows per Dyad
-            rawdata1 = temp(1:2:end,:); %Dancer1
-            rawdata2 = temp(2:2:end,:); %Dancer2
+            rawdata1 = temp(1:2:end,:); %Dancer1 loadings
+            rawdata2 = temp(2:2:end,:); %Dancer2 loadings
             rawdata1 = permute(reshape(rawdata1',size(rawdata1,2),DyadWin/2,DyadNum),[2,1,3]);
             rawdata2 = permute(reshape(rawdata2',size(rawdata2,2),DyadWin/2,DyadNum),[2,1,3]);
             %rawdata1 = mean(squeeze(mean(abs(rawdata1),1)),1); %Mean loadings across Windows
@@ -950,12 +950,11 @@ classdef twodancers < dancers
                 SummedVar(i)=abs(sum(PCExplainedVar(1:i))-90); 
             end
             PCNum = find(SummedVar==min(SummedVar));%find number of pc's for given variance threshold
-            PCLoads = PCLoads(:,1:PCNum);
-            %PCScores = abs(PCScores(:,1:PCNum)); %Select a 
+            %PCScores = abs(PCScores(:,1:PCNum)); %Select a number of PCs
             PCScores = abs(PCScores);
-            PCLabels = cellfun(@(x) ['PC' num2str(x)], sprintfc('%g',1:PCNum), 'UniformOutput', false);            
-            data1 = PCScores(1:2:end,:); 
-            data2 = PCScores(2:2:end,:); 
+            %PCLabels = cellfun(@(x) ['PC' num2str(x)], sprintfc('%g',1:PCNum), 'UniformOutput', false);            
+            data1 = PCScores(1:2:end,:); %Dancer 1 PCScores
+            data2 = PCScores(2:2:end,:); %Dancer 2 PCScores
             data1 = permute(reshape(data1',size(data1,2),DyadWin/2,DyadNum),[2,1,3]);
             data2 = permute(reshape(data2',size(data2,2),DyadWin/2,DyadNum),[2,1,3]);
             for k=1:DyadNum
@@ -964,7 +963,7 @@ classdef twodancers < dancers
                     %pdist_PC(k,i) = pdist2(data1(i,:,k),data2(i,:,k),'euclidean')/...
                         %mean(mean([abs(rawdata1(i,:,k));abs(rawdata2(i,:,k))]));
                      obj.Res(k).res.Corr.timescales(i) = 1-pdist2(data1(i,:,k),data2(i,:,k),'euclidean')/...
-                        norm(mean([abs(data1(i,:,k));abs(data2(i,:,k))]));  
+                        norm([abs(rawdata1(i,:,k));abs(rawdata2(i,:,k))]);  
                 end
             end
         end
