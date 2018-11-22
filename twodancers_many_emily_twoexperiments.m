@@ -9,7 +9,7 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
     methods
         function obj = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
         % Syntax e.g.:
-        % a = twodancers_many_emily_twoexperiments('Dataset1_24Dyads.mat','Dataset2_35Dyads',5,5,20,1,'global','noTDE','vel');
+        % a = twodancers_many_emily_twoexperiments('Dataset1_24Dyads.mat','Dataset2_35Dyads',[],0,20,1,'global','noTDE','vel');
             matnames = {Dataset1_24Dyads,Dataset2_35Dyads};
             data = cellfun(@(x) load(x),matnames,'UniformOutput',false);
             for k = 1:numel(matnames)
