@@ -935,11 +935,12 @@ classdef twodancers < dancers
             end
         end
         function obj = group_cluster_amplitude(obj)
-            data1 = obj.Dancer1.res.MocapStruct.data;
-            data2 = obj.Dancer2.res.MocapStruct.data;
+            data1 = obj.Dancer1.res.MocapStruct.data(:,3:3:end);
+            data2 = obj.Dancer2.res.MocapStruct.data(:,3:3:end);
             [GRPrhoM1 INDrhoM1 INDrpM1 TSrhoGRP1 TSrpIND1] = twodancers.ClusterPhase_do(data1);
-            [GRPrhoM2 INDrhoM2 INDrpM2 TSrhoGRP2 TSrpIND2] = twodancers.ClusterPhase_do(data2);
-            obj.Corr.timescales = corr(TSrhoGRP1,TSrhoGRP2);
+             [GRPrhoM2 INDrhoM2 INDrpM2 TSrhoGRP2 TSrpIND2] = twodancers.ClusterPhase_do(data2);
+             obj.Corr.timescales = corr(INDrhoM1,INDrhoM2);
+            
         end
         function obj = PC_scores_similarity(obj)
             temp = cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.Res,'UniformOutput',false)'); %store loadings 
@@ -1061,7 +1062,7 @@ classdef twodancers < dancers
            temp = reshape(temp',size(tempX,2),size(tempX,1)*2);
            out = temp';
         end
-        function [GRPrhoM INDrhoM INDrpM TSrhoGRP TSrpINDg] = ClusterPhase_do(ts_data)
+        function [GRPrhoM INDrhoM INDrpM TSrhoGRP TSrpIND] = ClusterPhase_do(ts_data)
         %--------------------------------------------------------------------------
         %--------------------------------------------------------------------------
         %   ClusterPhase_do.m
@@ -1187,7 +1188,6 @@ classdef twodancers < dancers
                     ztot=ztot+z; % sum result across time series for each time point
                 end
                 ztot=ztot/TSnumber; % divide by number of time series to get mean
-                TSrhoGRP_i(n) = imag(ztot);
                 TSrhoGRP(n)=abs(ztot); % get magnitude % (this could be used to correlate two dancers)
             end
             GRPrhoM = mean(TSrhoGRP); % get mean magnitude across time series        
