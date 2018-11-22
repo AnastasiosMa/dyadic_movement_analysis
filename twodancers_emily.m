@@ -63,6 +63,8 @@ classdef twodancers_emily < twodancers
                         obj = torso_orientation(obj);
                     elseif strcmpi(obj.Iso1Method,'KernelPLS')
                         obj = windowed_kernelpls(obj);
+                    elseif strcmpi(obj.Iso1Method,'groupClusterAmplitude')
+                        obj = group_cluster_amplitude(obj);
                     else
                         error('Select a method')
                     end

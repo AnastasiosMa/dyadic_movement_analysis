@@ -24,7 +24,7 @@ classdef twodancers < dancers
         %Dyad's interaction estimate across windows
         %First order isomorphism properties
         SelectIso1Method %= 'PdistPCScores'%'PdistPCScores'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation','KernelPLS'
-        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadings','PdistLoadingsPCA','PdistPCScores'(method used for first order isomorphism)        
+        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadings','PdistLoadingsPCA','PdistPCScores','groupClusterAmplitude'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
@@ -934,6 +934,13 @@ classdef twodancers < dancers
                 j=j+1;
             end
         end
+        function obj = group_cluster_amplitude(obj)
+            data1 = obj.Dancer1.res.MocapStruct.data;
+            data2 = obj.Dancer2.res.MocapStruct.data;
+            [GRPrhoM1 INDrhoM1 INDrpM1 TSrhoGRP1 TSrpIND1] = twodancers.ClusterPhase_do(data1);
+            [GRPrhoM2 INDrhoM2 INDrpM2 TSrhoGRP2 TSrpIND2] = twodancers.ClusterPhase_do(data2);
+            obj.Corr.timescales = corr(TSrhoGRP1,TSrhoGRP2);
+        end
         function obj = PC_scores_similarity(obj)
             temp = cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.Res,'UniformOutput',false)'); %store loadings 
             %temp = twodancers.changepolarity(temp);
@@ -1053,6 +1060,137 @@ classdef twodancers < dancers
            temp = [tempX tempY]; 
            temp = reshape(temp',size(tempX,2),size(tempX,1)*2);
            out = temp';
+        end
+        function [GRPrhoM INDrhoM INDrpM TSrhoGRP TSrpINDg] = ClusterPhase_do(ts_data)
+        %--------------------------------------------------------------------------
+        %--------------------------------------------------------------------------
+        %   ClusterPhase_do.m
+        %
+        %   [GRPrhoM INDrhoM INDrpM TSrhoGRP TSrpIND] = ClusterPhase_do(ts_data)
+        %
+        %   Output:
+        %       GRPrhoM        : mean group rho (0 to 1; 1 = perfect sync)
+        %       INDrhoM        : mean rho for each TS to group (0 to 1; 1 = perfect sync)
+        %       INDrpM         : mean Relative Phase for each TS to group cluster phase 
+        %       TSrhoGRP        : group rho time-series
+        %       TSrpIND         : relative phase time-series for each individual TS to cluster phase
+        %
+        %   Example:
+        %       [GRPrhoM INDrhoM INDrpM TSrhoGRP TSrpIND] = ClusterPhase_do('G201EO1.txt', 6, 1, 7200, 120, 1);
+        %
+        %   BY (2008):
+        %   Michael J Richardson (Univeristy of Cincinnati) & Till D. Frank (UCONN) 
+        %   
+        %   UPDATED (2011):
+        %   Michael J Richardson (Univeristy of Cincinnati)
+        %
+        %   References:
+        %   [1]  Frank, T. D., & Richardson, M. J. (2010). On a test statistic for 
+        %        the Kuramoto order parameter of synchronization: with an illustration 
+        %        for group synchronization during rocking chairs.
+        %
+        %   [2]  Richardson,M.J., Garcia, R., Frank, T. D., Gregor, M., & 
+        %        Marsh,K. L. (2010). Measuring Group Synchrony: A Cluster-Phase Method 
+        %        for Analyzing Multivariate Movement Time-Series 
+        %
+        %   Code Contact & References:
+        %        michael.richardson@uc.edu
+        %        http://homepages.uc.edu/~richamo/
+        %--------------------------------------------------------------------------
+        %--------------------------------------------------------------------------
+
+        %% load time-series (TS)
+        %**************************************************************************
+
+
+            TSlength = length(ts_data(:,1));
+            TSnumber = size(ts_data,2);
+            %normlaize data
+            for nts=1:TSnumber
+                ts_data(:,nts) = zscore(ts_data(:,nts));
+            end
+
+            %% Compute phase for each TS using Hilbert transform
+            %**************************************************************************
+            TSphase = zeros(TSlength-1,TSnumber);
+            for k=1:TSnumber
+                hrp = hilbert(ts_data(:,k));
+                for n=1:TSlength-1
+                    TSphase(n,k)=atan2(real(hrp(n)),imag(hrp(n)));
+                end
+            end
+            TSphase=unwrap(TSphase);
+
+            %% Compute mean running (Cluster) phase
+            %**************************************************************************
+            clusterphase = zeros(1,TSlength-1);
+            for n=1:TSlength-1
+                ztot=complex(0,0);
+                for k=1:TSnumber
+                    z=exp(1i*TSphase(n,k)); % from radians to complex
+                    ztot=ztot+z; % sum phases across time series for a given time point
+                end
+                ztot=ztot/TSnumber; % normalize by number of time series to get mean
+                clusterphase(n)=angle(ztot); % get sum of instantaneous phase
+                                             % angles (in rad) for each time point
+            end
+            clusterphase = unwrap(clusterphase); % (this could be used to correlate two dancers)
+                                                 % why do you have to remove the last point of the time series?
+
+            %% Compute relative phases between phase of TS and cluster phase
+            %**************************************************************************
+            TSrpIND=zeros(TSlength-1,TSnumber);
+            INDrpM = zeros(TSnumber,1);
+            INDrhoM = zeros(TSnumber,1);
+            for k=1:TSnumber
+                ztot=complex(0,0);
+                for n=1:TSlength-1
+                    z=exp(1i*(TSphase(n,k)-clusterphase(n))); % subtract
+                                                              % clusterphase
+                                                              % from the instantaneous phase
+                                                              % of each time
+                                                              % series, convert
+                                                              % radian to
+                                                              % complex
+                    TSrpIND(n,k) = z;
+                    ztot=ztot+z; % sum phases across time points for a given
+                                 % time series 
+                end
+                TSrpIND(:,k) = angle(TSrpIND(:,k))*360/(2*pi); % convert complex to degrees
+                ztot=ztot/(TSlength-1); % normalize by N to get mean
+                INDrpM(k) = angle(ztot); % direction of sum of phases across
+                                         % time points (not sure
+                                         % what it tells me in real life)
+                INDrhoM(k) = abs(ztot); % magnitude of sum of phases, should be
+                                        % higher the closer the phases are to
+                                        % one another
+            end
+            TSRPM = INDrpM;
+            INDrpM = (INDrpM(:,1)./(2*pi)*360); % convert radian to degrees
+                                                %disp(' ');
+            %disp('Mean relative phases of individuals to cluster phase (in deg)')
+            %disp(INDrpM');
+            %disp('Averaged degree of synchronization of individuals (Rho = 1-circular variance)')
+            %disp(INDrhoM');
+
+
+            %% Compute cluster amplitude rhotot in rotation frame
+            %**************************************************************************
+            TSrhoGRP=zeros(TSlength-1,1);
+            for n=1:TSlength-1
+                ztot=complex(0,0);
+                for k=1:TSnumber
+                    z=exp(1i*(TSphase(n,k)-clusterphase(n)-TSRPM(k)));
+                    % for each instantaneous phase, remove clusterphase for
+                    % that time point and
+                    % mean relative phase to group cluster phase
+                    ztot=ztot+z; % sum result across time series for each time point
+                end
+                ztot=ztot/TSnumber; % divide by number of time series to get mean
+                TSrhoGRP_i(n) = imag(ztot);
+                TSrhoGRP(n)=abs(ztot); % get magnitude % (this could be used to correlate two dancers)
+            end
+            GRPrhoM = mean(TSrhoGRP); % get mean magnitude across time series        
         end
     end
 end
