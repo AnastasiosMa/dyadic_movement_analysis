@@ -20,6 +20,7 @@ classdef twodancers_many_emily_multiple_regression
                                   % 'figureName': sets title as the figure name
                                   % 'subplotGrid': sets title as subplot grid title
                                   % If this property is empty, it does not set any title
+        JBtest                          
     end
     properties (Hidden)
         currentPLotTitle
@@ -362,6 +363,7 @@ classdef twodancers_many_emily_multiple_regression
            for j = 1:numel(obj.res(1).data) % each experiment
            for k = 1:numel(obj.res) % each approach 
                res{j}(:,k) = zscore(arrayfun(@(x) x.res.Corr.Estimates,obj.res(k).data(j).Res)');
+               obj.JBtest(j,k) = jbtest(res{j}(:,k)); %Jarque-Bera normality test 
            end
            end
            obj.DescriptiveStatsNames = {'Median','Kurtosis','Skewness'};
