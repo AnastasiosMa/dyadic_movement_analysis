@@ -937,10 +937,16 @@ classdef twodancers < dancers
         function obj = group_cluster_amplitude(obj)
             data1 = obj.Dancer1.res.MocapStruct.data(:,3:3:end);
             data2 = obj.Dancer2.res.MocapStruct.data(:,3:3:end);
-            [GRPrhoM1 INDrhoM1 INDrpM1 TSrhoGRP1 TSrpIND1] = twodancers.ClusterPhase_do(data1);
-             [GRPrhoM2 INDrhoM2 INDrpM2 TSrhoGRP2 TSrpIND2] = twodancers.ClusterPhase_do(data2);
-             obj.Corr.timescales = corr(INDrhoM1,INDrhoM2);
             
+            % if you want to plot figures use e.g. this:
+             % markernames = obj.Dancer1.res.MocapStruct.markerName(1:20);
+             %[GRPrhoM1 INDrhoM1 INDrpM1 TSrhoGRP1 TSrpIND1] = twodancers.ClusterPhase_do(data1,markernames,obj.SampleRate);
+             % [GRPrhoM2 INDrhoM2 INDrpM2 TSrhoGRP2 TSrpIND2] = twodancers.ClusterPhase_do(data2,markernames,obj.SampleRate);
+
+            [GRPrhoM1 INDrhoM1 INDrpM1 TSrhoGRP1 TSrpIND1] = twodancers.ClusterPhase_do(data1);
+            [GRPrhoM2 INDrhoM2 INDrpM2 TSrhoGRP2 TSrpIND2] = twodancers.ClusterPhase_do(data2);
+            obj.Corr.timescales = corr(INDrhoM1,INDrhoM2);
+            keyboard
         end
         function obj = PC_scores_similarity(obj)
             temp = cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.Res,'UniformOutput',false)'); %store loadings 
@@ -1062,7 +1068,8 @@ classdef twodancers < dancers
            temp = reshape(temp',size(tempX,2),size(tempX,1)*2);
            out = temp';
         end
-        function [GRPrhoM INDrhoM INDrpM TSrhoGRP TSrpIND] = ClusterPhase_do(ts_data)
+        function [GRPrhoM INDrhoM INDrpM TSrhoGRP TSrpIND] = ...
+                ClusterPhase_do(ts_data,markernames,samplerate)
         %--------------------------------------------------------------------------
         %--------------------------------------------------------------------------
         %   ClusterPhase_do.m
@@ -1100,15 +1107,34 @@ classdef twodancers < dancers
         %--------------------------------------------------------------------------
         %--------------------------------------------------------------------------
 
+        if nargin == 3
+            doplot = 1;
+        else
+            doplot = 0;
+        end
         %% load time-series (TS)
         %**************************************************************************
 
 
             TSlength = length(ts_data(:,1));
             TSnumber = size(ts_data,2);
+
+            if doplot
+            delta_t = 1/samplerate;
+            t = (1:TSlength)*delta_t;
+            end
+
             %normlaize data
             for nts=1:TSnumber
                 ts_data(:,nts) = zscore(ts_data(:,nts));
+            end
+
+            if doplot 
+            figure
+            sp = stackedplot(t,ts_data);
+            sp.DisplayLabels = markernames;
+            sp.XLabel = 'Time (s)';
+            title('Normalized Velocity, vertical component')
             end
 
             %% Compute phase for each TS using Hilbert transform
@@ -1120,6 +1146,16 @@ classdef twodancers < dancers
                     TSphase(n,k)=atan2(real(hrp(n)),imag(hrp(n)));
                 end
             end
+
+            if doplot
+            t = t(1:end-1);
+            figure
+            sp = stackedplot(t,TSphase);
+            sp.DisplayLabels = markernames;
+            sp.XLabel = 'Time (s)';
+            title('Instantaneous phase angle')
+            end
+
             TSphase=unwrap(TSphase);
 
             %% Compute mean running (Cluster) phase
@@ -1135,6 +1171,14 @@ classdef twodancers < dancers
                 clusterphase(n)=angle(ztot); % get sum of instantaneous phase
                                              % angles (in rad) for each time point
             end
+
+            if doplot
+            figure
+            plot(t,clusterphase)
+            title('Cluster instantaneous phase angle')
+            xlabel('Time (s)')
+            end
+
             clusterphase = unwrap(clusterphase); % (this could be used to correlate two dancers)
                                                  % why do you have to remove the last point of the time series?
 
@@ -1157,7 +1201,8 @@ classdef twodancers < dancers
                     ztot=ztot+z; % sum phases across time points for a given
                                  % time series 
                 end
-                TSrpIND(:,k) = angle(TSrpIND(:,k))*360/(2*pi); % convert complex to degrees
+
+            %TSrpIND(:,k) = angle(TSrpIND(:,k))*360/(2*pi); % convert complex to degrees
                 ztot=ztot/(TSlength-1); % normalize by N to get mean
                 INDrpM(k) = angle(ztot); % direction of sum of phases across
                                          % time points (not sure
@@ -1166,6 +1211,25 @@ classdef twodancers < dancers
                                         % higher the closer the phases are to
                                         % one another
             end
+
+            if doplot
+            figure
+            sp = stackedplot(t,TSrpIND);
+            sp.DisplayLabels = strcat(markernames',{' ('}, num2str(INDrhoM),{')'});
+            sp.XLabel = 'Time (s)';
+            title(['Instantaneous phase in the complex plane after cluster phase ' ...
+                   'substraction; magnitude of sum of phases '])
+
+            figure
+            [S I] = sort(INDrhoM,'Descend');
+            sp = stackedplot(t,TSrpIND(:,I'));
+            sp.DisplayLabels = strcat(markernames(I)',{' ('}, num2str(S),{')'});
+            sp.XLabel = 'Time (s)';
+            title(['Instantaneous phase in the complex plane after cluster phase ' ...
+                   'substraction, sorted based on magnitude of sum ' ...
+                   'of phases'])
+            end
+
             TSRPM = INDrpM;
             INDrpM = (INDrpM(:,1)./(2*pi)*360); % convert radian to degrees
                                                 %disp(' ');
