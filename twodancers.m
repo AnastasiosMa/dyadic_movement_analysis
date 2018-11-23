@@ -946,7 +946,6 @@ classdef twodancers < dancers
             [GRPrhoM1 INDrhoM1 INDrpM1 TSrhoGRP1 TSrpIND1] = twodancers.ClusterPhase_do(data1);
             [GRPrhoM2 INDrhoM2 INDrpM2 TSrhoGRP2 TSrpIND2] = twodancers.ClusterPhase_do(data2);
             obj.Corr.timescales = corr(INDrhoM1,INDrhoM2);
-            keyboard
         end
         function obj = PC_scores_similarity(obj)
             temp = cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.Res,'UniformOutput',false)'); %store loadings 
