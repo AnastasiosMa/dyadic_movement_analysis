@@ -382,8 +382,8 @@ classdef twodancers_many_emily_multiple_regression
            figure(obj)
            for j = 1:numel(obj.res(1).data) % each experiment
                subplot(2,1,j)
-               boxplot(res{j})
-               set(gca,'XTick',1:3,'XTickLabels',obj.predictorNames)
+               boxplot([res{j} zscore(obj.res(1).data(1,j).MeanRatedInteraction) zscore(obj.res(1).data(1,j).MeanRatedSimilarity)])
+               set(gca,'XTick',1:5,'XTickLabels',[obj.predictorNames {'Rated Interaction','Rated Similarity'}])
                title(['Experiment' num2str(j)])
                ylabel('Zscores')
            end
