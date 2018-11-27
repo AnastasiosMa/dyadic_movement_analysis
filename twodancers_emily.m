@@ -65,6 +65,8 @@ classdef twodancers_emily < twodancers
                         obj = windowed_kernelpls(obj);
                     elseif strcmpi(obj.Iso1Method,'groupClusterAmplitude')
                         obj = group_cluster_amplitude(obj);
+                    elseif strcmpi(obj.Iso1Method,'latentSyncOptimTemporalCoupling')
+                        obj = latent_sync_optim_temporal_coupling(obj);
                     else
                         error('Select a method')
                     end

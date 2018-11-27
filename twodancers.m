@@ -24,10 +24,11 @@ classdef twodancers < dancers
         %Dyad's interaction estimate across windows
         %First order isomorphism properties
         SelectIso1Method %= 'PdistPCScores'%'PdistPCScores'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation','KernelPLS'
-        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadings','PdistLoadingsPCA','PdistPCScores','groupClusterAmplitude'(method used for first order isomorphism)        
+        %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadings','PdistLoadingsPCA','PdistPCScores','groupClusterAmplitude','latentSyncOptimTemporalCoupling'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
         PLSloadings % PLS predictor loadings of participants
+        InputWindows;
         EigenNum = 5;
         ChoosePLScomp %= 3; %Choose which of the PLS components to include in the analysis
         SelectPLScomp %= 2;
@@ -218,7 +219,7 @@ classdef twodancers < dancers
                         [~,~,XSinv,YSinv] = plsregress(aw2,aw1,obj.PLScomp); %inverted
                         obj.Corr.timescalesdef(j,k) = corr(XSdef,YSdef); 
                         obj.Corr.timescalesinv(j,k) = corr(XSinv,YSinv);
-                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues','PdistLoadings','PdistPCScores'}))
+                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues','PdistLoadings','PdistPCScores','latentSyncOptimTemporalCoupling'}))
                         if isempty(obj.PLScomp) % if number of PLS components
                                                 % is not specified
                             [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,size(aw1,2)); ...
@@ -234,8 +235,17 @@ classdef twodancers < dancers
                         else
                             [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,obj.PLScomp); %Compute SYMMETRICAL PLS
                         end
-
-                        if strcmpi(obj.GetPLSCluster,'Yes')|| strcmpi(obj.Iso1Method,'PdistPCScores')
+                        if strcmpi(obj.Iso1Method,'latentSyncOptimTemporalCoupling')
+                            obj.InputWindows{g,j}{1} = aw1;
+                            obj.InputWindows{g,j}{2} = aw2;
+                            obj.PLSloadings{g,j}{1} = XL;
+                            obj.PLSloadings{g,j}{2} = YL;
+                            obj.PLSScores{g,j}{1} = XS;
+                            obj.PLSScores{g,j}{2} = YS;
+                        end
+                        if (strcmpi(obj.GetPLSCluster,'Yes')|| ...
+                            strcmpi(obj.Iso1Method,'PdistPCScores')) ...
+                                && ~strcmpi(obj.Iso1Method,'latentSyncOptimTemporalCoupling')
                             obj.PLSloadings = [obj.PLSloadings;XL(:)';YL(:)'];
                         elseif strcmpi(obj.GetPLSCluster,'YesDyad')
                            obj.PLSloadings = [obj.PLSloadings; [((XL)+(YL))/2]'];
@@ -629,6 +639,42 @@ classdef twodancers < dancers
             ylabel('Dancer 1')
             xlabel('Dancer 2')
         end
+        function obj = latent_sync_optim_temporal_coupling(obj)
+            obj = windowed_pls(obj);
+            for g = 1:size(obj.PLSloadings,1)
+                for j = 1:size(obj.PLSloadings,2)
+                    L1 = obj.PLSloadings{g,j}{1};
+                    L2 = obj.PLSloadings{g,j}{2};
+                    X{1} = obj.PLSScores{g,j}{1};
+                    X{2} = obj.PLSScores{g,j}{2};
+                    aw{1} = obj.InputWindows{g,j}{1};
+                    aw{2} = obj.InputWindows{g,j}{2};
+                    NRUNS=1; % make several runs to to find the best local minimum (or even the global, if lucky)
+                    fun = @(x)twodancers.latentspacephasesync(x,X);
+                    options = optimset('TolX',1e-2,'TolFun',1e-2);
+                    %options = optimset('Display','iter','PlotFcns',@optimplotfval,'TolX',1e-2,'TolFun',1e-2);
+                    %options = optimset('Display','iter','PlotFcns',@optimplotfval);
+                    minfval=0;
+                    for k=1:NRUNS
+                        p0=randn(size(X{1},2));
+                        [pop fval]=fminsearch(fun,p0,options);
+                        if fval<minfval,minfval=fval;popt=pop;end
+                    end
+
+                    p1=popt(:,1);
+                    p2=popt(:,2);
+                    p1=p1/norm(p1);
+                    p2=p2/norm(p2);
+                    aw{1}=aw{1}-mean(aw{1}); %standardize
+                    aw{2}=aw{2}-mean(aw{2}); %standardize
+                    newL1 = L1*p1;
+                    newL2 = L2*p2;
+                    XS=aw{1}*newL1;
+                    YS=aw{2}*newL2;
+                    obj.Corr.timescales(g,k) = corr(XS,YS);
+                end
+            end
+        end
         % SECOND ORDER ISOMORPHISM
         
         function plotssm(obj)
@@ -1009,6 +1055,26 @@ classdef twodancers < dancers
         end
     end
     methods (Static)
+        function op = latentspacephasesync(p,X)
+        % projection vectors
+            p1=p(:,1); p1=p1/norm(p1);
+            p2=p(:,2); p2=p2/norm(p2);
+
+            % data matrices
+            X1=X{1};
+            X2=X{2};
+
+            % projection
+            s1=X1*p1;
+            s2=X2*p2;
+
+            % phases
+            a1=angle(hilbert(s1));
+            a2=angle(hilbert(s2));
+
+            % order parameter
+            op=-mean(abs((exp(i*a1)+exp(i*a2))/2));
+        end
         function f = objectivefcn_mutinfo(x)
             global aw1_SPAkXLhcxWk aw2_SPAkXLhcxWk
             X = aw1_SPAkXLhcxWk;
