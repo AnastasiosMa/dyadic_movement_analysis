@@ -12,7 +12,7 @@ classdef twodancers_many_emily < twodancers_emily
         % Syntax e.g.:
         % load('mcdemodata','m2jpar')
         % load('EPdyads_ratings.mat')
-        % a = twodancers_many_emily(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,5,5,20,1,'global','noTDE','vel');
+        % a = twodancers_many_emily(STIMULI,meanRatedInteraction,meanRatedSimilarity,m2jpar,[],0,20,1,'global','noTDE','vel');
             if nargin == 0
                 mocap_array = [];
                 m2jpar = [];
