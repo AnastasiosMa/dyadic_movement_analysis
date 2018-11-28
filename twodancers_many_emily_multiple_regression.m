@@ -169,6 +169,8 @@ classdef twodancers_many_emily_multiple_regression
             xlabel('Synchrony estimate')
             title('Interaction');
             ylim([0 1]);
+            pdata = InterPVAL.Variables';
+            twodancers_many_emily_multiple_regression.addstarstobar(b,pdata);
             subplot(2,1,2);
             b = bar(SimiRHO.Variables);
             for k = 1:size(InterRHO.Variables,2)
@@ -180,6 +182,8 @@ classdef twodancers_many_emily_multiple_regression
             xlabel('Synchrony estimate')
             title('Similarity');
             ylim([0 1]);
+            pdata = SimiPVAL.Variables';
+            twodancers_many_emily_multiple_regression.addstarstobar(b,pdata);
             if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
                 sgtitle(obj.currentPLotTitle)
             end
@@ -300,6 +304,16 @@ classdef twodancers_many_emily_multiple_regression
             disp(obj.InterTbl)
             disp(obj.SimiTbl)
             obj.currentPLotTitle = 'Correlations between synchrony estimates and perceptual measures';
+
+
+            for j = 1:numel(obj.res) % each feature
+                for k = 1:numel(obj.res(1).data) % each experiment
+                    InterP(j,k)= cell2mat(obj.res(j).data(k).CorrTablePVAL{:,1});
+                    SimiP(j,k)= cell2mat(obj.res(j).data(k).CorrTablePVAL{:,2});
+                end
+            end
+
+
             figure(obj)
             subplot(2,1,1)
             colors = extras.brewermap(numel(obj.experimentNames),'Blues');
@@ -313,6 +327,8 @@ classdef twodancers_many_emily_multiple_regression
             ylabel('Correlation');
             title('Interaction');
             ylim([0 1]);
+            pdata = InterP';
+            twodancers_many_emily_multiple_regression.addstarstobar(b,pdata);
             subplot(2,1,2);
             b = bar(Simi);
             for k = 1:size(Simi,2)
@@ -324,17 +340,15 @@ classdef twodancers_many_emily_multiple_regression
             ylabel('Correlation');
             title('Similarity');
             ylim([0 1]);
+            pdata = SimiP';
+            twodancers_many_emily_multiple_regression.addstarstobar(b,pdata);
             if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
                 sgtitle(obj.currentPLotTitle)
             end
-            for j = 1:numel(obj.res) % each feature
-                for k = 1:numel(obj.res(1).data) % each experiment
-                    Inter(j,k)= cell2mat(obj.res(j).data(k).CorrTablePVAL{:,1});
-                    Simi(j,k)= cell2mat(obj.res(j).data(k).CorrTablePVAL{:,2});
-                end
-            end
-            pooled_Z.Interaction = twodancers_many_emily_multiple_regression.pool_p_vals(Inter);
-            pooled_Z.Similarity = twodancers_many_emily_multiple_regression.pool_p_vals(Simi);
+
+
+            pooled_Z.Interaction = twodancers_many_emily_multiple_regression.pool_p_vals(InterP);
+            pooled_Z.Similarity = twodancers_many_emily_multiple_regression.pool_p_vals(SimiP);
                 obj.currentPLotTitle = ['Pooled p-values from correlation between synchrony estimates ' ...
                  'and perceptual measures'];
             figure(obj)
@@ -400,6 +414,13 @@ classdef twodancers_many_emily_multiple_regression
         end
     end
     methods (Static)
+        function addstarstobar(b,pdata)
+            yb = cat(1, b.YData);
+            xb = bsxfun(@plus, b(1).XData, [b.XOffset]');
+            hold on;
+            padval = 0;
+            htxt = text(xb(:),yb(:)-padval, twodancers_many_emily.makestars(pdata(:))','horiz','center','FontSize',20)
+        end
         function Z = pval2zscore(p)
             Z = norminv(1-p); % Transform p-values to Z-scores
         end
