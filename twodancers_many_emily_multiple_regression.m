@@ -175,8 +175,8 @@ classdef twodancers_many_emily_multiple_regression
             xlabel('Synchrony estimate')
             title('Interaction');
             ylim([0 1]);
-            pdata = InterPVAL.Variables';
-            twodancers_many_emily_multiple_regression.addstarstobar(b,pdata);
+            pdata = repmat(twodancers_many_emily.pool_p_vals(InterPVAL.Variables)',2,1);
+            twodancers_many_emily.addstarstobar(b,twodancers_many_emily.zscore2pval(pdata));
             subplot(2,1,2);
             b = bar(SimiRHO.Variables);
             for k = 1:size(InterRHO.Variables,2)
@@ -188,21 +188,21 @@ classdef twodancers_many_emily_multiple_regression
             xlabel('Synchrony estimate')
             title('Similarity');
             ylim([0 1]);
-            pdata = SimiPVAL.Variables';
-            twodancers_many_emily_multiple_regression.addstarstobar(b,pdata);
+            pdata = repmat(twodancers_many_emily.pool_p_vals(SimiPVAL.Variables)',2,1);
+            twodancers_many_emily.addstarstobar(b,twodancers_many_emily.zscore2pval(pdata));
             if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
                 sgtitle(obj.currentPLotTitle)
             end
                
             %[PVAL_corrected.Inter.h, PVAL_corrected.Inter.crit_p, PVAL_corrected.Inter.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(InterPVAL.Variables);
             %[PVAL_corrected.Simi.h, PVAL_corrected.Simi.crit_p, PVAL_corrected.Simi.adj_p] = twodancers_many_emily_multiple_regression.fdr_bh(SimiPVAL.Variables);
-            disp('Interaction p-values (Benjamini-Hochberg)')
+            disp('Interaction p-values')
             disp(twodancers_many_emily.makestars(InterPVAL.Variables))
-            disp('Similarity p-values (Benjamini-Hochberg)')
+            disp('Similarity p-values')
             disp(twodancers_many_emily.makestars(SimiPVAL.Variables))
 
-            pooled_Z.Interaction = twodancers_many_emily_multiple_regression.pool_p_vals(InterPVAL.Variables);
-            pooled_Z.Similarity = twodancers_many_emily_multiple_regression.pool_p_vals(SimiPVAL.Variables);
+            pooled_Z.Interaction = twodancers_many_emily.pool_p_vals(InterPVAL.Variables);
+            pooled_Z.Similarity = twodancers_many_emily.pool_p_vals(SimiPVAL.Variables);
                 obj.currentPLotTitle = ['Pooled p-values from partial ' ...
                                     'correlation between synchrony estimates and perceptual measures'];
             figure(obj)
@@ -219,9 +219,9 @@ classdef twodancers_many_emily_multiple_regression
                 ylabel('Z-score');
                 title(names{j});
                 %                ylim([0 1]);
-                yline(twodancers_many_emily_multiple_regression.pval2zscore(.001),'--','p = .001');
-                yline(twodancers_many_emily_multiple_regression.pval2zscore(.01),'--','p = .01');
-                yline(twodancers_many_emily_multiple_regression.pval2zscore(.05),'--','p = .05');
+                yline(twodancers_many_emily.pval2zscore(.001),'--','p = .001');
+                yline(twodancers_many_emily.pval2zscore(.01),'--','p = .01');
+                yline(twodancers_many_emily.pval2zscore(.05),'--','p = .05');
             end
             if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
                 sgtitle(obj.currentPLotTitle)
@@ -333,8 +333,8 @@ classdef twodancers_many_emily_multiple_regression
             ylabel('Correlation');
             title('Interaction');
             ylim([0 1]);
-            pdata = InterP';
-            twodancers_many_emily_multiple_regression.addstarstobar(b,pdata);
+            pdata = repmat(twodancers_many_emily.pool_p_vals(InterP)',2,1);
+            twodancers_many_emily.addstarstobar(b,twodancers_many_emily.zscore2pval(pdata));
             subplot(2,1,2);
             b = bar(Simi);
             for k = 1:size(Simi,2)
@@ -346,15 +346,15 @@ classdef twodancers_many_emily_multiple_regression
             ylabel('Correlation');
             title('Similarity');
             ylim([0 1]);
-            pdata = SimiP';
-            twodancers_many_emily_multiple_regression.addstarstobar(b,pdata);
+            pdata = repmat(twodancers_many_emily.pool_p_vals(SimiP)',2,1);
+            twodancers_many_emily.addstarstobar(b,twodancers_many_emily.zscore2pval(pdata));
             if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
                 sgtitle(obj.currentPLotTitle)
             end
 
 
-            pooled_Z.Interaction = twodancers_many_emily_multiple_regression.pool_p_vals(InterP);
-            pooled_Z.Similarity = twodancers_many_emily_multiple_regression.pool_p_vals(SimiP);
+            pooled_Z.Interaction = twodancers_many_emily.pool_p_vals(InterP);
+            pooled_Z.Similarity = twodancers_many_emily.pool_p_vals(SimiP);
                 obj.currentPLotTitle = ['Pooled p-values from correlation between synchrony estimates ' ...
                  'and perceptual measures'];
             figure(obj)
@@ -371,9 +371,9 @@ classdef twodancers_many_emily_multiple_regression
                 ylabel('Z-score');
                 title(names{j});
                 %                ylim([0 1]);
-                yline(twodancers_many_emily_multiple_regression.pval2zscore(.001),'--','p = .001');
-                yline(twodancers_many_emily_multiple_regression.pval2zscore(.01),'--','p = .01');
-                yline(twodancers_many_emily_multiple_regression.pval2zscore(.05),'--','p = .05');
+                yline(twodancers_many_emily.pval2zscore(.001),'--','p = .001');
+                yline(twodancers_many_emily.pval2zscore(.01),'--','p = .01');
+                yline(twodancers_many_emily.pval2zscore(.05),'--','p = .05');
             end
             if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
                 sgtitle(obj.currentPLotTitle)
@@ -420,27 +420,6 @@ classdef twodancers_many_emily_multiple_regression
         end
     end
     methods (Static)
-        function addstarstobar(b,pdata)
-            yb = cat(1, b.YData);
-            xb = bsxfun(@plus, b(1).XData, [b.XOffset]');
-            hold on;
-            padval = 0;
-            htxt = text(xb(:),yb(:)-padval, twodancers_many_emily.makestars(pdata(:))','horiz','center','FontSize',20)
-        end
-        function Z = pval2zscore(p)
-            Z = norminv(1-p); % Transform p-values to Z-scores
-        end
-        function [Z P] = pool_p_vals(pmat)
-        % INPUT: 
-        % PMAT: A matrix of p-values, where each column represents an experiment
-        % OUTPUTS: 
-        % Z: column vector of pooled p-values as Z-scores
-        % P: column vector of pooled p-values
-            n = size(pmat,2);
-            Z = twodancers_many_emily_multiple_regression.pval2zscore(pmat);
-            Z = sum(Z,2)/sqrt(n); % Stouffer's Z-score method
-            P = 1-normcdf(Z);
-        end
         % fdr_bh() - Executes the Benjamini & Hochberg (1995) and the Benjamini &
         %            Yekutieli (2001) procedure for controlling the false discovery 
         %            rate (FDR) of a family of hypothesis tests. FDR is the expected
