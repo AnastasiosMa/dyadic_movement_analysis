@@ -178,43 +178,77 @@ classdef twodancers_many_emily < twodancers_emily
             colorbar
             title('Standard deviation of Symmetric PLS score correlation across dancers')
         end
-        function plotcorr(obj)
+        function plotcorr(obj,flag)
         % Scatter plots to show correlation with perceptual measures. works only if you have computed results for one time scale
+        % if 'empathy' is used as second argument, it will color
+        % the dots based on empathy groups (HH,HL,LL). 
+
+            if nargin > 1 && strcmpi(flag,'empathy')
+                empathy = 1;
+            end
             NumTimeScales = numel(obj.Res(1).res.WindowLengths);
+            if NumTimeScales == 0
+                NumTimeScales = 1;
+            end
             for j = 1:NumTimeScales
-            TimeScalesUsed(j) = obj.Res(1).res.WindowLengths(j)/obj.SampleRate;
-            y = arrayfun(@(x) x.res.Corr.Estimates(j),obj.Res)';
-            xSimi = obj.MeanRatedSimilarity;           
-            xInt = obj.MeanRatedInteraction;           
-            figure
-            subplot(2,2,1);
-            scatter(xSimi,y);
-            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),TimeScalesUsed(j)));
-            xlabel('Mean Rated Similarity');
-            ylabel('Prediction');
-            subplot(2,2,2);
-            scatter(xInt,y);
-            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),TimeScalesUsed(j)));
-            xlabel('Mean Rated Interaction');
-            ylabel('Prediction');
-            subplot(2,2,3);
-            % just look at indices for Similarity
-            axis([min(xSimi)-1, max(xSimi)+1, min(y)-.01, max(y)+.01]);
-            for k=1:length(xSimi)
-                text(xSimi(k),y(k),num2str(k));
-            end
-            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),TimeScalesUsed(j)));
-            xlabel('Mean Rated Similarity');
-            ylabel('Prediction');
-            subplot(2,2,4);
-            % just look at indices for Interaction
-            axis([min(xInt)-1, max(xInt)+1, min(y)-.01, max(y)+.01]);
-            for k=1:length(xInt)
-                text(xInt(k),y(k),num2str(k));
-            end
-            title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),TimeScalesUsed(j)));
-            xlabel('Mean Rated Interaction');
-            ylabel('Prediction');
+                if isempty(obj.Res(1).res.WindowLengths)
+                    TimeScalesUsed(j) = obj.SelectSingleTimeScale/obj.SampleRate;
+                else
+                    TimeScalesUsed(j) = obj.Res(1).res.WindowLengths(j)/obj.SampleRate;
+                end
+                y = arrayfun(@(x) x.res.Corr.Estimates(j),obj.Res)';
+                xSimi = obj.MeanRatedSimilarity;           
+                xInt = obj.MeanRatedInteraction;           
+                figure
+                subplot(2,2,1);
+                scatter(xSimi,y);
+                title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),TimeScalesUsed(j)));
+                xlabel('Mean Rated Similarity');
+                ylabel('Prediction');
+                subplot(2,2,2);
+                scatter(xInt,y);
+                title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),TimeScalesUsed(j)));
+                xlabel('Mean Rated Interaction');
+                ylabel('Prediction');
+                subplot(2,2,3);
+                % just look at indices for Similarity
+                axis([min(xSimi)-1, max(xSimi)+1, min(y)-.01, max(y)+.01]);
+                for k=1:length(xSimi)
+                    t = text(xSimi(k),y(k),num2str(k));
+                    if exist('empathy','var')
+                        groupsize = length(xSimi)/3;
+                        if k >= 1 && k <= groupsize
+                            t.Color = 'r'; % H-H
+                        elseif k >= groupsize+1 && k <= groupsize*2
+                            t.Color = 'c'; % H-L
+                        elseif k >= groupsize*2+1 && k <= length(xSimi)
+                            t.Color = 'b'; % L-L
+                        end
+                        annotation('textbox',[.48 0 0 0.15],'String',{'\color{red} H-H','\color{cyan} H-L','\color{blue} L-L'},'FitBoxToText','on');
+                    end
+                end
+                title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.SimiVsMeanCorr.RHO(j),TimeScalesUsed(j)));
+                xlabel('Mean Rated Similarity');
+                ylabel('Prediction');
+                subplot(2,2,4);
+                % just look at indices for Interaction
+                axis([min(xInt)-1, max(xInt)+1, min(y)-.01, max(y)+.01]);
+                for k=1:length(xInt)
+                    t = text(xInt(k),y(k),num2str(k));
+                    if exist('empathy','var')
+                        groupsize = length(xInt)/3;
+                        if k >= 1 && k <= groupsize
+                            t.Color = 'r'; % H-H
+                        elseif k >= groupsize+1 && k <= groupsize*2
+                            t.Color = 'c'; % H-L
+                        elseif k >= groupsize*2+1 && k <= length(xInt)
+                            t.Color = 'b'; % L-L
+                        end
+                    end
+                end
+                title(sprintf('Correlation: %0.5g, Time Scale: %0.5gs',obj.Corr.InterVsMeanCorr.RHO(j),TimeScalesUsed(j)));
+                xlabel('Mean Rated Interaction');
+                ylabel('Prediction');
             end
         end
         function obj = plot_SSMs_from_highest_to_lowest_prediction(obj)
