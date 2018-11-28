@@ -158,7 +158,7 @@ classdef twodancers_many_emily_multiple_regression
             obj.currentPLotTitle = 'Partial correlations between synchrony estimates and perceptual measures';
             figure(obj)
             subplot(2,1,1)
-            colors = extras.distinguishable_colors(numel(obj.experimentNames));
+            colors = extras.brewermap(numel(obj.experimentNames),'Blues');
             b = bar(InterRHO.Variables);
             for k = 1:size(InterRHO.Variables,2)
                 b(k).FaceColor = colors(k,:);
@@ -199,7 +199,7 @@ classdef twodancers_many_emily_multiple_regression
             names = {'Interaction';'Similarity'};
             for j = 1:numel(fieldnames(pooled_Z))
                 subplot(2,1,j)
-                colors = extras.distinguishable_colors(numel(obj.experimentNames));
+                colors = extras.brewermap(numel(obj.experimentNames),'Blues');
                 b = bar(pooled_Z.(names{j}));
                 for k = 1:size(pooled_Z.(names{j}),2)
                     b(k).FaceColor = colors(k,:);
@@ -302,7 +302,7 @@ classdef twodancers_many_emily_multiple_regression
             obj.currentPLotTitle = 'Correlations between synchrony estimates and perceptual measures';
             figure(obj)
             subplot(2,1,1)
-            colors = extras.distinguishable_colors(numel(obj.experimentNames));
+            colors = extras.brewermap(numel(obj.experimentNames),'Blues');
             b = bar(Inter);
             for k = 1:size(Inter,2)
                 b(k).FaceColor = colors(k,:);
@@ -341,7 +341,7 @@ classdef twodancers_many_emily_multiple_regression
             names = {'Interaction';'Similarity'};
             for j = 1:numel(fieldnames(pooled_Z))
                 subplot(2,1,j)
-                colors = extras.distinguishable_colors(numel(obj.experimentNames));
+                colors = extras.brewermap(numel(obj.experimentNames),'Blues');
                 b = bar(pooled_Z.(names{j}));
                 for k = 1:size(pooled_Z.(names{j}),2)
                     b(k).FaceColor = colors(k,:);
