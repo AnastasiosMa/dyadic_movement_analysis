@@ -3,7 +3,7 @@ classdef twodancers_many_emily_multiple_regression
     properties
         res
         predictorNames = {'Temporal Coupling',['Torso ' ...
-                            'Orientation'],'Spatial Coupling'};
+                            'Orientation'],'Spatial Coupling','Vertical Head Synchrony'};
         experimentNames = {'Experiment 1';'Experiment 2'};
         InterTbl
         SimiTbl
@@ -41,6 +41,8 @@ classdef twodancers_many_emily_multiple_regression
             Timescale20180111 = 120*10;
             global PLScomp20181105
             PLScomp20181105 = 2;
+            global JointBodyMarker20182812
+            JointBodyMarker20182812 = 1:12;
             obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % TORSO ORIENTATION 
             Iso1Method20181029 = 'TorsoOrientation';
@@ -52,6 +54,10 @@ classdef twodancers_many_emily_multiple_regression
             FrontalViewHipMarkers20181030 = 'Yes';
             Iso1Method20181029 = 'PdistPCScores';
             obj.res(3).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
+            Iso1Method20181029 = 'corrVertMarker';
+            JointBodyMarker20182812 = 9;
+            obj.res(4).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
+            % TORSO ORIENTATION 
             % CLEAR ALL GLOBAL VARIABLES
             clearvars -global
         end

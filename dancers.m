@@ -25,8 +25,8 @@ classdef dancers
         AdaptiveSigmaPercentile = 0.15
         TimeEmbeddedDelays
         markers3d
-        JointBodyMarker = 1:12;
         SelectFrontalViewHipMarkers %= 'No';
+        SelectJointBodyMarker %=1:12;
     end
     properties %(Hidden)
         MocapStructPCs
@@ -34,6 +34,7 @@ classdef dancers
     properties (Dependent)
         FrontalViewHipMarkers
         nMarkers
+        JointBodyMarker
     end
     properties %(Abstract) % MAKE ABSTRACT TO TRY DIFFERENT SIGMAS Abstract properties are set from subclass
         SSM_Type = 'Correntropy'; % or 'AdaptiveCorrentropy'
@@ -121,14 +122,26 @@ classdef dancers
         end
         function val = get.FrontalViewHipMarkers(obj)
             global FrontalViewHipMarkers20181030
-            if isempty(FrontalViewHipMarkers20181030)
-                val = obj.SelectFrontalViewHipMarkers;
-            elseif isempty(FrontalViewHipMarkers20181030) && isempty(obj.SelectFrontalViewHipMarkers)
+            if isempty(FrontalViewHipMarkers20181030) && isempty(obj.SelectFrontalViewHipMarkers)
                 error('FrontalViewHipMarkers has not been set')
+            elseif isempty(FrontalViewHipMarkers20181030)
+                val = obj.SelectFrontalViewHipMarkers;
             elseif ~isempty(FrontalViewHipMarkers20181030) && ~isempty(obj.SelectFrontalViewHipMarkers)
                 error('FrontalViewHipMarkers has been set elsewhere')
             else
                 val = FrontalViewHipMarkers20181030;
+            end
+        end
+        function val = get.JointBodyMarker(obj)
+            global JointBodyMarker20182812
+            if isempty(JointBodyMarker20182812) && isempty(obj.SelectJointBodyMarker)
+                error('JointBodyMarker has not been set')
+            elseif isempty(JointBodyMarker20182812)
+                val = obj.SelectJointBodyMarker;
+            elseif ~isempty(JointBodyMarker20182812) && ~isempty(obj.SelectJointBodyMarker)
+                error('JointBodyMarker has been set elsewhere')
+            else
+                val = JointBodyMarker20182812;
             end
         end
         function val = get.nMarkers(obj)
