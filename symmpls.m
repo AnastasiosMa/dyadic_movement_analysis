@@ -4,8 +4,8 @@ if nargin==2
     ncomp=min(size(X,2),size(Y,2)),
 end
 
-X=X-mean(X); %standardize
-Y=Y-mean(Y); %standardize
+X=X-mean(X); %center
+Y=Y-mean(Y); %center
 
 S=X'*Y; % matrix multiplication
 [W,TH,C]=svd(S,0);
