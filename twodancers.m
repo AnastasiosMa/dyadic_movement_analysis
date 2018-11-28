@@ -14,7 +14,7 @@ classdef twodancers < dancers
         TimeShift %= -2:.5:2; % leave empty for no time shifting, otherwise
                           % add a vector of shifts (in seconds) 
         Timeshifts_corr                  
-        WindowSteps = 1; % get a window every N steps. To get a regular
+        WindowSteps = 20; % get a window every N steps. To get a regular
                         % sliding window, set to 1
         Dancer1
         Dancer2
