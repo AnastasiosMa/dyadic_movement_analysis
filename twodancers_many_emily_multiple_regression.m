@@ -72,7 +72,7 @@ classdef twodancers_many_emily_multiple_regression
             disp('CORRELATION BETWEEN SYNCHRONY ESTIMATES')
             obj = plot_correlation_between_vars(obj);
             disp('CORRELATION WITH PERCEPTUAL MEASURES')
-            obj = plot_correlation_and_pooled_pvals_bars(obj);
+            obj = plot_correlation_and_pooled_pvals_bars(obj,excludevars);
             disp('PARTIAL CORRELATION WITH PERCEPTUAL MEASURES')
             obj = plot_partial_correlation_and_pooled_pvals_bars(obj,excludevars);
         end
@@ -211,6 +211,8 @@ classdef twodancers_many_emily_multiple_regression
                 subplot(2,1,j)
                 colors = extras.brewermap(numel(obj.experimentNames),'Blues');
                 b = bar(pooled_Z.(names{j}));
+                disp(['POOLED Z-VALUES FROM PARTIAL CORRELATIONS FOR ' upper(names{j})]);
+                disp(pooled_Z.(names{j}));
                 for k = 1:size(pooled_Z.(names{j}),2)
                     b(k).FaceColor = colors(k,:);
                 end
@@ -299,23 +301,31 @@ classdef twodancers_many_emily_multiple_regression
             disp(twodancers_many_emily.makestars(obj.PVAL_corrected.Simi.adj_p))
             %twodancers_many_emily.makestars
         end
-        function obj = plot_correlation_and_pooled_pvals_bars(obj)
+        function obj = plot_correlation_and_pooled_pvals_bars(obj,excludevars)
+            if nargin == 1
+                excludevars = [];
+            end
             for j = 1:numel(obj.res) % each feature
                 for k = 1:numel(obj.res(1).data) % each experiment
                     [Inter(j,k) Simi(j,k)]= deal(obj.res(j).data(k).CorrTableData{:,[1 2]});
                 end
             end
-            obj.InterTbl = array2table(Inter,'RowNames',obj.predictorNames,'VariableNames',{'Exp1','Exp2'});
-            obj.SimiTbl = array2table(Simi,'RowNames',obj.predictorNames,'VariableNames',{'Exp1','Exp2'});
+            Inter(excludevars,:) = [];
+            Simi(excludevars,:) = [];
+            predictorNames = obj.predictorNames;
+            predictorNames(excludevars) = [];
+            obj.InterTbl = array2table(Inter,'RowNames',predictorNames,'VariableNames',{'Exp1','Exp2'});
+            obj.SimiTbl = array2table(Simi,'RowNames',predictorNames,'VariableNames',{'Exp1','Exp2'});
             disp(obj.InterTbl)
             disp(obj.SimiTbl)
             obj.currentPLotTitle = 'Correlations between synchrony estimates and perceptual measures';
 
-
-            for j = 1:numel(obj.res) % each feature
-                for k = 1:numel(obj.res(1).data) % each experiment
-                    InterP(j,k)= cell2mat(obj.res(j).data(k).CorrTablePVAL{:,1});
-                    SimiP(j,k)= cell2mat(obj.res(j).data(k).CorrTablePVAL{:,2});
+            res = obj.res;
+            res(excludevars) = [];
+            for j = 1:numel(res) % each feature
+                for k = 1:numel(res(1).data) % each experiment
+                    InterP(j,k)= cell2mat(res(j).data(k).CorrTablePVAL{:,1});
+                    SimiP(j,k)= cell2mat(res(j).data(k).CorrTablePVAL{:,2});
                 end
             end
 
@@ -363,10 +373,12 @@ classdef twodancers_many_emily_multiple_regression
                 subplot(2,1,j)
                 colors = extras.brewermap(numel(obj.experimentNames),'Blues');
                 b = bar(pooled_Z.(names{j}));
+                disp(['POOLED Z-VALUES FROM CORRELATIONS FOR ' upper(names{j})]);
+                disp(pooled_Z.(names{j}));
                 for k = 1:size(pooled_Z.(names{j}),2)
                     b(k).FaceColor = colors(k,:);
                 end
-                xticklabels(obj.predictorNames');
+                xticklabels(predictorNames');
                 xlabel('Synchrony estimate');
                 ylabel('Z-score');
                 title(names{j});
