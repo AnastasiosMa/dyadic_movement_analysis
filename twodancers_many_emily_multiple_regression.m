@@ -2,8 +2,8 @@ classdef twodancers_many_emily_multiple_regression
 
     properties
         res
-        predictorNames = {'Temporal Coupling',['Torso ' ...
-                            'Orientation'],'Spatial Coupling','Vertical Head Synchrony'};
+        predictorNames = {'Temporal Coupling','Spatial Coupling',['Torso ' ...
+                            'Orientation'],'Vertical Head Synchrony'};
         experimentNames = {'Experiment 1';'Experiment 2'};
         InterTbl
         SimiTbl
@@ -45,14 +45,14 @@ classdef twodancers_many_emily_multiple_regression
             JointBodyMarker20182812 = 1:12;
             obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % TORSO ORIENTATION 
-            Iso1Method20181029 = 'TorsoOrientation';
-            FrontalViewHipMarkers20181030 = 'No';
-            kinemfeat = 'pos';
+            Iso1Method20181029 = 'PdistPCScores';
+            FrontalViewHipMarkers20181030 = 'Yes';
+            kinemfeat = 'vel';
             obj.res(2).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % LOADINGS SIMILARITY
-            kinemfeat = 'vel';  
-            FrontalViewHipMarkers20181030 = 'Yes';
-            Iso1Method20181029 = 'PdistPCScores';
+            kinemfeat = 'pos';  
+            FrontalViewHipMarkers20181030 = 'No';
+            Iso1Method20181029 = 'TorsoOrientation';
             obj.res(3).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             Iso1Method20181029 = 'corrVertMarker';
             JointBodyMarker20182812 = 9;
