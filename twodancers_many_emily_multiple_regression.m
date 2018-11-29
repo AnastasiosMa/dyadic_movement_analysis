@@ -26,9 +26,9 @@ classdef twodancers_many_emily_multiple_regression
         currentPLotTitle
     end
     methods
-        function obj = twodancers_many_emily_multiple_regression(Dataset1_24Dyads,Dataset2_37Dyads, NPC,t1,t2,isomorphismorder,TDE)
+        function obj = twodancers_many_emily_multiple_regression(Dataset1_24Dyads,Dataset2_35Dyads, NPC,t1,t2,isomorphismorder,TDE)
         % Syntax e.g.:
-        % a = twodancers_many_emily_multiple_regression('Dataset1_24Dyads.mat','Dataset2_37Dyads',[],0,20,1,'noTDE');
+        % a = twodancers_many_emily_multiple_regression('Dataset1_24Dyads.mat','Dataset2_35Dyads',[],0,20,1,'noTDE');
             coordinatesystem = 'global';
 
             % SYMMETRIC PLS
@@ -43,20 +43,20 @@ classdef twodancers_many_emily_multiple_regression
             PLScomp20181105 = 2;
             global JointBodyMarker20182812
             JointBodyMarker20182812 = 1:12;
-            obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
+            obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % TORSO ORIENTATION 
             Iso1Method20181029 = 'TorsoOrientation';
             FrontalViewHipMarkers20181030 = 'No';
             kinemfeat = 'pos';
-            obj.res(2).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
+            obj.res(2).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % LOADINGS SIMILARITY
             kinemfeat = 'vel';  
             FrontalViewHipMarkers20181030 = 'Yes';
             Iso1Method20181029 = 'PdistPCScores';
-            obj.res(3).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
+            obj.res(3).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             Iso1Method20181029 = 'corrVertMarker';
             JointBodyMarker20182812 = 9;
-            obj.res(4).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_37Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
+            obj.res(4).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % TORSO ORIENTATION 
             % CLEAR ALL GLOBAL VARIABLES
             clearvars -global
