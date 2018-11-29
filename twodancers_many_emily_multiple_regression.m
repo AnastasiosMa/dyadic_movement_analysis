@@ -56,6 +56,7 @@ classdef twodancers_many_emily_multiple_regression
             obj.res(3).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             Iso1Method20181029 = 'corrVertMarker';
             JointBodyMarker20182812 = 9;
+            kinemfeat = 'vel'; 
             obj.res(4).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % TORSO ORIENTATION 
             % CLEAR ALL GLOBAL VARIABLES
