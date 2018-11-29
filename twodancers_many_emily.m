@@ -367,29 +367,5 @@ classdef twodancers_many_emily < twodancers_emily
             stars(find(stars == 0)) = 1;
             out = names(stars);
         end
-        function Z = pval2zscore(p)
-            Z = norminv(1-p); % Transform p-values to Z-scores
-        end
-        function p = zscore2pval(Z)
-            p = 1-normcdf(Z); % Transform Z-scores to p-values
-        end
-        function [Z P] = pool_p_vals(pmat)
-        % INPUT: 
-        % PMAT: A matrix of p-values, where each column represents an experiment
-        % OUTPUTS: 
-        % Z: column vector of pooled p-values as Z-scores
-        % P: column vector of pooled p-values
-            n = size(pmat,2);
-            Z = twodancers_many_emily.pval2zscore(pmat);
-            Z = sum(Z,2)/sqrt(n); % Stouffer's Z-score method
-            P = 1-normcdf(Z);
-        end
-        function addstarstobar(b,pdata)
-            yb = cat(1, b.YData);
-            xb = bsxfun(@plus, b(1).XData, [b.XOffset]');
-            hold on;
-            padval = 0;
-            htxt = text(xb(:),yb(:)-padval, twodancers_many_emily.makestars(pdata(:))','horiz','center','FontSize',20);
-        end
     end
 end
