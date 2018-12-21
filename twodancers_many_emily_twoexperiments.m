@@ -18,9 +18,11 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
             end
             obj = corrtable(obj);
             obj = display_best_timescale(obj);
-            obj = plot_explained_variance(obj);
-            obj = plot_PCA_loadings(obj);
-            obj = plot_mean_optimal_PLSloadings(obj);
+            if strcmpi(obj(1).Res(1).res.Iso1Method,'OptimalPdistPCScores')
+               obj = plot_explained_variance(obj);
+               obj = plot_PCA_loadings(obj);
+               obj = plot_mean_optimal_PLSloadings(obj);
+            end
         end
         function obj = corrtable(obj)
             for k = 1:numel(obj)

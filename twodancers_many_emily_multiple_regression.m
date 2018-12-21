@@ -45,7 +45,7 @@ classdef twodancers_many_emily_multiple_regression
             JointBodyMarker20182812 = 1:12;
             obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % TORSO ORIENTATION 
-            Iso1Method20181029 = 'OptimalPdistPCScores';
+            Iso1Method20181029 = 'PdistPCScores';
             FrontalViewHipMarkers20181030 = 'Yes';
             kinemfeat = 'vel';
             obj.res(2).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
@@ -229,7 +229,6 @@ classdef twodancers_many_emily_multiple_regression
             if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
                 sgtitle(obj.currentPLotTitle)
             end
-
         end
         function obj = compute_partial_correlation(obj,excludevars)
         % correlation between IV and DV, controlling for other IV's
