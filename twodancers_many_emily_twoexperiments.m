@@ -18,6 +18,9 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
             end
             obj = corrtable(obj);
             obj = display_best_timescale(obj);
+            obj = plot_explained_variance(obj);
+            obj = plot_PCA_loadings(obj);
+            obj = plot_mean_optimal_PLSloadings(obj);
         end
         function obj = corrtable(obj)
             for k = 1:numel(obj)
@@ -75,10 +78,43 @@ classdef twodancers_many_emily_twoexperiments < twodancers_many_emily
             for k = 1:numel(obj)
                 plot_mean_triangles@twodancers_many_emily(obj(k));
                 try % otherwise gives error for MATLAB releases prior to 2018b
-                sgtitle(['Experiment ' num2str(k)]);
+                title(['Experiment ' num2str(k)]);
                 catch
                 end
             end
+        end
+        function obj = plot_explained_variance(obj)
+           figure
+           for k = 1:numel(obj)
+              subplot(2,1,k)
+              plot_explained_variance@twodancers_many_emily(obj(k)); 
+              title(['Experiment ' num2str(k)]);
+           end
+           if ~verLessThan('matlab', '9.5')
+              sgtitle('Explained variance from each component') 
+           end
+        end
+        function obj = plot_PCA_loadings(obj)
+           figure
+           for k = 1:numel(obj)
+              subplot(2,1,k)
+              plot_PCA_loadings@twodancers_many_emily(obj(k)); 
+              title(['Experiment ' num2str(k)]);
+           end
+           if ~verLessThan('matlab', '9.5')
+              sgtitle('PCA Loadings') 
+           end
+        end
+        function obj = plot_mean_optimal_PLSloadings(obj)
+           figure
+           for k = 1:numel(obj)
+              subplot(2,1,k)
+              plot_mean_optimal_PLSloadings@twodancers_many_emily(obj(k)); 
+              title(['Experiment ' num2str(k)]);
+              if ~verLessThan('matlab', '9.5')
+                 sgtitle('Mean optimal PLS Loadings across dancers') 
+              end          
+           end
         end
     end
 

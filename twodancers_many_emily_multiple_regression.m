@@ -45,7 +45,7 @@ classdef twodancers_many_emily_multiple_regression
             JointBodyMarker20182812 = 1:12;
             obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
             % TORSO ORIENTATION 
-            Iso1Method20181029 = 'PdistPCScores';
+            Iso1Method20181029 = 'OptimalPdistPCScores';
             FrontalViewHipMarkers20181030 = 'Yes';
             kinemfeat = 'vel';
             obj.res(2).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);

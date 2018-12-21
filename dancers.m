@@ -25,8 +25,9 @@ classdef dancers
         AdaptiveSigmaPercentile = 0.15
         TimeEmbeddedDelays
         markers3d
-        SelectFrontalViewHipMarkers %= 'No';
-        SelectJointBodyMarker %=1:12;
+        SelectFrontalViewHipMarkers = 'Yes';
+        SelectJointBodyMarker =1:12;
+        PNum %Participant number
     end
     properties %(Hidden)
         MocapStructPCs
