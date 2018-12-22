@@ -7,11 +7,12 @@ classdef twodancers_many_emily < twodancers_emily
         CorrTableData
         CorrTablePVAL
         %Parameters for PCA on Optimal Windows
-        OptimalPLSLoadings %PLSLoadings of Max window for all dancers and dyads. 
+        OptimalPLSLoadings %PLSLoadings of Max window for all dancers and dyads.
+        %Loadings are ordered based on axes (e.g. first all x, then y, then z)
         Labels
         PCLoads
         PCScores
-        PCNum = 1;
+        PCNum = 3;
         PCExplainedVar
     end
     methods
@@ -386,7 +387,7 @@ classdef twodancers_many_emily < twodancers_emily
         end
         function obj = get_optimal_PLSloadings(obj)
            PLScomp = obj.Res(1).res.PLScomp;
-           obj.Labels = obj.Res(1).res.Dancer1.res.markers3d';
+           tempLabels = obj.Res(1).res.Dancer1.res.markers3d';
            if ~strcmpi(obj.Res(1).res.EstimateMethod,'Max')
                error('Max Across Windows need to be selected') 
             end
@@ -395,10 +396,17 @@ classdef twodancers_many_emily < twodancers_emily
                 temp{k} = obj.Res(k).res.PLSloadings([maxwindow(k)-1]*2+1:...
                                                      [maxwindow(k)-1]*2+2,:);
             end
-            obj.OptimalPLSLoadings = (cell2mat(temp'));
+            temp = (cell2mat(temp'));
             %reshape so each PLS component is a separate row
-            obj.OptimalPLSLoadings=reshape(obj.OptimalPLSLoadings',...
-                size(obj.OptimalPLSLoadings,2)/PLScomp,length(obj.Res)*2*PLScomp)';
+            temp=reshape(temp',...
+                size(temp,2)/PLScomp,length(obj.Res)*2*PLScomp)';
+            %re-arrange joints and labels based on axes (first all x axis, then y then z)
+            obj.Labels = [];
+            obj.OptimalPLSLoadings = [];
+            for i=1:3 %number of axes
+                obj.OptimalPLSLoadings = [obj.OptimalPLSLoadings, temp(:,i:3:end)];
+                obj.Labels = [obj.Labels, tempLabels(i:3:end)];
+            end
         end
         function obj = optimal_windows_spatial_coupling(obj)
             PLScomp = obj.Res(1).res.PLScomp;
@@ -419,6 +427,9 @@ classdef twodancers_many_emily < twodancers_emily
         function obj = plot_PCA_loadings(obj)
             bar(abs(obj.PCLoads(:,1:obj.PCNum)))
             set(gca,'XTick',1:60,'XTickLabels',obj.Labels')
+            PCLabels = cellfun(@(x) ['PC' num2str(x)], ...
+                sprintfc('%g',1:obj.PCNum), 'UniformOutput', false);
+            legend(PCLabels)
             title('PC Loadings');
             xlabel('Joints');
             ylabel('Coefficients')
@@ -431,7 +442,7 @@ classdef twodancers_many_emily < twodancers_emily
             ylabel('Percentage of Variance Explained')
         end
         function obj = plot_mean_optimal_PLSloadings(obj)
-            bar(mean(obj.OptimalPLSLoadings)'); %mean loadings across dyads
+            bar(mean(abs(obj.OptimalPLSLoadings))'); %mean loadings across dyads
             set(gca,'XTick',1:length(obj.Labels),'XTickLabels',obj.Labels)
             xtickangle(90)
             title('Mean PLS Loadings across participants') 
