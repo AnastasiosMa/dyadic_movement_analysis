@@ -338,7 +338,7 @@ classdef twodancers_many_emily < twodancers_emily
         function PLS_loadings_boxplot(obj)
             figure
             boxplot(cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.Res,'UniformOutput',false)'))
-            xticklabels(obj.Res(1).res.Dancer1.res.markers3d')
+            xticklabels(obj.Res(1).res.Dancer1.res.SelectedMarkersNames')
             xtickangle(90)
             title(['PLS predictor loadings for all dancers and ' ...
                    'analysis windows'])
@@ -387,7 +387,7 @@ classdef twodancers_many_emily < twodancers_emily
         end
         function obj = get_optimal_PLSloadings(obj)
            PLScomp = obj.Res(1).res.PLScomp;
-           tempLabels = obj.Res(1).res.Dancer1.res.markers3d';
+           tempLabels = obj.Res(1).res.Dancer1.res.SelectedMarkersNames';
            if ~strcmpi(obj.Res(1).res.EstimateMethod,'Max')
                error('Max Across Windows need to be selected') 
             end
@@ -403,9 +403,10 @@ classdef twodancers_many_emily < twodancers_emily
             %re-arrange joints and labels based on axes (first all x axis, then y then z)
             obj.Labels = [];
             obj.OptimalPLSLoadings = [];
-            for i=1:3 %number of axes
-                obj.OptimalPLSLoadings = [obj.OptimalPLSLoadings, temp(:,i:3:end)];
-                obj.Labels = [obj.Labels, tempLabels(i:3:end)];
+            AxesNum = length(obj.Res(1).res.Dancer1.res.Selectaxes);
+            for i=1:AxesNum %number of axes
+                obj.OptimalPLSLoadings = [obj.OptimalPLSLoadings, temp(:,i:AxesNum:end)];
+                obj.Labels = [obj.Labels, tempLabels(i:AxesNum:end)];
             end
         end
         function obj = optimal_windows_spatial_coupling(obj)
