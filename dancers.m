@@ -28,8 +28,8 @@ classdef dancers
         axesnames
         SelectedMarkersNames
         Selectaxes = [1:3];
-        SelectFrontalViewHipMarkers = 'Yes';
-        SelectJointBodyMarker =1:12;
+        SelectFrontalViewHipMarkers% = 'Yes';
+        SelectJointBodyMarker% =1:12;
         PNum %Participant number
     end
     properties %(Hidden)

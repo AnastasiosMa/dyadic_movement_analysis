@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SelectSingleTimeScale = 1200 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
+        SelectSingleTimeScale %= 1200 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -24,7 +24,7 @@ classdef twodancers < dancers
         %Dyad's interaction estimate across windows
         MaxWindowIdx %Index of max across windows
         %First order isomorphism properties
-        SelectIso1Method = 'OptimalPdistPCScores'%'OptimalPdistPCScores','PdistPCScores'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation','KernelPLS'
+        SelectIso1Method %= 'OptimalPdistPCScores'%'OptimalPdistPCScores','PdistPCScores'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation','KernelPLS'
         %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadings','PdistLoadingsPCA','PdistPCScores','groupClusterAmplitude','latentSyncOptimTemporalCoupling'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
@@ -32,7 +32,7 @@ classdef twodancers < dancers
         InputWindows;
         EigenNum = 5;
         ChoosePLScomp %= 3; %Choose which of the PLS components to include in the analysis
-        SelectPLScomp = 2;
+        SelectPLScomp %= 2;
         GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
