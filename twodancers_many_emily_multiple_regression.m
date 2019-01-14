@@ -254,7 +254,7 @@ classdef twodancers_many_emily_multiple_regression
                         x = X(:,m);
                         z = X;
                         z(:,m) = [];
-                        [rho{j}(m,l),pval{j}(m,l)] = partialcorr(x,y,z);
+                        [rho{j}(m,l),pval{j}(m,l)] = partialcorr(x,y,z,'tail','right');
                         % each output column is a perceptual
                         % measure, each row is a predictor variable
                     end
