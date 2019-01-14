@@ -31,7 +31,7 @@ classdef twodancers_many_emily_multiple_regression
         % a = twodancers_many_emily_multiple_regression('Dataset1_24Dyads.mat','Dataset2_35Dyads',[],0,20,1,'noTDE');
             coordinatesystem = 'global';
 
-            % SYMMETRIC PLS
+            % TEMPORAL COUPLING
             kinemfeat = 'vel';
             global Iso1Method20181029
             Iso1Method20181029 = 'SymmetricPLS';
@@ -44,16 +44,17 @@ classdef twodancers_many_emily_multiple_regression
             global JointBodyMarker20182812
             JointBodyMarker20182812 = 1:12;
             obj.res(1).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
-            % TORSO ORIENTATION 
+            % SPATIAL COUPLING 
             Iso1Method20181029 = 'PdistPCScores';
             FrontalViewHipMarkers20181030 = 'Yes';
             kinemfeat = 'vel';
             obj.res(2).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
-            % LOADINGS SIMILARITY
+            % TORSO ORIENTATION
             kinemfeat = 'pos';  
             FrontalViewHipMarkers20181030 = 'No';
             Iso1Method20181029 = 'TorsoOrientation';
             obj.res(3).data = twodancers_many_emily_twoexperiments(Dataset1_24Dyads,Dataset2_35Dyads,NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat);
+            % VERTICAL COMPONENT OF HEAD MARKER
             Iso1Method20181029 = 'corrVertMarker';
             JointBodyMarker20182812 = 9;
             kinemfeat = 'vel'; 
