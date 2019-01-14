@@ -396,15 +396,18 @@ classdef twodancers_many_emily_multiple_regression
            for j = 1:numel(obj.res(1).data) % each experiment
            for k = 1:numel(obj.res) % each approach 
                res{j}(:,k) = zscore(arrayfun(@(x) x.res.Corr.Estimates,obj.res(k).data(j).Res)');
+               res_not_zscored{j}(:,k) = arrayfun(@(x) x.res.Corr.Estimates,obj.res(k).data(j).Res)';
                obj.JBtest(j,k) = jbtest(res{j}(:,k)); %Jarque-Bera normality test 
            end
            end
-           obj.DescriptiveStatsNames = {'Median','Kurtosis','Skewness'};
+           obj.DescriptiveStatsNames = {'Median','Kurtosis','Skewness', ...
+                   'Standard Deviation'};
            predictornames_underscore = strrep(obj.predictorNames,' ','_');
            for j = 1:numel(obj.res(1).data)
                    obj.DescriptiveStats{j}(1,:) = median(res{j});
                    obj.DescriptiveStats{j}(2,:) = kurtosis(res{j});
                    obj.DescriptiveStats{j}(3,:) = skewness(res{j});
+                   obj.DescriptiveStats{j}(4,:) = std(res_not_zscored{j});
                    %plot boxplots
                disp(['Experiment' num2str(j)])
                t = array2table(obj.DescriptiveStats{j},'VariableNames',predictornames_underscore);
