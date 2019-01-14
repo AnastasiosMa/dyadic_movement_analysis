@@ -6,6 +6,14 @@ classdef twodancers_many_emily < twodancers_emily
         CorrTable
         CorrTableData
         CorrTablePVAL
+        %Parameters for PCA on Optimal Windows
+        OptimalPLSLoadings %PLSLoadings of Max window for all dancers and dyads.
+        %Loadings are ordered based on axes (e.g. first all x, then y, then z)
+        Labels
+        PCLoads
+        PCScores
+        PCNum = 3;
+        PCExplainedVar
     end
     methods
         function obj = twodancers_many_emily(mocap_array,meanRatedInteraction,meanRatedSimilarity,m2jpar, NPC,t1,t2,isomorphismorder,coordinatesystem,TDE,kinemfeat)
@@ -32,10 +40,17 @@ classdef twodancers_many_emily < twodancers_emily
             if nargin > 0
                 obj.MeanRatedInteraction = meanRatedInteraction;
                 obj.MeanRatedSimilarity = meanRatedSimilarity;
-                if strcmpi(obj.Res(1).res.Iso1Method,'PdistPCScores')
+                if sum(strcmpi(obj.Res(1).res.Iso1Method,{'PdistPCScores','OptimalPdistPCScores'})) 
                    obj = PC_scores_similarity(obj);
                    for k=1:numel(mocap_array)
                        obj.Res(k).res = mean_max_corr_for_each_timescale(obj.Res(k).res);
+                   end
+                   if strcmpi(obj.Res(1).res.Iso1Method,'OptimalPdistPCScores')
+                      obj = get_optimal_PLSloadings(obj); 
+                      obj = optimal_windows_spatial_coupling(obj);
+                      %plot_explained_variance(obj)
+                      %plot_PCA_loadings(obj)
+                      %plot_mean_optimal_PLSloadings(obj)
                    end
                 end
                 obj = correlate_with_perceptual_measures(obj);
@@ -47,13 +62,21 @@ classdef twodancers_many_emily < twodancers_emily
         function obj = correlate_with_perceptual_measures(obj)
             for k = 1:size(obj.Res(1).res.Corr.Estimates,1) % for each timescale
                 for j = 1:size(obj.Res(1).res.Corr.Estimates,3) % for each timeshift
-                    estimates(:,j) = arrayfun(@(x) x.res.Corr.Estimates(k,:,j),obj.Res)'; %obj.Res->will repeat process for all participants
+                    if strcmpi(obj.Res(1).res.Iso1Method,'OptimalPdistPCScores') %run two-tailed test for pc's
+                       estimates(:,j) = arrayfun(@(x) x.res.Corr.Estimates(k,:,j),obj.Res)'; %obj.Res->will repeat process for all participants
                                                                                       %maxcorrs = arrayfun(@(x) x.res.Corr.max(k),obj.Res)';
-                    [obj.Corr.InterVsMeanCorr.RHO(k,j),obj.Corr.InterVsMeanCorr.PVAL(k,j)] = corr(estimates(:,j),obj.MeanRatedInteraction(1:numel(estimates(:,j))));
-                    [obj.Corr.SimiVsMeanCorr.RHO(k,j),obj.Corr.SimiVsMeanCorr.PVAL(k,j)] = corr(estimates(:,j),obj.MeanRatedSimilarity(1:numel(estimates(:,j))));
-                    %[obj.Corr.InterVsMaxCorr.RHO(k),obj.Corr.InterVsMaxCorr.PVAL(k)] = corr(maxcorrs,obj.MeanRatedInteraction(1:numel(maxcorrs)));
-                    %[obj.Corr.SimiVsMaxCorr.RHO(k),obj.Corr.SimiVsMaxCorr.PVAL(k)] = corr(maxcorrs,obj.MeanRatedSimilarity(1:numel(maxcorrs)));
-                end
+                       [obj.Corr.InterVsMeanCorr.RHO(k,j),obj.Corr.InterVsMeanCorr.PVAL(k,j)] = corr(estimates(:,j),obj.MeanRatedInteraction(1:numel(estimates(:,j))));
+                       [obj.Corr.SimiVsMeanCorr.RHO(k,j),obj.Corr.SimiVsMeanCorr.PVAL(k,j)] = corr(estimates(:,j),obj.MeanRatedSimilarity(1:numel(estimates(:,j))));
+                       
+                    else
+                       estimates(:,j) = arrayfun(@(x) x.res.Corr.Estimates(k,:,j),obj.Res)'; %obj.Res->will repeat process for all participants
+                                                                                      %maxcorrs = arrayfun(@(x) x.res.Corr.max(k),obj.Res)';
+                       [obj.Corr.InterVsMeanCorr.RHO(k,j),obj.Corr.InterVsMeanCorr.PVAL(k,j)] = corr(estimates(:,j),obj.MeanRatedInteraction(1:numel(estimates(:,j))),'tail','right');
+                       [obj.Corr.SimiVsMeanCorr.RHO(k,j),obj.Corr.SimiVsMeanCorr.PVAL(k,j)] = corr(estimates(:,j),obj.MeanRatedSimilarity(1:numel(estimates(:,j))),'tail','right');
+                       %[obj.Corr.InterVsMaxCorr.RHO(k),obj.Corr.InterVsMaxCorr.PVAL(k)] = corr(maxcorrs,obj.MeanRatedInteraction(1:numel(maxcorrs)));
+                       %[obj.Corr.SimiVsMaxCorr.RHO(k),obj.Corr.SimiVsMaxCorr.PVAL(k)] = corr(maxcorrs,obj.MeanRatedSimilarity(1:numel(maxcorrs)));
+                    end
+                 end
             end
         end
         function obj = corrtable(obj)
@@ -87,6 +110,15 @@ classdef twodancers_many_emily < twodancers_emily
                                                'UniformOutput', ...
                                                false)'); obj.Res(1).res.PLSstdScales/obj.Res(1).res.SampleRate]');
                                            %obj.PLSstdScales
+                elseif obj.Res(1).res.Dancer1.res.IsomorphismOrder==1 && strcmpi(obj.Iso1Method,'OptimalPdistPCScores')
+                    varnames = [fieldnames(obj.Corr);{'Principal_Components'}];
+                    PCLabels = 1:obj.PCNum;
+                    results=num2cell([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
+                                               'UniformOutput', ...
+                                               false)'); PCLabels]');
+                    resultsPVAL=num2cell([cell2mat(arrayfun(@(x) x.PVAL',struct2array(obj.Corr), ...
+                                               'UniformOutput', ...
+                                               false)'); PCLabels]');
                 elseif ~isempty(obj.Res(1).res.WindowLengths)
                     varnames = [fieldnames(obj.Corr);{'WindowingScales'}];
                     results=num2cell([cell2mat(arrayfun(@(x) x.RHO',struct2array(obj.Corr), ...
@@ -107,7 +139,7 @@ classdef twodancers_many_emily < twodancers_emily
                 end
                 starcell=twodancers_many_emily.makestars(cell2mat(arrayfun(@(x) x.PVAL', struct2array(obj.Corr), ...
                     'UniformOutput', false))); %create cell array of pstars
-                if size(starcell,2)<size(results,2)
+                if numel(starcell)<numel(results)
                    starcell{numel(results)} = []; %add empty elements to bring it to the same size as restable
                 end
                 results_stars = results;
@@ -306,7 +338,7 @@ classdef twodancers_many_emily < twodancers_emily
         function PLS_loadings_boxplot(obj)
             figure
             boxplot(cell2mat(arrayfun(@(x) x.res.PLSloadings,obj.Res,'UniformOutput',false)'))
-            xticklabels(obj.Res(1).res.Dancer1.res.markers3d')
+            xticklabels(obj.Res(1).res.Dancer1.res.SelectedMarkersNames')
             xtickangle(90)
             title(['PLS predictor loadings for all dancers and ' ...
                    'analysis windows'])
@@ -352,6 +384,71 @@ classdef twodancers_many_emily < twodancers_emily
             xlabel('Dyads')
             ylabel('I(x;y)')
             hold off
+        end
+        function obj = get_optimal_PLSloadings(obj)
+           PLScomp = obj.Res(1).res.PLScomp;
+           tempLabels = obj.Res(1).res.Dancer1.res.SelectedMarkersNames';
+           if ~strcmpi(obj.Res(1).res.EstimateMethod,'Max')
+               error('Max Across Windows need to be selected') 
+            end
+            maxwindow = arrayfun(@(x) x.res.MaxWindowIdx,obj.Res);
+            for k=1:length(obj.Res) %find the loadings of the optimal window for each dyad
+                temp{k} = obj.Res(k).res.PLSloadings([maxwindow(k)-1]*2+1:...
+                                                     [maxwindow(k)-1]*2+2,:);
+            end
+            temp = (cell2mat(temp'));
+            %reshape so each PLS component is a separate row
+            temp=reshape(temp',...
+                size(temp,2)/PLScomp,length(obj.Res)*2*PLScomp)';
+            %re-arrange joints and labels based on axes (first all x axis, then y then z)
+            obj.Labels = [];
+            obj.OptimalPLSLoadings = [];
+            AxesNum = length(obj.Res(1).res.Dancer1.res.Selectaxes);
+            for i=1:AxesNum %number of axes
+                obj.OptimalPLSLoadings = [obj.OptimalPLSLoadings, temp(:,i:AxesNum:end)];
+                obj.Labels = [obj.Labels, tempLabels(i:AxesNum:end)];
+            end
+        end
+        function obj = optimal_windows_spatial_coupling(obj)
+            PLScomp = obj.Res(1).res.PLScomp;
+            [obj.PCLoads,obj.PCScores,EigenValues,~,obj.PCExplainedVar]=...
+                pca(obj.OptimalPLSLoadings,'Algorithm','svd','Centered','on');
+            obj.PCScores = abs(obj.PCScores(:,1:obj.PCNum));
+            obj.PCScores = reshape(obj.PCScores',size(obj.PCScores,2),...
+                PLScomp*2,length(obj.Res));
+            %PCScores(x,y,z) is a 3D matrix where x=PCNum, y=number of
+            %rows of PCScores for each dyad, z=dyads
+            obj.PCScores = (mean(obj.PCScores,2));
+            obj.PCScores = reshape(obj.PCScores,obj.PCNum,length(obj.Res))';
+            %PCScores is a 2-D matrix where rows=dyads, cols=PCScores
+            for k=1:length(obj.Res)
+                obj.Res(k).res.Corr.Estimates = obj.PCScores(k,:)';
+            end
+        end
+        function obj = plot_PCA_loadings(obj)
+            bar(abs(obj.PCLoads(:,1:obj.PCNum)))
+            set(gca,'XTick',1:60,'XTickLabels',obj.Labels')
+            PCLabels = cellfun(@(x) ['PC' num2str(x)], ...
+                sprintfc('%g',1:obj.PCNum), 'UniformOutput', false);
+            legend(PCLabels)
+            title('PC Loadings');
+            xlabel('Joints');
+            ylabel('Coefficients')
+            xtickangle(90)
+        end
+        function obj = plot_explained_variance(obj)
+            bar(obj.PCExplainedVar(1:obj.PCNum)')
+            title('Variance explained by each PC')
+            xlabel('Principal Components')
+            ylabel('Percentage of Variance Explained')
+        end
+        function obj = plot_mean_optimal_PLSloadings(obj)
+            bar(mean(abs(obj.OptimalPLSLoadings))'); %mean loadings across dyads
+            set(gca,'XTick',1:length(obj.Labels),'XTickLabels',obj.Labels)
+            xtickangle(90)
+            title('Mean PLS Loadings across participants') 
+            xlabel('Joints'); 
+            ylabel('Mean PLS Loadings'); 
         end
     end
     methods (Static)

@@ -25,8 +25,12 @@ classdef dancers
         AdaptiveSigmaPercentile = 0.15
         TimeEmbeddedDelays
         markers3d
-        SelectFrontalViewHipMarkers %= 'No';
-        SelectJointBodyMarker %=1:12;
+        axesnames
+        SelectedMarkersNames
+        Selectaxes = [1:3];
+        SelectFrontalViewHipMarkers = 'Yes';
+        SelectJointBodyMarker =1:12;
+        PNum %Participant number
     end
     properties %(Hidden)
         MocapStructPCs
@@ -276,16 +280,23 @@ classdef dancers
                          'Right finger x'  
                          'Right finger y'  
                          'Right finger z'};
+            obj.axesnames = {'x','y','z'};
 
+            obj.axesnames = obj.axesnames(obj.Selectaxes); %Select specific axes, default is all
             uniquemarkernames = unique(cellstr(erase(string(markers),{'Left', ...
                                 'Right'}))); %keep the marker names without left and right repetitions
-
-            regular3Dmarker = find(contains(string(obj.markers3d), ...
-                                            uniquemarkernames(obj.JointBodyMarker))); %to be used if
-                                            %you want to isolate individual
-                                            %markers/joints. Default is all
+            %to be used if you want to isolate individual markers/joints. Default is all
+            selected3Dmarkers = find(contains(string(obj.markers3d), ...
+                                            uniquemarkernames(obj.JointBodyMarker))); %Find indexes of 
+                                            %selected joints across all 3
+                                            %axes
+            selectedaxesmarkers = find(sum(cell2mat(cellfun(@(x) strcmpi(x(end),obj.axesnames),obj.markers3d,...
+                'UniformOutput',false)),2)); %Find indexes of markers belonging to the selected axes
+            regular3Dmarkers = intersect(selected3Dmarkers,selectedaxesmarkers,'stable'); %Indexes of selected
+                                                                        %joints and axes
+            obj.SelectedMarkersNames = obj.markers3d(regular3Dmarkers); %store names of selected markers 
             obj.MocapStruct.data = obj.MocapStruct.data(:, ...
-                                                        regular3Dmarker);
+                                                        regular3Dmarkers);
             %            disp(['Using these marker(s): ' num2str(obj.JointBodyMarker) '...'])
 
         end

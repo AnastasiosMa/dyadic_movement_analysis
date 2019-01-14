@@ -230,7 +230,6 @@ classdef twodancers_many_emily_multiple_regression
             if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
                 sgtitle(obj.currentPLotTitle)
             end
-
         end
         function obj = compute_partial_correlation(obj,excludevars)
         % correlation between IV and DV, controlling for other IV's

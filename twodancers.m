@@ -3,7 +3,7 @@ classdef twodancers < dancers
 %If 1, do windowed CCA. If 2, SSM. Correlate across the 2 dancers and
 %plot triangles
     properties
-        SelectSingleTimeScale %= 1200 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
+        SelectSingleTimeScale = 1200 % time scale of 7.5 seconds =1080;% time scale of 9 seconds; leave this empty if you want to use
                         % MinWindowLength and NumWindows
         MinWindowLength = 180;%10%15%60; % min full window length (we
                               % will go in steps of one until the
@@ -14,16 +14,17 @@ classdef twodancers < dancers
         TimeShift %= -2:.5:2; % leave empty for no time shifting, otherwise
                           % add a vector of shifts (in seconds) 
         Timeshifts_corr                  
-        WindowSteps = 1; % get a window every N steps. To get a regular
+        WindowSteps = 120; % get a window every N steps. To get a regular
                         % sliding window, set to 1
         Dancer1
         Dancer2
         MirrorMocapData = 'No';
         Corr
-        EstimateMethod = 'Max'%'Mean','Max','Std' %Slects method to compute the 
+        EstimateMethod = 'Max'%'Mean','Max','Std' %Selects method to compute the 
         %Dyad's interaction estimate across windows
+        MaxWindowIdx %Index of max across windows
         %First order isomorphism properties
-        SelectIso1Method %= 'PdistPCScores'%'PdistPCScores'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation','KernelPLS'
+        SelectIso1Method = 'OptimalPdistPCScores'%'OptimalPdistPCScores','PdistPCScores'; %'SymmetricPLS','AsymmetricPLS','PLSEigenvalues','DynamicPLS','DynamicPLSMI','DynamicPLSWavelet','DynamicPLSCrossWaveletPairing','PeriodLocking', 'TorsoOrientation','KernelPLS'
         %'optimMutInfo','PCAConcatenatedDims','Win_PCA_CCA,'PCA_Win_CCA','corrVertMarker','HandMovement','PdistLoadings','PdistLoadingsPCA','PdistPCScores','groupClusterAmplitude','latentSyncOptimTemporalCoupling'(method used for first order isomorphism)        
         %PLS properties
         PLSScores %(also used in 2nd order isomorphism, 'corrSSMsPLS')
@@ -31,7 +32,7 @@ classdef twodancers < dancers
         InputWindows;
         EigenNum = 5;
         ChoosePLScomp %= 3; %Choose which of the PLS components to include in the analysis
-        SelectPLScomp %= 2;
+        SelectPLScomp = 2;
         GetPLSCluster ='Yes'% YesDyad computes the mean of both dancers loadings for each window
         MinPLSstd = 180; %Minimum Standard deviation of the Gaussian distribution applied in 
         %Dynamic PLS, in Mocap frame units.
@@ -190,7 +191,7 @@ classdef twodancers < dancers
         function obj = windowed_pls(obj)
             if strcmpi(obj.Iso1Method,'AsymmetricPLS') 
                 disp('Computing Asymmetric PLS...')
-            elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues','PdistPCScores'})) 
+            elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues','PdistPCScores','OptimalPdistPCScores'})) 
                 disp('Computing Symmetric PLS...')
             end
             data1 = obj.Dancer1.res.MocapStruct.data;
@@ -219,7 +220,7 @@ classdef twodancers < dancers
                         [~,~,XSinv,YSinv] = plsregress(aw2,aw1,obj.PLScomp); %inverted
                         obj.Corr.timescalesdef(j,k) = corr(XSdef,YSdef); 
                         obj.Corr.timescalesinv(j,k) = corr(XSinv,YSinv);
-                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues','PdistLoadings','PdistPCScores','latentSyncOptimTemporalCoupling'}))
+                    elseif sum(strcmpi(obj.Iso1Method,{'SymmetricPLS','PLSEigenvalues','PdistLoadings','PdistPCScores','latentSyncOptimTemporalCoupling','OptimalPdistPCScores'}))
                         if isempty(obj.PLScomp) % if number of PLS components
                                                 % is not specified
                             [XL,YL,XS,YS,Eigenvalues] = symmpls(aw1,aw2,size(aw1,2)); ...
@@ -244,7 +245,7 @@ classdef twodancers < dancers
                             obj.PLSScores{g,j}{2} = YS;
                         end
                         if (strcmpi(obj.GetPLSCluster,'Yes')|| ...
-                            strcmpi(obj.Iso1Method,'PdistPCScores')) ...
+                            sum(strcmpi(obj.Iso1Method,{'PdistPCScores','OptimalPdistPCScores'}))) ...
                                 && ~strcmpi(obj.Iso1Method,'latentSyncOptimTemporalCoupling')
                             obj.PLSloadings = [obj.PLSloadings;XL(:)';YL(:)'];
                         elseif strcmpi(obj.GetPLSCluster,'YesDyad')
@@ -787,7 +788,7 @@ classdef twodancers < dancers
             if strcmpi(obj.EstimateMethod,'Mean')
                obj.Corr.Estimates = nanmean(data,2); %find average across timescales
             elseif strcmpi(obj.EstimateMethod,'Max')
-               obj.Corr.Estimates = max(data,[],2); %find max across timescales
+              [obj.Corr.Estimates,obj.MaxWindowIdx] = max(data,[],2); %find max across timescales
             elseif strcmpi(obj.EstimateMethod,'Std')
                obj.Corr.Estimates = nanstd(data,0,2); 
             end
