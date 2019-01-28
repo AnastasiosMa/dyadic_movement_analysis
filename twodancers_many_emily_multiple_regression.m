@@ -400,14 +400,15 @@ classdef twodancers_many_emily_multiple_regression
                obj.JBtest(j,k) = jbtest(res{j}(:,k)); %Jarque-Bera normality test 
            end
            end
-           obj.DescriptiveStatsNames = {'Median','Kurtosis','Skewness', ...
-                   'Standard Deviation'};
+           obj.DescriptiveStatsNames = {'Mean','Standard_Deviation', ...
+                   'Skewness', 'Kurtosis', 'Median'};
            predictornames_underscore = strrep(obj.predictorNames,' ','_');
            for j = 1:numel(obj.res(1).data)
-                   obj.DescriptiveStats{j}(1,:) = median(res{j});
-                   obj.DescriptiveStats{j}(2,:) = kurtosis(res{j});
-                   obj.DescriptiveStats{j}(3,:) = skewness(res{j});
-                   obj.DescriptiveStats{j}(4,:) = std(res_not_zscored{j});
+                   obj.DescriptiveStats{j}(1,:) = mean(res_not_zscored{j});
+                   obj.DescriptiveStats{j}(2,:) = std(res_not_zscored{j});
+                   obj.DescriptiveStats{j}(3,:) = skewness(res_not_zscored{j});
+                   obj.DescriptiveStats{j}(4,:) = kurtosis(res_not_zscored{j});
+                   obj.DescriptiveStats{j}(5,:) = median(res_not_zscored{j});
                    %plot boxplots
                disp(['Experiment' num2str(j)])
                t = array2table(obj.DescriptiveStats{j},'VariableNames',predictornames_underscore);
@@ -421,7 +422,7 @@ classdef twodancers_many_emily_multiple_regression
                boxplot([res{j} zscore(obj.res(1).data(1,j).MeanRatedInteraction) zscore(obj.res(1).data(1,j).MeanRatedSimilarity)])
                set(gca,'XTick',1:5,'XTickLabels',[obj.predictorNames {'Rated Interaction','Rated Similarity'}])
                title(['Experiment' num2str(j)])
-               ylabel('Zscores')
+               ylabel('Z-score')
            end
             if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
                 sgtitle(obj.currentPLotTitle)
