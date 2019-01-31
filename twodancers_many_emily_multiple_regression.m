@@ -73,6 +73,11 @@ classdef twodancers_many_emily_multiple_regression
             obj = predictors_distribution(obj);
             disp('CORRELATION BETWEEN SYNCHRONY ESTIMATES')
             obj = plot_correlation_between_vars(obj);
+            disp(['DIFFERENCE BETWEEN EXP2 AND EXP1 WITH RESPECT TO ' ...
+                  'CORRELATION BETWEEN SYNCHRONY ESTIMATES'])
+            obj = plot_diff_experiments_correlation_between_vars(obj);
+            disp(['SUM OF CORRELATION BETWEEN SYNCHRONY ESTIMATES'])
+            obj = plot_sum_correlation_between_vars(obj);
             disp('CORRELATION WITH PERCEPTUAL MEASURES')
             obj = plot_correlation_and_pooled_pvals_bars(obj,excludevars);
             disp('PARTIAL CORRELATION WITH PERCEPTUAL MEASURES')
@@ -149,6 +154,15 @@ classdef twodancers_many_emily_multiple_regression
             if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
                 sgtitle(obj.currentPLotTitle)
             end
+        end
+        function obj = plot_diff_experiments_correlation_between_vars(obj)
+            data = obj.CorrBetwVars.rho{2}.Variables-obj.CorrBetwVars.rho{1}.Variables;
+            disp(array2table(data,'VariableNames',obj.CorrBetwVars.rho{1}.Properties.VariableNames,'RowNames',obj.CorrBetwVars.rho{1}.Properties.RowNames))
+        end
+        function obj = plot_sum_correlation_between_vars(obj)
+            data = [sum(obj.CorrBetwVars.rho{1}.Variables)'-1 sum(obj.CorrBetwVars.rho{2}.Variables)'-1];
+
+            disp(array2table(data,'VariableNames',{'Experiment_1','Experiment_2'},'RowNames',obj.CorrBetwVars.rho{1}.Properties.VariableNames'))
         end
         function obj = plot_partial_correlation_and_pooled_pvals_bars(obj,excludevars)
             if nargin == 1
@@ -420,8 +434,8 @@ classdef twodancers_many_emily_multiple_regression
            for j = 1:numel(obj.res(1).data) % each experiment
                subplot(2,1,j)
                boxplot([res{j} zscore(obj.res(1).data(1,j).MeanRatedInteraction) zscore(obj.res(1).data(1,j).MeanRatedSimilarity)])
-               set(gca,'XTick',1:5,'XTickLabels',[obj.predictorNames {'Rated Interaction','Rated Similarity'}])
-               title(['Experiment' num2str(j)])
+               set(gca,'XTick',1:6,'XTickLabels',[obj.predictorNames {'Rated Interaction','Rated Similarity'}])
+               title(['Experiment ' num2str(j)])
                ylabel('Z-score')
            end
             if ~verLessThan('matlab', '9.5') && strcmpi(obj.plotTitleType,'subplotGrid')
