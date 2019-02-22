@@ -449,6 +449,24 @@ classdef twodancers_many_emily_multiple_regression
                 figure
             end
         end
+        function scatter_plots_between_estimates(obj)
+            c = combnk(1:numel(obj.predictorNames),2);
+            for k = 1:size(c,1)
+                var1 = c(k,1);
+                var2 = c(k,2);
+                figure
+                for j = 1:numel(obj.experimentNames)
+                    subplot(1,2,j)
+                    x = arrayfun(@(x) x.res.Corr.Estimates, obj.res(var1).data(j).Res);
+                    y = arrayfun(@(x) x.res.Corr.Estimates, obj.res(var2).data(j).Res);
+                    scatter(x,y)
+                    title(obj.experimentNames{j})
+                    xlabel(obj.predictorNames{var1})
+                    ylabel(obj.predictorNames{var2})
+                    axis square
+                end
+            end
+        end
     end
     methods (Static)
         function addstarstobar(b,pdata)
