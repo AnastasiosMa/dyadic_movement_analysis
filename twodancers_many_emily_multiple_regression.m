@@ -69,14 +69,14 @@ classdef twodancers_many_emily_multiple_regression
             if nargin == 1
                 excludevars = [];
             end
-            disp('DISTRIBUTION STATISTICS FOR SYNCHRONY ESTIMATES')
+            disp('DISTRIBUTION STATISTICS FOR COORDINATION ESTIMATES')
             obj = predictors_distribution(obj);
-            disp('CORRELATION BETWEEN SYNCHRONY ESTIMATES')
+            disp('CORRELATION BETWEEN COORDINATION ESTIMATES')
             obj = plot_correlation_between_vars(obj);
             disp(['DIFFERENCE BETWEEN EXP2 AND EXP1 WITH RESPECT TO ' ...
-                  'CORRELATION BETWEEN SYNCHRONY ESTIMATES'])
+                  'CORRELATION BETWEEN COORDINATION ESTIMATES'])
             obj = plot_diff_experiments_correlation_between_vars(obj);
-            disp(['SUM OF CORRELATION BETWEEN SYNCHRONY ESTIMATES'])
+            disp(['SUM OF CORRELATION BETWEEN COORDINATION ESTIMATES'])
             obj = plot_sum_correlation_between_vars(obj);
             disp('CORRELATION WITH PERCEPTUAL MEASURES')
             obj = plot_correlation_and_pooled_pvals_bars(obj,excludevars);
@@ -142,7 +142,7 @@ classdef twodancers_many_emily_multiple_regression
             obj = compute_regression(obj); % actual regression is
                                            % not needed, it just
                                            % creates these tables
-            obj.currentPLotTitle = 'Correlation between synchrony estimates';
+            obj.currentPLotTitle = 'Correlation between coordination estimates';
             figure(obj)
             for j = 1:numel(obj.CorrBetwVars.rho)
             subplot(1,2,j)
@@ -177,7 +177,7 @@ classdef twodancers_many_emily_multiple_regression
             InterRHO.Row = strrep(InterRHO.Row,'_rho','');
             InterRHO.Properties.VariableNames = strrep(InterRHO.Properties.VariableNames,'_Int','');
             SimiRHO.Properties.VariableNames = strrep(SimiRHO.Properties.VariableNames,'_Sim','');
-            obj.currentPLotTitle = 'Partial correlations between synchrony estimates and perceptual measures';
+            obj.currentPLotTitle = 'Partial correlations between coordination estimates and perceptual measures';
             figure(obj)
             subplot(2,1,1)
             colors = extras.brewermap(numel(obj.experimentNames),'Blues');
@@ -188,7 +188,7 @@ classdef twodancers_many_emily_multiple_regression
             legend(obj.experimentNames);
             xticklabels(InterRHO.Row');
             ylabel('Correlation')
-            xlabel('Synchrony estimate')
+            xlabel('Coordination estimate')
             title('Interaction');
             ylim([0 1]);
             pdata = InterPVAL.Variables';
@@ -201,7 +201,7 @@ classdef twodancers_many_emily_multiple_regression
             legend(obj.experimentNames);
             xticklabels(SimiRHO.Row');
             ylabel('Correlation')
-            xlabel('Synchrony estimate')
+            xlabel('Coordination estimate')
             title('Similarity');
             ylim([0 1]);
             pdata = SimiPVAL.Variables';
@@ -220,7 +220,7 @@ classdef twodancers_many_emily_multiple_regression
             pooled_Z.Interaction = twodancers_many_emily_multiple_regression.pool_p_vals(InterPVAL.Variables);
             pooled_Z.Similarity = twodancers_many_emily_multiple_regression.pool_p_vals(SimiPVAL.Variables);
                 obj.currentPLotTitle = ['Pooled p-values from partial ' ...
-                                    'correlation between synchrony estimates and perceptual measures'];
+                                    'correlation between coordination estimates and perceptual measures'];
             figure(obj)
             names = {'Interaction';'Similarity'};
             for j = 1:numel(fieldnames(pooled_Z))
@@ -233,7 +233,7 @@ classdef twodancers_many_emily_multiple_regression
                     b(k).FaceColor = colors(k,:);
                 end
                 xticklabels(obj.predictorNames');
-                xlabel('Synchrony estimate');
+                xlabel('Coordination estimate');
                 ylabel('Z-score');
                 title(names{j});
                 %                ylim([0 1]);
@@ -333,7 +333,7 @@ classdef twodancers_many_emily_multiple_regression
             obj.SimiTbl = array2table(Simi,'RowNames',predictorNames,'VariableNames',{'Exp1','Exp2'});
             disp(obj.InterTbl)
             disp(obj.SimiTbl)
-            obj.currentPLotTitle = 'Correlations between synchrony estimates and perceptual measures';
+            obj.currentPLotTitle = 'Correlations between coordination estimates and perceptual measures';
 
             res = obj.res;
             res(excludevars) = [];
@@ -354,7 +354,7 @@ classdef twodancers_many_emily_multiple_regression
             end
             legend(obj.experimentNames);
             xticklabels(obj.InterTbl.Row');
-            xlabel('Synchrony estimate');
+            xlabel('Coordination estimate');
             ylabel('Correlation');
             title('Interaction');
             ylim([0 1]);
@@ -367,7 +367,7 @@ classdef twodancers_many_emily_multiple_regression
             end
             legend(obj.experimentNames);
             xticklabels(obj.SimiTbl.Row');
-            xlabel('Synchrony estimate');
+            xlabel('Coordination estimate');
             ylabel('Correlation');
             title('Similarity');
             ylim([0 1]);
@@ -380,7 +380,7 @@ classdef twodancers_many_emily_multiple_regression
 
             pooled_Z.Interaction = twodancers_many_emily_multiple_regression.pool_p_vals(InterP);
             pooled_Z.Similarity = twodancers_many_emily_multiple_regression.pool_p_vals(SimiP);
-                obj.currentPLotTitle = ['Pooled p-values from correlation between synchrony estimates ' ...
+                obj.currentPLotTitle = ['Pooled p-values from correlation between coordination estimates ' ...
                  'and perceptual measures'];
             figure(obj)
             names = {'Interaction';'Similarity'};
@@ -394,7 +394,7 @@ classdef twodancers_many_emily_multiple_regression
                     b(k).FaceColor = colors(k,:);
                 end
                 xticklabels(predictorNames');
-                xlabel('Synchrony estimate');
+                xlabel('Coordination estimate');
                 ylabel('Z-score');
                 title(names{j});
                 %                ylim([0 1]);
@@ -429,7 +429,7 @@ classdef twodancers_many_emily_multiple_regression
                t.Properties.RowNames = obj.DescriptiveStatsNames';
                disp(t)
            end
-           obj.currentPLotTitle = 'Distribution statistics for synchrony estimates';
+           obj.currentPLotTitle = 'Distribution statistics for coordination estimates';
            figure(obj)
            for j = 1:numel(obj.res(1).data) % each experiment
                subplot(2,1,j)
