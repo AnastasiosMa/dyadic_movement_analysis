@@ -20,6 +20,7 @@ classdef twodancers_many_emily_multiple_regression
                                   % 'figureName': sets title as the figure name
                                   % 'subplotGrid': sets title as subplot grid title
                                   % If this property is empty, it does not set any title
+        tableAllVars
         JBtest                          
     end
     properties (Hidden)
@@ -82,6 +83,29 @@ classdef twodancers_many_emily_multiple_regression
             obj = plot_correlation_and_pooled_pvals_bars(obj,excludevars);
             disp('PARTIAL CORRELATION WITH PERCEPTUAL MEASURES')
             obj = plot_partial_correlation_and_pooled_pvals_bars(obj,excludevars);
+        end
+        function obj = create_tables_estimates_perc_measures(obj)
+            for j = 1:numel(obj.res(1).data) % each experiment
+                for k = 1:numel(obj.res) % each approach 
+                    res{j}(:,k) = arrayfun(@(x) x.res.Corr.Estimates,obj.res(k).data(j).Res)';
+                end
+            end
+            predictornames_underscore = strrep(obj.predictorNames,' ','_');
+            tables = cellfun(@(x) array2table(x,'VariableNames', ...
+                                     predictornames_underscore), res,'UniformOutput',false);
+
+
+            percnames = {'MeanRatedInteraction', ...
+                         'MeanRatedSimilarity'};
+            for j = 1:numel(obj.res(k).data)
+                for l = 1:numel(percnames)
+                    perc{j}(:,l) = obj.res(k).data(j).(percnames{l});
+                end
+            end
+            perc_tables = cellfun(@(x) array2table(x,'VariableNames',percnames), perc,'UniformOutput',false);
+            obj.tableAllVars = cellfun(@(x,y) [x(:,1:end) y(:,1:end)],tables,perc_tables,'UniformOutput',false);
+            disp(obj.tableAllVars{1})
+            disp(obj.tableAllVars{2})
         end
         function obj = compute_regression(obj,excludevars)
         % e.g. excludevars = [2 4];
